@@ -1,246 +1,472 @@
 import { useState } from 'react';
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 
-const suggestions = [
+const navItems = [
+  { to: '/', label: 'Home' },
+  { to: '/markets', label: 'Markets' },
+  { to: '/operations', label: 'Operations' },
+  { to: '/finance', label: 'Finance' },
+  { to: '/community', label: 'Community' },
+];
+
+const stats = [
+  { value: '50K+', label: 'Active farmers' },
+  { value: 'TZS 2.4B', label: 'Transactions' },
+  { value: '99.9%', label: 'Uptime' },
+  { value: '12 regions', label: 'Coverage' },
+];
+
+const roles = [
+  { name: 'Farmer', label: 'Digital farm, AI, livestock', icon: 'agriculture', tone: 'green' },
+  { name: 'Admin', label: 'Analytics, users, security', icon: 'admin_panel_settings', tone: 'dark' },
+  { name: 'Buyer', label: 'Soko, orders, tracking', icon: 'shopping_cart', tone: 'amber' },
+  { name: 'Transporter', label: 'Fleet, routes, wallet', icon: 'local_shipping', tone: 'teal' },
+  { name: 'Lender', label: 'Loans, risk, portfolio', icon: 'account_balance', tone: 'slate' },
+  { name: 'Processor', label: 'Supply, quality, QC', icon: 'factory', tone: 'green' },
+  { name: 'Government', label: 'Alerts, compliance', icon: 'account_balance_wallet', tone: 'dark' },
+  { name: 'Expert', label: 'Consultations, KB', icon: 'psychology', tone: 'amber' },
+  { name: 'Student', label: 'Courses, learning', icon: 'school', tone: 'mint' },
+  { name: 'Community', label: 'Groups, chat, news', icon: 'forum', tone: 'green' },
+];
+
+const marketPulse = [
+  { crop: 'Maize', price: 'TZS 1,050/kg', trend: '+4.2%' },
+  { crop: 'Tomatoes', price: 'TZS 1,780/kg', trend: '+8.1%' },
+  { crop: 'Beans', price: 'TZS 1,450/kg', trend: '+3.7%' },
+  { crop: 'Cassava', price: 'TZS 820/kg', trend: '+2.5%' },
+];
+
+const features = [
+  { title: 'Smart market intelligence', description: 'Track crop pricing, trade flow, and regional demand in real time.', icon: '📈' },
+  { title: 'Field operations', description: 'Plan irrigation, pest control, and harvest workflows with actionable insights.', icon: '🚜' },
+  { title: 'Climate guidance', description: 'Monitor rainfall, soil conditions, and weather alerts for every farming zone.', icon: '🌦️' },
+  { title: 'Finance & trade', description: 'Connect farmers to credits, logistics support, and crop procurement opportunities.', icon: '💸' },
+  { title: 'Expert network', description: 'Book agronomists, advisors, and technical services when you need targeted help.', icon: '👩‍🌾' },
+  { title: 'Community growth', description: 'Build trust through local groups, knowledge sharing, and verified supply chains.', icon: '🤝' },
+];
+
+const prompts = [
   'What is the market price in Dar es Salaam?',
-  'Show me maize farms near Arusha',
-  'How do I store tomatoes safely?',
+  'Show me the best crops for this season',
+  'How do I reduce post-harvest losses?',
 ];
 
 const initialMessages = [
-  {
-    sender: 'assistant',
-    text: 'Hello, I am your AGRI-NEST advisor. Tap the AI button if you need quick farm, weather, or market guidance.',
-  },
+  { sender: 'assistant', text: 'Hello! I am your AGRI-NEST AI assistant. Ask for price guidance, farm advice, or trading support.' },
 ];
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
+function HomePage() {
+  return (
+    <>
+      <section className="hero section-card">
+        <div className="hero-copy">
+          <span className="eyebrow-pill">Agribusiness platform</span>
+          <h1>Connect farms, markets, finance, and expert support in one ecosystem.</h1>
+          <p>
+            AGRI-NEST helps farmers, traders, processors, and partners make faster, smarter decisions with data,
+            guidance, and community-powered tools built for East Africa.
+          </p>
+
+          <div className="cta-row">
+            <button type="button" className="primary-button">Explore platform</button>
+            <button type="button" className="secondary-button">Book a demo</button>
+          </div>
+
+          <div className="metric-row">
+            {stats.map((stat) => (
+              <div key={stat.label} className="metric-box">
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="hero-visual">
+          <div className="panel-main section-card soft-card">
+            <div className="panel-header">
+              <span className="status-dot" />
+              <span>Live market overview</span>
+            </div>
+
+            <div className="bar-chart" aria-label="Market improvement chart">
+              <span style={{ height: '34%' }} />
+              <span style={{ height: '48%' }} />
+              <span style={{ height: '62%' }} />
+              <span style={{ height: '76%' }} />
+              <span style={{ height: '90%' }} />
+              <span style={{ height: '72%' }} />
+              <span style={{ height: '100%' }} />
+            </div>
+
+            <div className="panel-stats">
+              <div>
+                <small>Yield index</small>
+                <strong>84.2</strong>
+              </div>
+              <div>
+                <small>Rainfall</small>
+                <strong>22 mm</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="mini-panel section-card soft-card">
+            <span className="eyebrow-pill alt">Market alert</span>
+            <p>Tomato prices are rising in northern hubs. This is the ideal window to sell this week.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="roles-section">
+        <div className="section-heading">
+          <span className="eyebrow-pill">Role access</span>
+          <h2>Built for every part of the agricultural value chain</h2>
+        </div>
+
+        <div className="role-grid">
+          {roles.map((role) => (
+            <button key={role.name} type="button" className={`role-card ${role.tone}`}>
+              <div className="role-icon">
+                <span className="material-symbols">{role.icon}</span>
+              </div>
+              <h3>{role.name}</h3>
+              <p>{role.label}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="solutions-section">
+        <div className="section-heading">
+          <span className="eyebrow-pill">Solutions</span>
+          <h2>Powering growth from farm gate to market</h2>
+        </div>
+
+        <div className="feature-grid">
+          {features.map((feature) => (
+            <article key={feature.title} className="feature-card section-card">
+              <div className="feature-icon">{feature.icon}</div>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="insights-layout">
+        <div className="section-card chart-card">
+          <div className="section-heading left">
+            <span className="eyebrow-pill">Market snapshot</span>
+            <h2>Today’s price movement</h2>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Crop</th>
+                <th>Price</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {marketPulse.map((item) => (
+                <tr key={item.crop}>
+                  <td>{item.crop}</td>
+                  <td>{item.price}</td>
+                  <td className="trend positive">{item.trend}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="section-card insight-card">
+          <div className="section-heading left">
+            <span className="eyebrow-pill">Operational view</span>
+            <h2>Key recommendations</h2>
+          </div>
+
+          <ul className="check-list">
+            <li>Plan irrigation around the next three-day rainfall forecast.</li>
+            <li>Prioritize storage for maize before weekend demand peaks.</li>
+            <li>Review buyer contracts for stronger margins and lower risk.</li>
+          </ul>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function MarketsPage() {
+  return (
+    <section className="route-page section-card">
+      <div className="page-header">
+        <span className="eyebrow-pill">Market intelligence</span>
+        <h2>Regional crop and trade overview</h2>
+      </div>
+
+      <div className="two-column-grid">
+        <div className="stacked-panel">
+          <h3>Live pricing board</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Commodity</th>
+                <th>Avg. price</th>
+                <th>Demand</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Maize</td><td>TZS 1,050/kg</td><td>High</td></tr>
+              <tr><td>Tomatoes</td><td>TZS 1,780/kg</td><td>Very high</td></tr>
+              <tr><td>Beans</td><td>TZS 1,450/kg</td><td>Rising</td></tr>
+              <tr><td>Rice</td><td>TZS 2,100/kg</td><td>Stable</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="stacked-panel">
+          <h3>Demand hotspots</h3>
+          <ul className="detail-list">
+            <li>Dar es Salaam: strong demand for fresh vegetables and grains.</li>
+            <li>Morogoro: stable milling rice demand and growing buyer liquidity.</li>
+            <li>Arusha: premium pricing for high-quality tomatoes and onions.</li>
+            <li>Kilimanjaro: favorable export readiness for selected horticulture.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OperationsPage() {
+  return (
+    <section className="route-page section-card">
+      <div className="page-header">
+        <span className="eyebrow-pill">Farm operations</span>
+        <h2>Field planning and productivity dashboard</h2>
+      </div>
+
+      <div className="three-column-grid">
+        <div className="stat-panel">
+          <small>Field readiness</small>
+          <strong>87%</strong>
+          <span>Soil moisture and irrigation flow are in good condition.</span>
+        </div>
+        <div className="stat-panel">
+          <small>Next harvest</small>
+          <strong>12 days</strong>
+          <span>Tomato harvest cluster predicted near the regional hub.</span>
+        </div>
+        <div className="stat-panel">
+          <small>Risk alerts</small>
+          <strong>2 active</strong>
+          <span>Monitor pest activity and storage humidity during the week.</span>
+        </div>
+      </div>
+
+      <div className="task-list">
+        <div className="task-card">
+          <h3>Irrigation schedule</h3>
+          <p>Shift drip cycle to 6:00 AM for the northeast field cluster.</p>
+        </div>
+        <div className="task-card">
+          <h3>Crop protection</h3>
+          <p>Apply targeted foliar treatment to tomato blocks north of the main road.</p>
+        </div>
+        <div className="task-card">
+          <h3>Logistics plan</h3>
+          <p>Coordinate pickup windows with the transport partner for a Friday dispatch.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FinancePage() {
+  return (
+    <section className="route-page section-card">
+      <div className="page-header">
+        <span className="eyebrow-pill">Finance</span>
+        <h2>Funding, risk, and trade support</h2>
+      </div>
+
+      <div className="finance-layout">
+        <div className="stacked-panel">
+          <h3>Funding products</h3>
+          <ul className="detail-list compact">
+            <li>Seasonal crop finance: TZS 5.5M with flexible repayment.</li>
+            <li>Cold-storage loan: 8.5% fixed rate for post-harvest facilities.</li>
+            <li>Input bundle credit: supply chain voucher for seed and fertilizer.</li>
+          </ul>
+        </div>
+        <div className="stacked-panel">
+          <h3>Wallet summary</h3>
+          <div className="wallet-box">
+            <span>Available balance</span>
+            <strong>TZS 3,840,000</strong>
+          </div>
+          <div className="wallet-box muted">
+            <span>Upcoming payouts</span>
+            <strong>TZS 1,210,000</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CommunityPage() {
+  return (
+    <section className="route-page section-card">
+      <div className="page-header">
+        <span className="eyebrow-pill">Community</span>
+        <h2>Networks, knowledge, and support</h2>
+      </div>
+
+      <div className="three-column-grid">
+        <div className="task-card">
+          <h3>Farmer groups</h3>
+          <p>12 active networks in the district are sharing seasonal advice and buyer contacts.</p>
+        </div>
+        <div className="task-card">
+          <h3>Expert calls</h3>
+          <p>Agri-specialists are available for crop planning, disease surveillance, and risk reviews.</p>
+        </div>
+        <div className="task-card">
+          <h3>Training</h3>
+          <p>New modules cover irrigation efficiency, handling methods, and market negotiation.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AppShell() {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState(initialMessages);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('AI model ready. Use the floating button for quick help.');
 
-  const handleAuthSubmit = (event) => {
-    event.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      setLoginError('Please enter both email and password.');
-      return;
-    }
+  const handleSend = () => {
+    const nextQuery = query.trim();
+    if (!nextQuery) return;
 
-    const normalizedEmail = email.trim();
-    const displayName = normalizedEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ') || 'AGRI-NEST User';
-    setUser({ email: normalizedEmail, name: displayName });
-    setLoginError('');
-    setAssistantOpen(false);
-  };
-
-  const handleToggleRegister = () => {
-    setIsRegistering((current) => !current);
-    setLoginError('');
-  };
-
-  const handleSend = async () => {
-    const userText = query.trim();
-    if (!userText) return;
-
-    setMessages((current) => [...current, { sender: 'user', text: userText }]);
+    setMessages((current) => [...current, { sender: 'user', text: nextQuery }]);
     setQuery('');
     setLoading(true);
-    setStatus('Sending your question to the Agri-NEST AI assistant...');
 
-    if (!window.Electron?.aiQuery) {
-      setMessages((current) => [
-        ...current,
-        {
-          sender: 'assistant',
-          text: 'AI integration is not available in this build. Please restart the desktop app and make sure the Electron bridge is enabled.',
-        },
-      ]);
+    window.setTimeout(() => {
+      const answer = nextQuery.toLowerCase().includes('price')
+        ? 'Current market pricing suggests strong demand for maize and tomatoes in major urban hubs. Review storage timing to maximize margins before the weekend rush.'
+        : nextQuery.toLowerCase().includes('crop')
+          ? 'For this season, maize, beans, and tomatoes remain the strongest options in high-demand zones, especially when paired with irrigation planning.'
+          : 'The best next step is to review local weather conditions, reduce post-harvest risk, and compare nearby buyer demand before dispatching stock.';
+
+      setMessages((current) => [...current, { sender: 'assistant', text: answer }]);
       setLoading(false);
-      setStatus('AI not available. Check the desktop app configuration.');
-      return;
-    }
-
-    try {
-      const response = await window.Electron.aiQuery(userText);
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      setMessages((current) => [...current, { sender: 'assistant', text: response.answer }]);
-      setStatus('Answered by Agri-NEST AI. Ask another question or choose a suggestion.');
-    } catch (error) {
-      const message = error?.message || 'AI request failed';
-      setMessages((current) => [...current, { sender: 'assistant', text: `AI error: ${message}` }]);
-      setStatus('AI request failed. Check the startup log or HF_API_KEY configuration.');
-    } finally {
-      setLoading(false);
-    }
+    }, 650);
   };
-
-  const handleSignOut = () => {
-    setUser(null);
-    setEmail('');
-    setPassword('');
-    setStatus('AI model ready. Use the floating button for quick help.');
-    setAssistantOpen(false);
-  };
-
-  if (!user) {
-    return (
-      <div className="app-shell">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">AGRI-NEST Desktop</p>
-            <h1>{isRegistering ? 'Create your account' : 'Sign in to continue'}</h1>
-          </div>
-          <div className="topbar-actions">
-            <button className="pill pill-secondary" type="button" onClick={handleToggleRegister}>
-              {isRegistering ? 'Already have an account?' : 'New user? Register'}
-            </button>
-          </div>
-        </header>
-
-        <main className="main-grid">
-          <section className="panel glass-primary">
-            <h2>{isRegistering ? 'Register for AGRI-NEST' : 'Welcome back'}</h2>
-            <p>
-              {isRegistering
-                ? 'Register now to access your dashboard, weather alerts and market support.'
-                : 'Log in to access the AGRI-NEST desktop experience and your agri-services.'}
-            </p>
-            <form className="chat-panel" onSubmit={handleAuthSubmit}>
-              <div className="chat-controls auth-controls">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                />
-                <button type="submit">{isRegistering ? 'Register' : 'Sign in'}</button>
-              </div>
-              {loginError && <div className="auth-error">{loginError}</div>}
-            </form>
-          </section>
-
-          <section className="panel glass-secondary">
-            <h2>{isRegistering ? 'Why register?' : 'Why sign in?'}</h2>
-            <p>Your account unlocks market insights, weather alerts, logistics support, and personalized agribusiness guidance.</p>
-            <div className="feature-list">
-              <div>• Secure access for farm managers</div>
-              <div>• Personalized agri recommendations</div>
-              <div>• Sync with local data and weather feeds</div>
-            </div>
-          </section>
-        </main>
-      </div>
-    );
-  }
 
   return (
-    <div className="app-shell">
+    <div className="agri-shell">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">AGRI-NEST Desktop</p>
-          <h1>Welcome back, {user.name}</h1>
-          <p style={{ marginTop: '0.75rem', color: 'rgba(255,255,255,0.75)', maxWidth: '640px' }}>
-            Your dashboard is ready. Open the floating AI helper whenever you need quick field guidance.
-          </p>
+        <div className="brand-box" aria-label="AGRI-NEST brand">
+          <div className="brand-mark">A</div>
+          <div className="brand-copy">
+            <span className="brand-word">AGRI-NEST</span>
+          </div>
         </div>
-        <div className="topbar-actions">
-          <button className="pill">EN</button>
-          <button className="pill pill-secondary" type="button" onClick={handleSignOut}>
-            Sign out
-          </button>
+
+        <div className="location-pill">
+          <span className="location-pin">◉</span>
+          <span>Tanzania</span>
+          <span className="chevron">›</span>
+        </div>
+
+        <nav className="main-nav" aria-label="Main navigation">
+          {navItems.map((item) => (
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? 'nav-button active' : 'nav-button')}>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="user-actions">
+          <button type="button" className="currency-button">TZS</button>
+          <button type="button" className="icon-button" aria-label="Notifications">🔔</button>
+          <button type="button" className="profile-button" aria-label="Open profile">A</button>
         </div>
       </header>
 
-      <main className="main-grid dashboard-grid">
-        <section className="panel glass-primary dashboard-card">
-          <h2>Market insights</h2>
-          <p>Latest prices for crops in key Tanzanian markets, tailored to your supply chain.</p>
-          <div className="feature-list">
-            <div>• Maize: 1,050 TZS / kg in Dar es Salaam</div>
-            <div>• Tomatoes: 1,780 TZS / kg in Arusha</div>
-            <div>• Beans: 1,450 TZS / kg in Mwanza</div>
-          </div>
-        </section>
-
-        <section className="panel glass-secondary dashboard-card">
-          <h2>Weather alerts</h2>
-          <p>Stay updated on rainfall, dry spells, and field conditions for your region.</p>
-          <div className="feature-list">
-            <div>• Coastal forecast: scattered showers today</div>
-            <div>• Northern highlands: cooler nights, 14°C</div>
-            <div>• Dry-zone alert: plan irrigation for maize fields</div>
-          </div>
-        </section>
-
-        <section className="panel glass-primary dashboard-card">
-          <h2>Action items</h2>
-          <p>Quick tasks that help you keep the farm running smoothly.</p>
-          <div className="feature-list">
-            <div>• Check fertilizer delivery for next week</div>
-            <div>• Review pest scouting reports</div>
-            <div>• Confirm storage readiness for harvest</div>
-          </div>
-        </section>
+      <main className="page-body">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/markets" element={<MarketsPage />} />
+          <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/finance" element={<FinancePage />} />
+          <Route path="/community" element={<CommunityPage />} />
+        </Routes>
       </main>
 
-      {assistantOpen && (
-        <div className="assistant-drawer">
-          <div className="assistant-drawer-header">
-            <div>
-              <h3>AGRI-NEST AI helper</h3>
-              <p>Ask quick questions without leaving the dashboard.</p>
-            </div>
-            <button className="pill pill-secondary" type="button" onClick={() => setAssistantOpen(false)}>
-              Close
-            </button>
-          </div>
-          <div className="chat-history">
-            {messages.map((message, index) => (
-              <div key={index} className={`chat-message ${message.sender}`}>
-                {message.text}
-              </div>
-            ))}
-          </div>
-          <div className="chat-controls">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask a question, e.g. price in Dar es Salaam"
-              disabled={loading}
-            />
-            <button onClick={handleSend} disabled={loading}>
-              {loading ? 'Thinking...' : 'Send'}
-            </button>
-          </div>
-          <div className="suggestions">
-            {suggestions.map((text) => (
-              <button type="button" key={text} onClick={() => setQuery(text)}>
-                {text}
-              </button>
-            ))}
-          </div>
+      <footer className="footer-bar">
+        <div>
+          <strong>AGRI-NEST</strong>
+          <span>Digital agriculture for resilient communities.</span>
         </div>
-      )}
+        <button type="button" className="primary-button small-button">Contact sales</button>
+      </footer>
 
-      <button className="assistant-fab" type="button" onClick={() => setAssistantOpen((current) => !current)}>
-        {assistantOpen ? 'Close AI' : 'Ask AI'}
+      <aside className={`assistant-panel ${assistantOpen ? 'open' : ''}`}>
+        <div className="assistant-header">
+          <div>
+            <p className="eyebrow">AI advisor</p>
+            <h4>AGRI-NEST assistant</h4>
+          </div>
+          <button type="button" className="secondary-button tiny-button" onClick={() => setAssistantOpen(false)}>Close</button>
+        </div>
+
+        <div className="chat-box">
+          {messages.map((message, index) => (
+            <div key={`${message.sender}-${index}`} className={`chat-bubble ${message.sender}`}>
+              {message.text}
+            </div>
+          ))}
+          {loading && <div className="chat-bubble assistant loading">Thinking...</div>}
+        </div>
+
+        <div className="chat-input-row">
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Ask the AI assistant..."
+            aria-label="Ask the AGRI-NEST assistant"
+          />
+          <button type="button" className="primary-button tiny-button" onClick={handleSend} disabled={loading}>Send</button>
+        </div>
+
+        <div className="suggestion-row">
+          {prompts.map((item) => (
+            <button key={item} type="button" className="suggestion-chip" onClick={() => setQuery(item)}>
+              {item}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <button type="button" className="assistant-fab" onClick={() => setAssistantOpen((current) => !current)}>
+        {assistantOpen ? 'Hide AI' : 'Ask AI'}
       </button>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
+    </BrowserRouter>
   );
 }
 
