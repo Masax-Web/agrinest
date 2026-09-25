@@ -285,6 +285,90 @@ paths:
               schema:
                 $ref: '#/components/schemas/JichoScanResponse'
 
+  /jicho/scans:
+    get:
+      summary: List recent Jicho diagnostic scans
+      parameters:
+        - in: query
+          name: farmer_id
+          schema: { type: string }
+      responses:
+        '200':
+          description: Recent diagnostic history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JichoHistoryItem'
+
+  /students/dashboard:
+    get:
+      summary: Get a student dashboard
+      parameters:
+        - in: query
+          name: student_id
+          schema: { type: string }
+      responses:
+        '200':
+          description: Student dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /students/progress:
+    post:
+      summary: Update student course progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, progress]
+              properties:
+                student_id: { type: string }
+                course_id: { type: string }
+                progress: { type: number }
+      responses:
+        '200': { description: Progress updated }
+
+  /students/assignments:
+    post:
+      summary: Submit a student assignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                student_id: { type: string }
+                name: { type: string }
+      responses:
+        '201': { description: Assignment submitted }
+
+  /students/applications:
+    post:
+      summary: Apply for a student opportunity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [opportunity_id]
+              properties:
+                student_id: { type: string }
+                opportunity_id: { type: string }
+      responses:
+        '201': { description: Application submitted }
+
   /soko/listings:
     post:
       summary: Create a marketplace listing
@@ -317,6 +401,45 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Listing'
+
+  /community/conversations:
+    get:
+      summary: List community conversations with messages
+      responses:
+        '200':
+          description: Community conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [conversations]
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommunityConversation'
+
+  /community/conversations/{conversationId}/messages:
+    post:
+      summary: Send a community message
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityMessageCreate'
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityMessage'
 
 components:
   schemas:
@@ -382,8 +505,22 @@ components:
     JichoScanResponse:
       type: object
       properties:
+        scan_id: { type: string }
         diagnosis: { type: string }
         confidence: { type: number }
+        recommended_treatment: { type: string }
+        severity: { type: string }
+
+    JichoHistoryItem:
+      type: object
+      properties:
+        id: { type: string }
+        diagnosis: { type: string }
+        confidence: { type: number }
+        crop: { type: string }
+        farm: { type: string }
+        time: { type: string }
+        severity: { type: string }
         recommended_treatment: { type: string }
 
     ListingCreate:
@@ -403,6 +540,50 @@ components:
         crop_type: { type: string }
         quantity: { type: number }
         price: { type: number }
+
+    CommunityConversation:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string }
+        time: { type: string }
+        preview: { type: string }
+        avatar: { type: string, nullable: true }
+        icon: { type: string }
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunityMessage'
+
+    CommunityMessage:
+      type: object
+      properties:
+        id: { type: string }
+        author: { type: string }
+        time: { type: string }
+        body: { type: string }
+        incoming: { type: boolean }
+        avatar: { type: string, nullable: true }
+        image: { type: string, nullable: true }
+        attachmentName: { type: string, nullable: true }
+        attachmentPreview: { type: string, nullable: true }
+
+    CommunityMessageCreate:
+      type: object
+      properties:
+        author: { type: string }
+        body: { type: string }
+        attachmentName: { type: string }
+        attachmentUrl: { type: string }
+        attachmentKind: { type: string }
+        imageUrl: { type: string }
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+            label: { type: string }
 
     UssdSessionRequest:
       type: object

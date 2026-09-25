@@ -47,4 +47,64 @@ describe('AGRI-NEST API integration', function() {
     expect(res.body).to.have.property('diagnosis');
     expect(res.body).to.have.property('confidence');
   });
+
+  it('supports user CRUD endpoints', async () => {
+    const createRes = await api.post('/users').send({ phone: '+255700000003', name: 'CRUD User', role: 'farmer' }).expect(201);
+    const id = createRes.body.user_id || createRes.body.id;
+    expect(id).to.exist;
+
+    const listRes = await api.get('/users').expect(200);
+    expect(listRes.body.items || listRes.body).to.be.an('array');
+
+    const updateRes = await api.put(`/users/${id}`).send({ name: 'Updated CRUD User', role: 'buyer' }).expect(200);
+    expect(updateRes.body.name).to.equal('Updated CRUD User');
+
+    const deleteRes = await api.delete(`/users/${id}`).expect(200);
+    expect(deleteRes.body.success).to.equal(true);
+  });
+
+  it('supports field CRUD endpoints', async () => {
+    const createRes = await api.post('/fields').send({ farm_id: farmId, name: 'North Field', crop: 'Maize' }).expect(201);
+    const id = createRes.body.field_id || createRes.body.id;
+    expect(id).to.exist;
+
+    const listRes = await api.get('/fields').expect(200);
+    expect(listRes.body.items || listRes.body).to.be.an('array');
+
+    const updateRes = await api.put(`/fields/${id}`).send({ name: 'North Field Updated', crop: 'Beans' }).expect(200);
+    expect(updateRes.body.name).to.equal('North Field Updated');
+
+    const deleteRes = await api.delete(`/fields/${id}`).expect(200);
+    expect(deleteRes.body.success).to.equal(true);
+  });
+
+  it('supports finance, order, livestock, and admin CRUD endpoints', async () => {
+    const financeCreate = await api.post('/finance/loans').send({ applicant_id: userId, amount: 2500000, product: 'agri-loan' }).expect(201);
+    const financeId = financeCreate.body.id || financeCreate.body.loan_id;
+    expect(financeId).to.exist;
+    await api.get('/finance/loans').expect(200);
+    await api.put(`/finance/loans/${financeId}`).send({ status: 'approved' }).expect(200);
+    await api.delete(`/finance/loans/${financeId}`).expect(200);
+
+    const orderCreate = await api.post('/orders').send({ buyer_id: userId, item: 'Maize', quantity: 50, total_amount: 500000 }).expect(201);
+    const orderId = orderCreate.body.id || orderCreate.body.order_id;
+    expect(orderId).to.exist;
+    await api.get('/orders').expect(200);
+    await api.put(`/orders/${orderId}`).send({ status: 'packed' }).expect(200);
+    await api.delete(`/orders/${orderId}`).expect(200);
+
+    const livestockCreate = await api.post('/livestock/herds').send({ owner_id: userId, name: 'Kilimanjaro Herd', animal_type: 'cow', count: 18 }).expect(201);
+    const herdId = livestockCreate.body.id || livestockCreate.body.herd_id;
+    expect(herdId).to.exist;
+    await api.get('/livestock/herds').expect(200);
+    await api.put(`/livestock/herds/${herdId}`).send({ count: 20 }).expect(200);
+    await api.delete(`/livestock/herds/${herdId}`).expect(200);
+
+    const adminCreate = await api.post('/admin/workflows').send({ title: 'Review farmer onboarding', assignee: 'admin' }).expect(201);
+    const workflowId = adminCreate.body.id || adminCreate.body.workflow_id;
+    expect(workflowId).to.exist;
+    await api.get('/admin/workflows').expect(200);
+    await api.put(`/admin/workflows/${workflowId}`).send({ status: 'in-progress' }).expect(200);
+    await api.delete(`/admin/workflows/${workflowId}`).expect(200);
+  });
 });

@@ -10,9 +10,12 @@ const jichoController = require('./controllers/JichoController');
 const sokoController = require('./controllers/SokoController');
 const communicationsController = require('../../../controllers/CommunicationsController');
 const cyberThreatController = require('../../../controllers/CyberThreatController');
+const communityController = require('../../../controllers/CommunityController');
+const studentsController = require('../../../controllers/StudentsController');
 
 const app = express();
 app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.static(path.join(__dirname, '../../../../dist')));
 
 const apiSpec = path.join(__dirname, '..', '..', '..', 'openapi.yaml');
 app.use(
@@ -31,6 +34,8 @@ app.use('/farms', farmsController);
 app.use('/fields', fieldsController);
 app.use('/jicho', jichoController);
 app.use('/soko', sokoController);
+app.use('/community', communityController);
+app.use('/students', studentsController);
 
 app.use((err, req, res, next) => {
   if (err && err.status && err.errors) {
