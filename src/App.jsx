@@ -351,6 +351,253 @@ function App() {
   );
 }
 
+function ProfileSettingsPage({ onBack }) {
+  return (
+    <div className="profile-page-shell">
+      <aside className="profile-sidebar">
+        <div className="profile-sidebar-header">
+          <img
+            alt="Amara Okafor profile"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlnxzgL50ZVXdGmBDIObDF_m8Y4MT40SdQmne0m7y9bkEFzjz-mpX4UTxivRACchS5lAGsC_pySuBcABEav_s7kAOkM9gFnekrZ0Azx6I4-m_D4-h3HdBDcC0y-ffUapF0B6-rNPAUskrBw1yIDqpAL_rzYwJmz_qbIKkZE5Troj-qMAY2SEiBJTNUkGLa6PrS02Ohw5j2TZDUMcBNwqgvpp1TTl2sdVWZJcSiQUn2Xv4EDcF5sdvSi94dm9vm1LLFoAdukimDi_Q"
+          />
+          <h2>Amara Okafor</h2>
+          <p>Verified Lead Farmer</p>
+        </div>
+
+        <ul className="profile-sidebar-nav">
+          {['Profile Overview', 'Farm Assets', 'Trust Metrics', 'Activity Log', 'Network', 'Settings'].map((item, index) => (
+            <li key={item}>
+              <button type="button" className={index === 0 ? 'profile-nav-item active' : 'profile-nav-item'}>
+                <span className="material-symbols-outlined">{['person', 'agriculture', 'verified_user', 'timeline', 'group', 'settings'][index]}</span>
+                {item}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="profile-sidebar-footer">
+          <button type="button" className="profile-share-btn">Share Profile</button>
+          <button type="button" className="profile-support-btn">
+            <span className="material-symbols-outlined">help</span>
+            Support
+          </button>
+          <button type="button" className="profile-signout-btn" onClick={onBack}>
+            <span className="material-symbols-outlined">logout</span>
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <main className="profile-main-panel">
+        <header className="profile-topbar">
+          <div className="profile-topbar-brand">
+            <h1>AgriTrust</h1>
+          </div>
+
+          <nav className="profile-topbar-nav">
+            {['Dashboard', 'Marketplace', 'Expert Hub', 'Community'].map((item) => (
+              <button type="button" key={item} className="profile-topbar-link">
+                {item}
+              </button>
+            ))}
+          </nav>
+
+          <div className="profile-topbar-actions">
+            <button type="button" className="profile-top-icon" aria-label="notifications">
+              <span className="material-symbols-outlined">notifications</span>
+            </button>
+            <button type="button" className="profile-top-icon" aria-label="settings">
+              <span className="material-symbols-outlined">settings</span>
+            </button>
+            <button type="button" className="profile-avatar-chip" aria-label="profile">
+              <img
+                alt="Neema Mwangi"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE"
+              />
+            </button>
+          </div>
+        </header>
+
+        <div className="profile-content">
+          <section className="profile-hero-card">
+            <div className="profile-cover-art" />
+            <div className="profile-identity-block">
+              <div className="profile-avatar-large-wrap">
+                <img
+                  alt="Neema Mwangi profile"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE"
+                />
+                <span className="profile-verified-badge material-symbols-outlined">verified</span>
+              </div>
+
+              <div className="profile-hero-copy">
+                <h1>Neema Mwangi</h1>
+                <div className="profile-location-row">
+                  <span className="material-symbols-outlined">location_on</span>
+                  <span>Mbeya Region, Tanzania</span>
+                </div>
+                <div className="profile-badges-row">
+                  <span><span className="material-symbols-outlined">verified_user</span> NIDA Verified</span>
+                  <span><span className="material-symbols-outlined">satellite_alt</span> GPS Mapped</span>
+                </div>
+              </div>
+
+              <button type="button" className="profile-message-btn">Message</button>
+            </div>
+          </section>
+
+          <div className="profile-main-grid">
+            <section className="profile-card profile-trust-card">
+              <div className="profile-card-header">
+                <span className="material-symbols-outlined">workspace_premium</span>
+                <h3>Trust Score</h3>
+              </div>
+
+              <div className="profile-trust-body">
+                <div className="trust-ring-wrap">
+                  <svg viewBox="0 0 36 36" aria-hidden="true">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e7ddd8" strokeWidth="4" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#b96543" strokeWidth="4" strokeDasharray="84.5, 100" />
+                  </svg>
+                  <div className="trust-ring-value">
+                    <strong>845</strong>
+                    <span>Excellent</span>
+                  </div>
+                </div>
+
+                <div className="trust-metrics">
+                  <div className="trust-metric-row">
+                    <div className="trust-metric-head">
+                      <span>Reliability</span>
+                      <strong>92%</strong>
+                    </div>
+                    <div className="trust-meter"><span style={{ width: '92%' }} /></div>
+                  </div>
+                  <div className="trust-metric-row">
+                    <div className="trust-metric-head">
+                      <span>Marketplace Activity</span>
+                      <strong>85%</strong>
+                    </div>
+                    <div className="trust-meter alt"><span style={{ width: '85%' }} /></div>
+                  </div>
+                  <div className="trust-metric-row">
+                    <div className="trust-metric-head">
+                      <span>Community Help</span>
+                      <strong>78%</strong>
+                    </div>
+                    <div className="trust-meter tertiary"><span style={{ width: '78%' }} /></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <aside className="profile-card profile-sidebar-card">
+              <div className="profile-card-header">
+                <span className="material-symbols-outlined">agriculture</span>
+                <h3>Farm Overview</h3>
+              </div>
+
+              <div className="farm-area-panel">
+                <span>Total Area</span>
+                <strong>3.5 Acres</strong>
+              </div>
+
+              <div className="farm-crops-row">
+                <span>Main Crops</span>
+                <div className="crop-pills">
+                  <span className="crop-pill maize">Maize</span>
+                  <span className="crop-pill beans">Beans</span>
+                  <span className="crop-pill sunflower">Sunflower</span>
+                </div>
+              </div>
+
+              <div className="farm-livestock-row">
+                <span className="material-symbols-outlined">cruelty_free</span>
+                <span>Livestock Head Count</span>
+                <strong>12</strong>
+              </div>
+
+              <div className="profile-card-header credential-header">
+                <span className="material-symbols-outlined">account_balance</span>
+                <h3>Verified Credentials</h3>
+              </div>
+
+              <ul className="credential-list">
+                {[
+                  ['CRDB Bank', 'Linked •••• 4291'],
+                  ['NBC Bank', 'Linked •••• 8830'],
+                  ['Land Title Deed', 'Verified 2023'],
+                ].map(([name, detail]) => (
+                  <li key={name} className="credential-item">
+                    <div className="credential-left">
+                      <span className="material-symbols-outlined">account_balance</span>
+                      <div>
+                        <strong>{name}</strong>
+                        <small>{detail}</small>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined credential-check">check_circle</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          </div>
+
+          <section className="profile-card profile-activity-card">
+            <div className="profile-card-header">
+              <span className="material-symbols-outlined">history</span>
+              <h3>Activity Timeline</h3>
+            </div>
+
+            <div className="timeline-list">
+              <div className="timeline-item">
+                <span className="timeline-dot dot-primary" />
+                <div>
+                  <small>2 days ago</small>
+                  <p>Sold 500kg Maize on Soko</p>
+                </div>
+              </div>
+              <div className="timeline-item">
+                <span className="timeline-dot dot-secondary" />
+                <div>
+                  <small>1 week ago</small>
+                  <p>Completed IPM Workshop</p>
+                </div>
+              </div>
+              <div className="timeline-item">
+                <span className="timeline-dot dot-accent" />
+                <div>
+                  <small>2 weeks ago</small>
+                  <p>Consulted with Dr. Mgata</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <nav className="profile-mobile-nav" aria-label="mobile navigation">
+        <button type="button" className="mobile-nav-btn">
+          <span className="material-symbols-outlined">home</span>
+          <span>Home</span>
+        </button>
+        <button type="button" className="mobile-nav-btn">
+          <span className="material-symbols-outlined">hub</span>
+          <span>Network</span>
+        </button>
+        <button type="button" className="mobile-nav-btn">
+          <span className="material-symbols-outlined">qr_code_scanner</span>
+          <span>Scan</span>
+        </button>
+        <button type="button" className="mobile-nav-btn active">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
+          <span className="sr-only">Profile</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
+
 function SmallholderDashboard({ onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -571,7 +818,7 @@ function SmallholderDashboard({ onLogout }) {
             </button>
 
             {isProfileMenuOpen && (
-              <div className="profile-menu" role="dialog" aria-label="Profile details">
+              <div className="profile-menu" role="dialog" aria-label="Profile details" onClick={() => setActiveView('profile')}>
                 <div className="profile-menu-header">
                   <div className="user-avatar-wrap large">
                     <img
@@ -601,11 +848,22 @@ function SmallholderDashboard({ onLogout }) {
                 </div>
 
                 <div className="profile-menu-actions">
-                  <button type="button" className="profile-edit-btn">Edit profile</button>
+                  <button
+                    type="button"
+                    className="profile-edit-btn"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setActiveView('profile');
+                      setIsProfileMenuOpen(false);
+                    }}
+                  >
+                    Edit profile
+                  </button>
                   <button
                     type="button"
                     className="profile-logout-btn"
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation();
                       setIsProfileMenuOpen(false);
                       onLogout();
                     }}
@@ -618,7 +876,9 @@ function SmallholderDashboard({ onLogout }) {
           </div>
         </header>
 
-        {activeView === 'notifications' ? (
+        {activeView === 'profile' ? (
+          <ProfileSettingsPage onBack={() => setActiveView('dashboard')} />
+        ) : activeView === 'notifications' ? (
           <NotificationCenter
             notifications={notifications}
             onNotificationsChange={setNotifications}
