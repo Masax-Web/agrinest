@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api from './lib/api';
+import { buildWeatherSnapshot, fetchWeatherData } from './lib/weather';
 
 const roleButtons = [
   { id: 'smallholder', label: 'Farmer', icon: 'agriculture' },
@@ -355,8 +356,46 @@ function SmallholderDashboard({ onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
   const [notifications, setNotifications] = useState(initialNotifications);
+  const [weatherData, setWeatherData] = useState(() => buildWeatherSnapshot({
+    current: {
+      temperature_2m: 25,
+      relative_humidity_2m: 65,
+      precipitation: 0,
+      wind_speed_10m: 12,
+      uv_index: 4,
+      weather_code: 1,
+    },
+    daily: {
+      time: ['2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', '2026-01-05', '2026-01-06', '2026-01-07'],
+      weather_code: [1, 2, 3, 1, 2, 3, 1],
+      temperature_2m_max: [25, 24, 26, 27, 25, 24, 26],
+    },
+  }));
 
   useNavScrollLock(isSidebarOpen);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadWeather = async () => {
+      try {
+        const liveWeather = await fetchWeatherData({ latitude: -7.77, longitude: 35.69 });
+        if (!cancelled) {
+          setWeatherData(liveWeather);
+        }
+      } catch (error) {
+        console.warn('Weather fetch failed, keeping the fallback snapshot:', error);
+      }
+    };
+
+    loadWeather();
+    const intervalId = window.setInterval(loadWeather, 5 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -770,25 +809,25 @@ function SmallholderDashboard({ onLogout }) {
               <div className="weather-panel">
                 <div className="weather-top">
                   <div>
-                    <p>📍 Iringa · Wed 13 May</p>
-                    <div className="weather-temp"><span>17°</span><span className="temp-unit">C</span></div>
-                    <p className="weather-clear">Clear sky</p>
+                    <p>📍 {weatherData.location}</p>
+                    <div className="weather-temp"><span>{weatherData.current.temperature}°</span><span className="temp-unit">C</span></div>
+                    <p className="weather-clear">{weatherData.current.conditions}</p>
                   </div>
-                  <span className="weather-symbol">🌙</span>
+                  <span className="weather-symbol">{weatherData.current.symbol}</span>
                 </div>
                 <div className="weather-grid">
-                  <div><p>Humidity</p><strong>84%</strong></div>
-                  <div><p>Wind</p><strong>15 km/h</strong></div>
-                  <div><p>UV</p><strong>4</strong></div>
-                  <div><p>Rain</p><strong>0.0mm</strong></div>
+                  <div><p>Humidity</p><strong>{weatherData.current.humidity}%</strong></div>
+                  <div><p>Wind</p><strong>{weatherData.current.wind}</strong></div>
+                  <div><p>UV</p><strong>{weatherData.current.uv}</strong></div>
+                  <div><p>Rain</p><strong>{weatherData.current.rain}</strong></div>
                 </div>
                 <div className="weather-footer">🌾 Good field conditions today</div>
                 <div className="forecast-row">
-                  {['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'].map((day, index) => (
-                    <div className="forecast-day" key={day}>
-                      <p>{day}</p>
-                      <div>{['🌦️', '☁️', '☁️', '☁️', '🌤️', '🌤️', '🌤️'][index]}</div>
-                      <strong>{['24°', '24°', '24°', '23°', '24°', '25°', '26°'][index]}</strong>
+                  {weatherData.forecast.slice(0, 7).map((day) => (
+                    <div className="forecast-day" key={`${day.day}-${day.temp}`}>
+                      <p>{day.day}</p>
+                      <div>{day.icon}</div>
+                      <strong>{day.temp}</strong>
                     </div>
                   ))}
                 </div>
