@@ -89,6 +89,37 @@ paths:
     get:
       summary: Complete Google OAuth and return a one-time exchange code
       security: []
+      parameters:
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: code
+          in: query
+          schema: { type: string }
+        - name: error
+          in: query
+          schema: { type: string }
+        - name: error_description
+          in: query
+          schema: { type: string }
+        - name: error_uri
+          in: query
+          schema: { type: string }
+        - name: iss
+          in: query
+          schema: { type: string, format: uri }
+        - name: scope
+          in: query
+          schema: { type: string }
+        - name: authuser
+          in: query
+          schema: { type: string }
+        - name: prompt
+          in: query
+          schema: { type: string }
+        - name: hd
+          in: query
+          schema: { type: string }
       responses:
         '302':
           description: Redirect back to the application
