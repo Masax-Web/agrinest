@@ -42,6 +42,20 @@ describe('AGRI-NEST API integration', function() {
     expect(res.body.items.some(item => item.listing_id === listingId)).to.be.true;
   });
 
+  it('publishes marketplace order activity for connected shoppers', async () => {
+    const orderRes = await api.post('/soko/orders').send({
+      buyer_name: 'Test Buyer',
+      items: [{ product_id: listingId, name: 'Maize', quantity: 2, unit_price: 20000 }],
+      total_amount: 40000,
+    }).expect(201);
+    expect(orderRes.body).to.have.property('order_id');
+
+    const activityRes = await api.get('/soko/activity?limit=30').expect(200);
+    expect(activityRes.body.items.some((item) => (
+      item.event_type === 'order_placed' && item.details.order_id === orderRes.body.order_id
+    ))).to.be.true;
+  });
+
   it('returns Jicho scan results', async () => {
     const res = await api.post('/jicho/scan').send({ farmer_id: userId, image_base64: 'AAA' }).expect(200);
     expect(res.body).to.have.property('diagnosis');

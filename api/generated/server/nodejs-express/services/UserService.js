@@ -5,4 +5,12 @@ async function createUser(phone, name) {
   return Array.isArray(result) ? result[0] : result;
 }
 
-module.exports = { createUser };
+async function listPublicUsers() {
+  return knex('users')
+    .select('user_id', 'name', 'role', 'region', 'trust_score')
+    .whereNotNull('name')
+    .orderBy('name')
+    .limit(200);
+}
+
+module.exports = { createUser, listPublicUsers };

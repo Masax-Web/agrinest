@@ -23,10 +23,10 @@ const defaultDashboard = {
   assignments: [],
 };
 
-async function ensureDashboard(studentId) {
+async function ensureDashboard(studentId, name) {
   const existing = await db('student_dashboards').where({ student_id: studentId }).first();
   if (existing) return existing;
-  const [created] = await db('student_dashboards').insert({ student_id: studentId, dashboard: JSON.stringify({ ...defaultDashboard, student_id: studentId }) }).returning('*');
+  const [created] = await db('student_dashboards').insert({ student_id: studentId, dashboard: JSON.stringify({ ...defaultDashboard, student_id: studentId, name }) }).returning('*');
   return created;
 }
 
@@ -36,7 +36,7 @@ function parseDashboard(row) {
 
 router.get('/dashboard', async (req, res) => {
   try {
-    const row = await ensureDashboard(req.query.student_id || 'demo-student');
+    const row = await ensureDashboard(req.authUser.user_id, req.authUser.name);
     res.json(parseDashboard(row));
   } catch (error) {
     console.error('StudentsController.dashboard', error);
@@ -46,8 +46,8 @@ router.get('/dashboard', async (req, res) => {
 
 router.post('/progress', async (req, res) => {
   try {
-    const studentId = req.body.student_id || 'demo-student';
-    const row = await ensureDashboard(studentId);
+    const studentId = req.authUser.user_id;
+    const row = await ensureDashboard(studentId, req.authUser.name);
     const dashboard = parseDashboard(row);
     dashboard.courses = dashboard.courses.map((course) => course.id === req.body.course_id ? { ...course, progress: Math.max(0, Math.min(100, Number(req.body.progress))) } : course);
     await db('student_dashboards').where({ student_id: studentId }).update({ dashboard: JSON.stringify(dashboard), updated_at: db.fn.now() });
@@ -60,8 +60,8 @@ router.post('/progress', async (req, res) => {
 
 router.post('/assignments', async (req, res) => {
   try {
-    const studentId = req.body.student_id || 'demo-student';
-    const row = await ensureDashboard(studentId);
+    const studentId = req.authUser.user_id;
+    const row = await ensureDashboard(studentId, req.authUser.name);
     const dashboard = parseDashboard(row);
     dashboard.assignments = [...(dashboard.assignments || []), { id: `assignment-${Date.now()}`, name: req.body.name, submitted_at: new Date().toISOString() }];
     await db('student_dashboards').where({ student_id: studentId }).update({ dashboard: JSON.stringify(dashboard), updated_at: db.fn.now() });
@@ -74,8 +74,8 @@ router.post('/assignments', async (req, res) => {
 
 router.post('/applications', async (req, res) => {
   try {
-    const studentId = req.body.student_id || 'demo-student';
-    const row = await ensureDashboard(studentId);
+    const studentId = req.authUser.user_id;
+    const row = await ensureDashboard(studentId, req.authUser.name);
     const dashboard = parseDashboard(row);
     const application = { id: `application-${Date.now()}`, opportunity_id: req.body.opportunity_id, status: 'Submitted', submitted_at: new Date().toISOString() };
     dashboard.applications = [...(dashboard.applications || []), application];

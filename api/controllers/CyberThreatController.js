@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const CyberThreatService = require('../services/CyberThreatService');
+const { authenticate, requireAdmin } = require('../middleware/auth');
 
-router.post('/scan', async (req, res) => {
+router.post('/scan', authenticate, async (req, res) => {
   try {
     const response = await CyberThreatService.scanEvent(req.body);
     res.json(response);
@@ -12,10 +13,12 @@ router.post('/scan', async (req, res) => {
   }
 });
 
-router.post('/configure', async (req, res) => {
+router.post('/configure', authenticate, requireAdmin, async (req, res) => {
   try {
-    const { enabled, superAdminToken } = req.body;
-    const response = await CyberThreatService.configureDetection({ enabled, superAdminToken });
+    const response = await CyberThreatService.configureDetection({
+      enabled: req.body.enabled,
+      actorId: req.authUser.user_id,
+    });
     res.json(response);
   } catch (err) {
     console.error('CyberThreatController.configure', err);
@@ -23,10 +26,9 @@ router.post('/configure', async (req, res) => {
   }
 });
 
-router.post('/status', async (req, res) => {
+router.post('/status', authenticate, requireAdmin, async (req, res) => {
   try {
-    const { superAdminToken } = req.body;
-    const response = await CyberThreatService.getStatus({ superAdminToken });
+    const response = await CyberThreatService.getStatus();
     res.json(response);
   } catch (err) {
     console.error('CyberThreatController.status', err);

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CommunicationsService = require('../services/CommunicationsService');
+const { authenticate } = require('../middleware/auth');
 
 router.post('/ussd', async (req, res) => {
   try {
@@ -13,7 +14,7 @@ router.post('/ussd', async (req, res) => {
   }
 });
 
-router.post('/sms/send', async (req, res) => {
+router.post('/sms/send', authenticate, async (req, res) => {
   try {
     const { phoneNumber, message } = req.body;
     const response = await CommunicationsService.sendSms([phoneNumber], message);
@@ -24,7 +25,7 @@ router.post('/sms/send', async (req, res) => {
   }
 });
 
-router.post('/voice/call', async (req, res) => {
+router.post('/voice/call', authenticate, async (req, res) => {
   try {
     const { phoneNumber, voiceMessage } = req.body;
     const response = await CommunicationsService.sendVoiceCall({ phoneNumber, voiceMessage });
@@ -35,7 +36,7 @@ router.post('/voice/call', async (req, res) => {
   }
 });
 
-router.post('/airtime/topup', async (req, res) => {
+router.post('/airtime/topup', authenticate, async (req, res) => {
   try {
     const { phoneNumber, amount } = req.body;
     const response = await CommunicationsService.sendAirtimeTopup({ phoneNumber, amount });
@@ -47,14 +48,7 @@ router.post('/airtime/topup', async (req, res) => {
 });
 
 router.post('/google/login', async (req, res) => {
-  try {
-    const { idToken, email, name, phone } = req.body;
-    const response = await CommunicationsService.handleGoogleLogin({ idToken, email, name, phone });
-    res.json(response);
-  } catch (err) {
-    console.error('CommunicationsController.googleLogin', err);
-    res.status(500).json({ error: 'google_login_error' });
-  }
+  res.status(410).json({ error: 'use_verified_google_oauth' });
 });
 
 module.exports = router;

@@ -4,7 +4,7 @@
   "private": true,
   "main": "electron/main.js",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000",
+    "dev": "vite --host 0.0.0.0 --port 3001",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port ${PORT:-4173}",
     "start": "node db/run_jicho_migration.js && node api/server.js",
@@ -55,10 +55,13 @@
     "express": "^4.18.2",
     "express-openapi-validator": "^5.6.2",
     "knex": "^2.4.2",
+    "leaflet": "^1.9.4",
+    "maplibre-gl": "^4.7.1",
     "nodemailer": "^6.9.4",
     "pg": "^8.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1",
     "react-router-dom": "^7.18.4",
     "twilio": "^4.11.0"
   },

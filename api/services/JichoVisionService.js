@@ -1,4 +1,5 @@
 const DEFAULT_MODEL = 'linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification';
+const PlatformSettingsService = require('./PlatformSettingsService');
 
 function parseImageData(imageBase64) {
   const match = /^data:([^;]+);base64,(.+)$/.exec(imageBase64 || '');
@@ -17,6 +18,9 @@ function treatmentFor(label) {
 }
 
 async function diagnoseImage(imageBase64) {
+  if (!await PlatformSettingsService.isIntegrationEnabled('crop_diagnosis')) {
+    throw new Error('crop_diagnosis_integration_disabled');
+  }
   const apiKey = process.env.HF_API_KEY;
   if (!apiKey) throw new Error('HF_API_KEY is not configured for Jicho vision inference');
 

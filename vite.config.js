@@ -7,8 +7,11 @@ export default defineConfig({
   base: '/',
   server: {
     host: '0.0.0.0',
-    port: 3000,
+    port: 3001,
     allowedHosts: ['localhost', '127.0.0.1', 'agri-nest-production.up.railway.app', '.up.railway.app'],
+    proxy: Object.fromEntries([
+      '/auth', '/users', '/farms', '/fields', '/jicho', '/soko', '/community', '/students', '/communications', '/security',
+    ].map((route) => [route, 'http://localhost:3000'])),
   },
   preview: {
     host: '0.0.0.0',

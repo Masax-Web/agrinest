@@ -12,8 +12,27 @@ const communicationsController = require('../../../controllers/CommunicationsCon
 const cyberThreatController = require('../../../controllers/CyberThreatController');
 const communityController = require('../../../controllers/CommunityController');
 const studentsController = require('../../../controllers/StudentsController');
+const { authenticate, requireAdmin } = require('../../../middleware/auth');
 
 const app = express();
+app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = new Set([
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    process.env.APP_BASE_URL,
+  ].filter(Boolean).map((value) => value.replace(/\/+$/, '')));
+  if (origin && allowedOrigins.has(origin.replace(/\/+$/, ''))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+});
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../../../../dist')));
 
@@ -29,13 +48,13 @@ app.use(
 app.use('/communications', communicationsController);
 app.use('/security', cyberThreatController);
 app.use('/auth', authController);
-app.use('/users', usersController);
-app.use('/farms', farmsController);
-app.use('/fields', fieldsController);
-app.use('/jicho', jichoController);
+app.use('/users', authenticate, requireAdmin, usersController);
+app.use('/farms', authenticate, farmsController);
+app.use('/fields', authenticate, fieldsController);
+app.use('/jicho', authenticate, jichoController);
 app.use('/soko', sokoController);
-app.use('/community', communityController);
-app.use('/students', studentsController);
+app.use('/community', authenticate, communityController);
+app.use('/students', authenticate, studentsController);
 
 app.use((err, req, res, next) => {
   if (err && err.status && err.errors) {

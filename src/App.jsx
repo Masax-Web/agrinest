@@ -1,18 +1,183 @@
 import { useEffect, useRef, useState } from 'react';
 import api from './lib/api';
+import { calculateFarmerTrust } from './lib/farmer-trust';
 import { buildWeatherSnapshot, fetchWeatherData } from './lib/weather';
+import MarketplacePage from './MarketplacePage';
+import RamaniMapPage from './RamaniMapPage';
+import FarmerWorkspace from './FarmerWorkspace';
+import RoleWorkspace from './RoleWorkspace';
+import RoleDashboard from './RoleDashboard';
+import AdminDashboard from './AdminDashboard';
+import SecuritySettings from './SecuritySettings';
+import { personas } from '../shared/personas.json';
 
-const roleButtons = [
-  { id: 'smallholder', label: 'Farmer', icon: 'agriculture' },
-  { id: 'commercial', label: 'Commercial', icon: 'domain' },
-  { id: 'buyer', label: 'Buyer', icon: 'shopping_cart' },
-  { id: 'bank', label: 'Financial', icon: 'account_balance' },
-  { id: 'gov', label: 'Institutional', icon: 'account_balance_wallet' },
-  { id: 'student', label: 'Student', icon: 'school' },
-  { id: 'transporter', label: 'Transporter', icon: 'local_shipping' },
-  { id: 'coop', label: 'Cooperative', icon: 'groups' },
-  { id: 'expert', label: 'Expert', icon: 'science' },
+const personaById = new Map(personas.map((persona) => [persona.id, persona]));
+const personaGroups = [
+  { id: 'field', label: 'Farm & Field' },
+  { id: 'steward', label: 'Agricultural Services' },
+  { id: 'enterprise', label: 'Organizations & Platform Staff' },
 ];
+
+function clearLegacyAuthTokens() {
+  window.localStorage.removeItem('agrinest-auth-token');
+  window.sessionStorage.removeItem('agrinest-auth-token');
+}
+
+function AdminDashboardWithSecurity({ user, onLogout }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} />
+      {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
+    </>
+  );
+}
+
+function getPersonaDashboard(personaId) {
+  const persona = personaById.get(personaId);
+  if (!persona) return 'smallholder';
+  return ({
+    smallholder: 'smallholder',
+    buyer: 'buyer',
+    gov: 'gov',
+    admin: 'admin',
+    student: 'student',
+    transporter: 'transporter',
+    commercial: 'commercial',
+    bank: 'bank',
+    coop: 'coop',
+    expert: 'expert',
+  })[persona.dashboard] || persona.id;
+}
+
+function DashboardWithSecurity({ user, onLogout, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      {children}
+      {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
+      {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
+    </>
+  );
+}
+
+function getAuthErrorMessage(code) {
+  const messages = {
+    account_already_exists: 'An account with that phone or email already exists.',
+    account_pending_approval: 'Your registration is awaiting approval. We will notify you when it is ready.',
+    invalid_credentials: 'The phone/email or password is incorrect.',
+    staff_account_required: 'Staff Access is only available to invited AGRI-NEST staff accounts.',
+    invalid_or_expired_invitation: 'That invitation is invalid or has expired.',
+    invitation_required_for_persona: 'This persona requires an invitation from an administrator.',
+    password_must_be_12_to_128_characters: 'Use a password between 12 and 128 characters.',
+    pin_must_be_6_to_12_digits: 'Use a PIN between 6 and 12 digits.',
+    invalid_pin: 'That PIN is incorrect. Try again.',
+    invalid_pin_challenge: 'Your PIN check expired. Sign in again.',
+    too_many_attempts: 'Too many attempts. Wait 15 minutes before trying again.',
+    google_oauth_not_configured: 'Google sign-in is not configured for this deployment yet.',
+    current_password_invalid: 'Your current password is incorrect.',
+    recent_google_signin_required: 'Sign in again before changing your PIN.',
+    admin_access_required: 'Administrator access is required for this action.',
+    valid_phone_required: 'Enter a valid phone number with country code.',
+    unknown_persona: 'Choose a valid persona and try again.',
+  };
+  return messages[code] || String(code || 'Authentication failed. Please try again.').replaceAll('_', ' ');
+}
+
+const initialFarmerProfile = {
+  name: 'Neema Mwangi',
+  phone: '+255 712 345 678',
+  phoneNumbers: [{ id: 'primary-phone', number: '+255 712 345 678' }],
+  primaryPhoneId: 'primary-phone',
+  email: '',
+  location: 'Iringa, Tanzania',
+  country: 'Tanzania',
+  region: 'Iringa Region',
+  city: 'Iringa',
+  district: 'Iringa District',
+  ward: '',
+  street: '',
+  nidaLast4: '',
+  farm: 'Mtakuja Farm',
+  farmSize: '3.5',
+  crops: 'Maize, Beans, Sunflower',
+  livestock: '12',
+  landTenure: '',
+  yearsFarming: '',
+  cooperative: '',
+  irrigation: '',
+  certifications: '',
+  latitude: '',
+  longitude: '',
+  bankAccounts: [],
+  avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE',
+  coverPhoto: '',
+};
+
+const tanzaniaRegions = [
+  'Arusha', 'Dar es Salaam', 'Dodoma', 'Geita', 'Iringa', 'Kagera', 'Katavi', 'Kigoma',
+  'Kilimanjaro', 'Lindi', 'Manyara', 'Mara', 'Mbeya', 'Morogoro', 'Mtwara', 'Mwanza',
+  'Njombe', 'Pwani', 'Rukwa', 'Ruvuma', 'Shinyanga', 'Simiyu', 'Singida', 'Songwe',
+  'Tabora', 'Tanga', 'Zanzibar Central/South', 'Zanzibar North', 'Zanzibar Urban/West',
+];
+
+function createLocationDraft(profile) {
+  return {
+    country: profile.country || 'Tanzania',
+    region: profile.region || '',
+    city: profile.city || '',
+    district: profile.district || '',
+    ward: profile.ward || '',
+    street: profile.street || profile.village || '',
+    latitude: profile.latitude || '',
+    longitude: profile.longitude || '',
+  };
+}
+
+function normalizePhoneNumbers(profile) {
+  const phoneNumbers = Array.isArray(profile.phoneNumbers)
+    ? profile.phoneNumbers.map((entry, index) => ({
+      id: entry.id || `saved-phone-${index}`,
+      number: String(entry.number || '').trim(),
+    })).filter((entry) => entry.number)
+    : [];
+  if (!phoneNumbers.length && profile.phone) {
+    phoneNumbers.push({ id: 'saved-primary-phone', number: String(profile.phone).trim() });
+  }
+  const primaryPhoneId = phoneNumbers.some((entry) => entry.id === profile.primaryPhoneId)
+    ? profile.primaryPhoneId
+    : phoneNumbers[0]?.id || '';
+  return { phoneNumbers, primaryPhoneId, phone: phoneNumbers.find((entry) => entry.id === primaryPhoneId)?.number || '' };
+}
+
+function resizeProfileImage(file, maxDimension) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+      if (!context) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Image processing is unavailable in this browser.'));
+        return;
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL('image/webp', 0.82));
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Choose a valid image file.'));
+    };
+    image.src = objectUrl;
+  });
+}
 
 const initialNotifications = [
   {
@@ -113,6 +278,100 @@ const initialChatConversations = [
   },
 ];
 
+const defaultChatViewer = {
+  id: 'farmer-neema',
+  name: initialFarmerProfile.name,
+  role: 'Smallholder Farmer',
+  avatar: initialFarmerProfile.avatar,
+  location: initialFarmerProfile.location,
+};
+
+function readStoredFarmerProfile() {
+  try {
+    const saved = window.localStorage.getItem('agrinest-farmer-profile');
+    return saved ? { ...initialFarmerProfile, ...JSON.parse(saved) } : initialFarmerProfile;
+  } catch {
+    return initialFarmerProfile;
+  }
+}
+
+function loadDirectMessageThreads() {
+  try {
+    const threads = JSON.parse(window.localStorage.getItem('agrinest-direct-message-threads') || '[]');
+    return Array.isArray(threads) ? threads.filter((thread) => Array.isArray(thread.participants) && Array.isArray(thread.messages)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getCommunityPeople(farmerProfile, viewerProfile) {
+  const farmerTrust = calculateFarmerTrust(farmerProfile);
+  const people = [
+    {
+      id: 'farmer-neema',
+      name: farmerProfile.name,
+      role: 'Smallholder Farmer',
+      avatar: farmerProfile.avatar,
+      location: farmerProfile.location,
+      summary: `${farmerProfile.farm || 'Smallholder farm'} growing ${farmerProfile.crops || 'mixed crops'}.`,
+      details: [
+        ['Farm', farmerProfile.farm],
+        ['Area', `${farmerProfile.farmSize} acres`],
+        ['Crops', farmerProfile.crops],
+        ['Profile score', `${farmerTrust.score} / 1000`],
+      ],
+    },
+    {
+      id: 'student-david',
+      name: 'David K.',
+      role: 'Agronomy Student',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      location: 'Morogoro, Tanzania',
+      summary: 'BSc Agronomy, Year 3. Interested in soil health and regenerative farming.',
+      details: [['Programme', 'BSc Agronomy'], ['Year', 'Year 3'], ['Interests', 'Soil health, regenerative farming']],
+    },
+    {
+      id: 'expert-richard',
+      name: 'Dr. Richard Mgata',
+      role: 'Agronomy Expert',
+      avatar: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=200&q=80',
+      location: 'Iringa, Tanzania',
+      summary: 'Crop and soil advisor supporting smallholder farming communities.',
+      details: [['Specialty', 'Crop and soil advisory'], ['Languages', 'English, Swahili']],
+    },
+    {
+      id: 'buyer-john',
+      name: 'John Mwakalinga',
+      role: 'Produce Buyer',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+      location: 'Mbeya, Tanzania',
+      summary: 'Sourcing consistent, traceable produce from regional farmers.',
+      details: [['Interested in', 'Maize, beans, sunflower'], ['Region', 'Southern Highlands']],
+    },
+    {
+      id: 'transporter-james',
+      name: 'James Kweka',
+      role: 'Transporter',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      location: 'Tanzania',
+      summary: 'Moving agricultural produce between farms, markets, and collection hubs.',
+      details: [['Service', 'Produce transport'], ['Coverage', 'Regional routes']],
+    },
+    {
+      id: 'institution-kilimo',
+      name: 'Kilimo Extension Office',
+      role: 'Institution',
+      avatar: null,
+      icon: 'account_balance',
+      location: 'Iringa, Tanzania',
+      summary: 'Local agricultural extension and farmer support services.',
+      details: [['Service', 'Extension support'], ['Region', 'Iringa']],
+    },
+  ];
+
+  return people.filter((person) => person.id !== viewerProfile.id);
+}
+
 const initialJichoScans = [
   { id: 'scan-cabbage', diagnosis: 'Cabbage Looper', confidence: 0.94, farm: 'Farm A', time: '2 hours ago', image: 'https://images.unsplash.com/photo-1598030343246-eec71cb4423f?auto=format&fit=crop&w=180&q=80', severity: 'low' },
   { id: 'scan-nitrogen', diagnosis: 'Nitrogen Deficiency', confidence: 0.87, farm: 'Farm B', time: 'Yesterday', image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=180&q=80', severity: 'medium' },
@@ -144,35 +403,177 @@ function getInitialSidebarState() {
 
 function App() {
   const [activeTab, setActiveTab] = useState('signin');
-  const [selectedRole, setSelectedRole] = useState('smallholder');
+  const [selectedRole, setSelectedRole] = useState('smallholder_farmer');
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeDashboard, setActiveDashboard] = useState('smallholder');
+  const [authUser, setAuthUser] = useState(null);
+  const [authPinChallenge, setAuthPinChallenge] = useState(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
+  const [staffAccessMode, setStaffAccessMode] = useState(false);
+  const [showSigninPassword, setShowSigninPassword] = useState(false);
+  const [showRegistrationPasswords, setShowRegistrationPasswords] = useState(false);
 
-  const handleLogin = (event) => {
-    event.preventDefault();
-    const nextDashboard = selectedRole === 'buyer' ? 'buyer' : selectedRole === 'gov' ? 'gov' : selectedRole === 'student' ? 'student' : selectedRole === 'transporter' ? 'transporter' : 'smallholder';
-    setActiveDashboard(nextDashboard);
+  useEffect(() => {
+    clearLegacyAuthTokens();
+    const query = new URLSearchParams(window.location.search);
+    const googleCode = query.get('google_code');
+    const googleError = query.get('auth_error');
+    if (googleCode || googleError) {
+      window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+    }
+
+    if (googleCode) {
+      setAuthBusy(true);
+      api.exchangeGoogleCode(googleCode)
+        .then((result) => {
+          if (result.pin_required) {
+            setAuthPinChallenge({ token: result.challenge_token, user: result.user });
+            return;
+          }
+          clearLegacyAuthTokens();
+          setAuthUser(result.user);
+          setSelectedRole(result.user.role);
+          setActiveDashboard(getPersonaDashboard(result.user.role));
+          setLoggedIn(true);
+        })
+        .catch((error) => setAuthMessage(getAuthErrorMessage(error.message)))
+        .finally(() => setAuthBusy(false));
+      return;
+    }
+    if (googleError) setAuthMessage('Google sign-in did not complete. Please try again.');
+
+    api.getAuthUser()
+      .then(({ user }) => {
+        setAuthUser(user);
+        setActiveDashboard(getPersonaDashboard(user.role));
+        setLoggedIn(true);
+      })
+      .catch(() => clearLegacyAuthTokens());
+  }, []);
+
+  const completeLogin = (user) => {
+    clearLegacyAuthTokens();
+    setAuthPinChallenge(null);
+    setAuthUser(user);
+    setSelectedRole(user.role);
+    setActiveDashboard(getPersonaDashboard(user.role));
     setLoggedIn(true);
   };
 
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthMessage('');
+    const form = new FormData(event.currentTarget);
+    try {
+      const result = await api.loginUser({
+        identifier: form.get('identifier'),
+        password: form.get('password'),
+        staff_access: staffAccessMode,
+        remember_me: form.get('remember') === 'on',
+      });
+      if (result.pin_required) {
+        setAuthPinChallenge({ token: result.challenge_token, user: result.user });
+      } else {
+        completeLogin(result.user);
+      }
+    } catch (error) {
+      setAuthMessage(getAuthErrorMessage(error.message));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthMessage('');
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get('password') || '');
+    if (password !== form.get('confirm_password')) {
+      setAuthMessage('The passwords do not match.');
+      setAuthBusy(false);
+      return;
+    }
+    try {
+      const result = await api.registerUser({
+        name: form.get('name'),
+        phone: form.get('phone'),
+        email: form.get('email'),
+        password,
+        persona_id: selectedRole,
+        invitation_token: form.get('invitation_token') || undefined,
+      });
+      if (result.status === 'pending_approval') {
+        setAuthMessage('Registration received. Your persona requires approval before you can sign in.');
+        return;
+      }
+      completeLogin(result.user);
+    } catch (error) {
+      setAuthMessage(getAuthErrorMessage(error.message));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.logoutUser();
+    } catch (error) {
+      console.warn('Logout request failed; the server may still have an active session:', error.message);
+    }
+    clearLegacyAuthTokens();
+    setAuthUser(null);
+    setAuthPinChallenge(null);
+    setLoggedIn(false);
+    setActiveTab('signin');
+    setAuthMessage('');
+  };
+
+  const handlePinVerification = async (event) => {
+    event.preventDefault();
+    if (!authPinChallenge?.token) return;
+    const form = new FormData(event.currentTarget);
+    setAuthBusy(true);
+    setAuthMessage('');
+    try {
+      const result = await api.verifyPin(authPinChallenge.token, String(form.get('pin') || ''));
+      completeLogin(result.user);
+    } catch (error) {
+      setAuthMessage(getAuthErrorMessage(error.message));
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  if (loggedIn && activeDashboard === 'admin') {
+    return <AdminDashboardWithSecurity user={authUser} onLogout={handleLogout} />;
+  }
+
   if (loggedIn && activeDashboard === 'buyer') {
-    return <BuyerDashboard onLogout={() => setLoggedIn(false)} />;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><BuyerDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <InstitutionalDashboard onLogout={() => setLoggedIn(false)} />;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
-    return <StudentDashboard onLogout={() => setLoggedIn(false)} />;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'transporter') {
-    return <TransporterDashboard onLogout={() => setLoggedIn(false)} />;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+  }
+
+  if (loggedIn && ['commercial', 'bank', 'coop', 'expert'].includes(activeDashboard)) {
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn) {
-    return <SmallholderDashboard onLogout={() => setLoggedIn(false)} />;
+    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><SmallholderDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   return (
@@ -211,49 +612,57 @@ function App() {
       </div>
 
       <div className="agrinest-form-panel">
-        <div className="agrinest-header-row">
-          <div className="agrinest-tabs">
-            <button
-              type="button"
-              className={activeTab === 'signin' ? 'tab-button active' : 'tab-button'}
-              onClick={() => setActiveTab('signin')}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={activeTab === 'register' ? 'tab-button active' : 'tab-button'}
-              onClick={() => setActiveTab('register')}
-            >
-              Register
+        <div className="agrinest-mobile-brand">
+          <span className="material-symbols-outlined">eco</span>
+          <span>AGRI-NEST</span>
+        </div>
+        <div className="agrinest-auth-card">
+          <div className="agrinest-header-row">
+            <div className="agrinest-tabs">
+              <button
+                type="button"
+                className={activeTab === 'signin' ? 'tab-button active' : 'tab-button'}
+                onClick={() => { setActiveTab('signin'); setStaffAccessMode(false); setAuthMessage(''); }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'register' ? 'tab-button active' : 'tab-button'}
+                onClick={() => { setActiveTab('register'); setStaffAccessMode(false); setAuthMessage(''); }}
+              >
+                Register
+              </button>
+            </div>
+
+            <button type="button" className="staff-access-button" onClick={() => {
+              setActiveTab('signin');
+              setStaffAccessMode(true);
+              setAuthMessage('');
+            }}>
+              <span className="inline-icon">admin_panel_settings</span>
+              Staff Access
             </button>
           </div>
 
-          <button type="button" className="staff-access-button">
-            <span className="inline-icon">admin_panel_settings</span>
-            Staff Access
-          </button>
-        </div>
-
-        {activeTab === 'signin' ? (
-          <div className="signin-panel">
-            <div className="signin-heading">
-              <h2>Welcome Back</h2>
-              <p>Sign in to access your role-based dashboard.</p>
+          {authPinChallenge ? (
+            <div className="signin-panel">
+              <div className="signin-heading">
+                <h2>Verify your PIN</h2>
+                <p>Enter your PIN to finish signing in{authPinChallenge.user?.email ? ` to ${authPinChallenge.user.email}` : ''}.</p>
+              </div>
+              <form className="signin-form" onSubmit={handlePinVerification}>
+                <label className="field-label"><span>6–12 digit PIN</span><input name="pin" type="password" inputMode="numeric" pattern="[0-9]{6,12}" minLength="6" maxLength="12" autoComplete="one-time-code" required autoFocus /></label>
+                {authMessage && <p className="auth-feedback" role="alert">{authMessage}</p>}
+                <button type="submit" className="primary-action" disabled={authBusy}>{authBusy ? 'Verifying…' : 'Verify PIN'}</button>
+                <button type="button" className="security-settings-secondary" onClick={() => { setAuthPinChallenge(null); setAuthMessage(''); }}>Cancel and sign in again</button>
+              </form>
             </div>
-
-            <div className="role-grid">
-              {roleButtons.map((role) => (
-                <button
-                  key={role.id}
-                  type="button"
-                  className={selectedRole === role.id ? 'role-option active' : 'role-option'}
-                  onClick={() => setSelectedRole(role.id)}
-                >
-                  <span className="material-symbols-outlined role-icon">{role.icon}</span>
-                  <span className="role-name">{role.label}</span>
-                </button>
-              ))}
+          ) : activeTab === 'signin' ? (
+            <div className="signin-panel">
+            <div className="signin-heading">
+              <h2>{staffAccessMode ? 'Staff Access' : 'Welcome Back'}</h2>
+              <p>{staffAccessMode ? 'Sign in with your invited AGRI-NEST staff account.' : 'Sign in to access your role-based dashboard.'}</p>
             </div>
 
             <form className="signin-form" onSubmit={handleLogin}>
@@ -261,193 +670,634 @@ function App() {
                 <span>Phone or Email Address</span>
                 <div className="input-shell">
                   <span className="input-icon">person</span>
-                  <input type="text" defaultValue="neema@agrines.tz" placeholder="e.g., +255... or email@example.com" />
+                  <input name="identifier" type="text" autoComplete="username" required placeholder="e.g., +255... or email@example.com" />
                 </div>
               </label>
 
               <label className="field-label">
                 <div className="password-label-row">
-                  <span>PIN or Password</span>
-                  <a href="#">Forgot?</a>
+                  <span>Password</span>
+                  <button type="button" onClick={() => setAuthMessage('Password recovery is not enabled yet. Contact AGRI-NEST support to verify your account and reset access.')}>Forgot?</button>
                 </div>
                 <div className="input-shell">
                   <span className="input-icon">lock</span>
-                  <input type="password" defaultValue="demo1234" placeholder="Enter security key" />
-                  <button type="button" className="visibility-button" aria-label="Toggle password visibility">
-                    visibility_off
+                  <input name="password" type={showSigninPassword ? 'text' : 'password'} autoComplete="current-password" required placeholder="Enter your password" />
+                  <button type="button" className="visibility-button" aria-label={showSigninPassword ? 'Hide password' : 'Show password'} aria-pressed={showSigninPassword} onClick={() => setShowSigninPassword((visible) => !visible)}>
+                    {showSigninPassword ? 'visibility' : 'visibility_off'}
                   </button>
                 </div>
               </label>
 
               <label className="remember-row">
-                <input type="checkbox" defaultChecked />
+                <input name="remember" type="checkbox" />
                 <span>Keep me signed in on this device</span>
               </label>
 
-              <button type="submit" className="primary-action">
-                Secure Login
+              {authMessage && <p className="auth-feedback" role="alert">{authMessage}</p>}
+              <button type="submit" className="primary-action" disabled={authBusy}>
+                {authBusy ? 'Signing in...' : staffAccessMode ? 'Staff Login' : 'Secure Login'}
                 <span className="arrow-forward">arrow_forward</span>
               </button>
 
-              <div className="notice-box">
-                <span className="notice-icon">info</span>
-                <p>
-                  <strong>Note:</strong> You will be automatically redirected to your specific module (Farmer, Buyer, or institutional) based on your account credentials.
-                </p>
-              </div>
+              <p className="signin-routing-note">Your workspace opens automatically based on your account.</p>
             </form>
-          </div>
-        ) : (
-          <div className="register-panel">
+            <button type="button" className="google-signin-button" onClick={() => { window.location.assign(api.googleAuthUrl()); }}>
+              <span className="google-g-mark">G</span>Continue with Google
+            </button>
+            </div>
+          ) : (
+            <div className="register-panel">
             <div className="signin-heading">
               <h2>Join the Nest</h2>
-              <p>Choose your role to customize your experience.</p>
+              <p>Create your AGRI-NEST account.</p>
             </div>
 
-            <div className="role-grid">
-              {roleButtons.map((role) => (
-                <button
-                  key={role.id}
-                  type="button"
-                  className={selectedRole === role.id ? 'role-option active' : 'role-option'}
-                  onClick={() => setSelectedRole(role.id)}
-                >
-                  <span className="material-symbols-outlined role-icon">{role.icon}</span>
-                  <span className="role-name">{role.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="register-box">
+            <form className="register-box" onSubmit={handleRegister}>
+              <label className="persona-select-label">
+                <span>Account type</span>
+                <select value={selectedRole} onChange={(event) => { setSelectedRole(event.target.value); setAuthMessage(''); }}>
+                  {personaGroups.map((group) => (
+                    <optgroup key={group.id} label={group.label}>
+                      {personas.filter((persona) => persona.tier === group.id && persona.id !== 'super_admin').map((persona) => (
+                        <option key={persona.id} value={persona.id}>{persona.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </label>
               <div className="register-row two-up">
-                <label>
-                  <span>Full Name</span>
-                  <input type="text" placeholder="e.g. John Doe" />
-                </label>
-                <label>
-                  <span>Contact</span>
-                  <input type="tel" placeholder="+255..." />
-                </label>
+                <label><span>Full Name</span><input name="name" type="text" autoComplete="name" required minLength="2" maxLength="120" placeholder="Your full name" /></label>
+                <label><span>Phone</span><input name="phone" type="tel" autoComplete="tel" required placeholder="+255..." /></label>
               </div>
-
-              <div className="role-section active">
-                <h4>
-                  <span className="material-symbols-outlined">location_on</span>
-                  Farm Details
-                </h4>
-                <input type="text" placeholder="Farm Location (Region/District)" />
-                <input type="text" placeholder="Primary Crops (e.g. Maize, Coffee)" />
-                <input type="text" placeholder="Group/Association Membership (Optional)" />
+              <label className="field-label"><span>Email Address (optional)</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" /></label>
+              <div className="register-row two-up">
+                <label><span>Password</span><div className="register-password-shell"><input name="password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required minLength="12" maxLength="128" /><button type="button" aria-label={showRegistrationPasswords ? 'Hide passwords' : 'Show passwords'} aria-pressed={showRegistrationPasswords} onClick={() => setShowRegistrationPasswords((visible) => !visible)}>{showRegistrationPasswords ? 'visibility' : 'visibility_off'}</button></div></label>
+                <label><span>Confirm Password</span><div className="register-password-shell"><input name="confirm_password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required minLength="12" maxLength="128" /></div></label>
               </div>
+              <p className="password-requirement">Use 12 to 128 characters.</p>
+              {personaById.get(selectedRole)?.registration === 'invite' && <label className="field-label"><span>Invitation Token</span><input name="invitation_token" type="text" required autoComplete="one-time-code" /></label>}
+              <p className="persona-registration-note">
+                {personaById.get(selectedRole)?.registration === 'invite' ? 'This staff persona is invitation-only.' : personaById.get(selectedRole)?.registration === 'review' ? 'Your account will be activated after an administrator reviews your registration.' : 'You can sign in as soon as your account is created.'}
+              </p>
+              {authMessage && <p className="auth-feedback" role="alert">{authMessage}</p>}
+              <button type="submit" className="primary-action register-submit" disabled={authBusy}>
+                {authBusy ? 'Submitting...' : 'Create Account'}
+                <span className="arrow-forward">arrow_forward</span>
+              </button>
+            </form>
             </div>
-
-            <button type="button" className="primary-action register-submit">
-              Complete Verified Registration
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function ProfileSettingsPage({ onBack }) {
+function InlineProfileField({ label, value, onSave, type = 'text', className = '', displayValue, secret = false, placeholder, inputMode, maxLength, editRequest = 0 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(secret ? '' : String(value ?? ''));
+
+  useEffect(() => setDraft(secret ? '' : String(value ?? '')), [value, secret]);
+  useEffect(() => {
+    if (editRequest > 0) setIsEditing(true);
+  }, [editRequest]);
+
+  const commit = () => {
+    const nextValue = secret ? draft.replace(/\D/g, '') : draft.trim();
+    if ((!secret && nextValue === String(value ?? '')) || (secret && !nextValue)) {
+      setIsEditing(false);
+      return;
+    }
+    if (onSave(nextValue) !== false) setIsEditing(false);
+  };
+
+  if (isEditing) {
+    if (secret) {
+      return (
+        <div className="nida-inline-editor">
+          <NidaDigitsInput value={draft} onChange={setDraft} />
+          <div className="nida-inline-actions">
+            <button type="button" onClick={commit}>Save NIDA</button>
+            <button type="button" onClick={() => { setDraft(''); setIsEditing(false); }}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <input
+        autoFocus
+        aria-label={`Edit ${label}`}
+        className={`profile-inline-input ${className}`}
+        type={type}
+        inputMode={inputMode}
+        maxLength={maxLength}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        placeholder={placeholder}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+          if (event.key === 'Escape') {
+            setDraft(secret ? '' : String(value ?? ''));
+            setIsEditing(false);
+          }
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="profile-page-shell">
-      <aside className="profile-sidebar">
-        <div className="profile-sidebar-header">
-          <img
-            alt="Amara Okafor profile"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlnxzgL50ZVXdGmBDIObDF_m8Y4MT40SdQmne0m7y9bkEFzjz-mpX4UTxivRACchS5lAGsC_pySuBcABEav_s7kAOkM9gFnekrZ0Azx6I4-m_D4-h3HdBDcC0y-ffUapF0B6-rNPAUskrBw1yIDqpAL_rzYwJmz_qbIKkZE5Troj-qMAY2SEiBJTNUkGLa6PrS02Ohw5j2TZDUMcBNwqgvpp1TTl2sdVWZJcSiQUn2Xv4EDcF5sdvSi94dm9vm1LLFoAdukimDi_Q"
+    <button type="button" className={`profile-inline-value ${className}`} aria-label={`Edit ${label}`} onClick={() => {
+      setDraft(secret ? '' : String(value ?? ''));
+      setIsEditing(true);
+    }}>
+      {value ? displayValue ? displayValue(value) : value : <span className="profile-inline-placeholder">Add {label}</span>}
+      <span className="material-symbols-outlined profile-inline-pencil" aria-hidden="true">edit</span>
+    </button>
+  );
+}
+
+function NidaDigitsInput({ value, onChange }) {
+  const inputRefs = useRef([]);
+  const [isVisible, setIsVisible] = useState(true);
+  const groups = String(value || '').split('-').slice(0, 4);
+  while (groups.length < 4) groups.push('');
+
+  const updateGroup = (index, nextValue) => {
+    const nextGroups = [...groups];
+    nextGroups[index] = nextValue.replace(/\D/g, '').slice(0, 5);
+    onChange(nextGroups.join('-'));
+    if (nextGroups[index].length === 5 && index < 3) inputRefs.current[index + 1]?.focus();
+  };
+
+  const pasteDigits = (event) => {
+    const pastedDigits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 20);
+    if (!pastedDigits) return;
+    event.preventDefault();
+    const nextGroups = Array.from({ length: 4 }, (_, index) => pastedDigits.slice(index * 5, (index + 1) * 5));
+    onChange(nextGroups.join('-'));
+    inputRefs.current[Math.min(3, Math.floor((pastedDigits.length - 1) / 5))]?.focus();
+  };
+
+  return (
+    <div className="nida-entry-control">
+      <div className="nida-digit-groups" role="group" aria-label="NIDA number, 20 digits">
+        {groups.map((group, index) => (
+          <input
+            key={index}
+            ref={(element) => { inputRefs.current[index] = element; }}
+            type={isVisible ? 'text' : 'password'}
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={5}
+            value={group}
+            aria-label={`NIDA digits ${index * 5 + 1} to ${index * 5 + 5}`}
+            placeholder="00000"
+            onChange={(event) => updateGroup(index, event.target.value)}
+            onPaste={pasteDigits}
           />
-          <h2>Amara Okafor</h2>
-          <p>Verified Lead Farmer</p>
-        </div>
+        ))}
+      </div>
+      <button type="button" className="nida-visibility-toggle" onClick={() => setIsVisible((visible) => !visible)} aria-label={isVisible ? 'Hide NIDA digits' : 'Show NIDA digits'} title={isVisible ? 'Hide NIDA digits' : 'Show NIDA digits'}>
+        <span className="material-symbols-outlined" aria-hidden="true">{isVisible ? 'visibility_off' : 'visibility'}</span>
+      </button>
+    </div>
+  );
+}
 
-        <ul className="profile-sidebar-nav">
-          {['Profile Overview', 'Farm Assets', 'Trust Metrics', 'Activity Log', 'Network', 'Settings'].map((item, index) => (
-            <li key={item}>
-              <button type="button" className={index === 0 ? 'profile-nav-item active' : 'profile-nav-item'}>
-                <span className="material-symbols-outlined">{['person', 'agriculture', 'verified_user', 'timeline', 'group', 'settings'][index]}</span>
-                {item}
-              </button>
-            </li>
-          ))}
-        </ul>
+function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCommunity }) {
+  const [draft, setDraft] = useState({ ...profile, nidaNumber: '' });
+  const [uploadError, setUploadError] = useState('');
+  const [isLocationEditorOpen, setIsLocationEditorOpen] = useState(false);
+  const [locationDraft, setLocationDraft] = useState(() => createLocationDraft(profile));
+  const [locationStatus, setLocationStatus] = useState('');
+  const [isFindingLocation, setIsFindingLocation] = useState(false);
 
-        <div className="profile-sidebar-footer">
-          <button type="button" className="profile-share-btn">Share Profile</button>
-          <button type="button" className="profile-support-btn">
-            <span className="material-symbols-outlined">help</span>
-            Support
-          </button>
-          <button type="button" className="profile-signout-btn" onClick={onBack}>
-            <span className="material-symbols-outlined">logout</span>
-            Sign Out
-          </button>
-        </div>
-      </aside>
+  useEffect(() => {
+    setDraft({ ...profile, ...normalizePhoneNumbers(profile), nidaNumber: '' });
+    setUploadError('');
+    setLocationDraft(createLocationDraft(profile));
+  }, [profile, isEditing]);
 
+  const updateDraft = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
+  const viewProfile = isEditing
+    ? { ...draft, nidaLast4: String(draft.nidaNumber || '').replace(/\D/g, '').slice(-4) || (draft.removeNida ? '' : draft.nidaLast4) }
+    : profile;
+  const trust = calculateFarmerTrust(viewProfile);
+
+  const saveInlineField = (field, value) => {
+    if (field !== 'phone') return onSave({ ...profile, [field]: value });
+    const phoneNumbers = profile.phoneNumbers.map((entry) => entry.id === profile.primaryPhoneId ? { ...entry, number: value } : entry);
+    return onSave({ ...profile, phone: value, phoneNumbers });
+  };
+  const saveLocation = () => {
+    const normalizedLocation = Object.fromEntries(Object.entries(locationDraft).map(([key, value]) => [key, String(value || '').trim()]));
+    const displayLocation = [
+      normalizedLocation.street,
+      normalizedLocation.ward,
+      normalizedLocation.district,
+      normalizedLocation.city,
+      normalizedLocation.region,
+      normalizedLocation.country,
+    ].filter(Boolean).join(', ');
+
+    if (!normalizedLocation.region && !normalizedLocation.city) {
+      setLocationStatus('Add at least a region or city before saving.');
+      return;
+    }
+
+    if (isEditing) {
+      setDraft((current) => ({ ...current, ...normalizedLocation, location: displayLocation }));
+      setIsLocationEditorOpen(false);
+      setLocationStatus('');
+      return;
+    }
+
+    const saved = onSave({ ...profile, ...normalizedLocation, location: displayLocation });
+    if (saved !== false) {
+      setIsLocationEditorOpen(false);
+      setLocationStatus('');
+    } else {
+      setLocationStatus('Could not save this location on the device.');
+    }
+  };
+
+  const openLocationEditor = () => {
+    setLocationDraft(createLocationDraft(isEditing ? draft : profile));
+    setLocationStatus('');
+    setIsLocationEditorOpen(true);
+  };
+
+  const findCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('GPS is not available in this browser. Enter the address fields manually.');
+      return;
+    }
+
+    setIsFindingLocation(true);
+    setLocationStatus('Finding your location…');
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const latitude = Number(coords.latitude.toFixed(6));
+      const longitude = Number(coords.longitude.toFixed(6));
+      setLocationDraft((current) => ({ ...current, latitude: String(latitude), longitude: String(longitude) }));
+      setLocationStatus('GPS captured. Looking up the Tanzanian address…');
+
+      try {
+        const query = new URLSearchParams({
+          format: 'jsonv2',
+          addressdetails: '1',
+          zoom: '18',
+          lat: String(latitude),
+          lon: String(longitude),
+        });
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${query}`, {
+          headers: { 'Accept-Language': 'en,sw' },
+        });
+        if (!response.ok) throw new Error('Address lookup unavailable.');
+        const result = await response.json();
+        const address = result.address || {};
+        const city = address.city || address.town || address.village || address.municipality || '';
+        const region = address.state || address.region || '';
+        const district = address.county || address.district || address.state_district || '';
+        const ward = address.city_district || address.suburb || address.neighbourhood || address.quarter || '';
+        const street = [address.house_number, address.road || address.pedestrian || address.path].filter(Boolean).join(' ');
+        setLocationDraft((current) => ({
+          ...current,
+          country: address.country || current.country,
+          region: region || current.region,
+          city: city || current.city,
+          district: district || current.district,
+          ward: ward || current.ward,
+          street: street || current.street,
+        }));
+        setLocationStatus('GPS and available address fields filled. Review before saving.');
+      } catch {
+        setLocationStatus('GPS coordinates captured. Fill any address fields the lookup could not find.');
+      } finally {
+        setIsFindingLocation(false);
+      }
+    }, (error) => {
+      setIsFindingLocation(false);
+      setLocationStatus(error.code === error.PERMISSION_DENIED
+        ? 'Location permission was denied. Enter the address fields manually.'
+        : 'Could not get a GPS fix. Enter the address fields manually.');
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  };
+  const scrollToProfileSection = (sectionId) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const saveNidaNumber = (value) => {
+    const digits = String(value).replace(/\D/g, '');
+    if (digits.length !== 20) {
+      setUploadError('Enter all 20 NIDA digits before saving.');
+      return false;
+    }
+    setUploadError('');
+    return onSave({ ...profile, nidaLast4: digits.slice(-4) });
+  };
+
+  const addBankAccountInline = () => onSave({
+    ...profile,
+    bankAccounts: [...profile.bankAccounts, {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      bank: '',
+      holder: profile.name,
+      last4: '',
+    }],
+  });
+
+  const updateBankAccountInline = (id, field, value) => onSave({
+    ...profile,
+    bankAccounts: profile.bankAccounts.map((account) => account.id === id
+      ? { ...account, [field]: field === 'last4' ? value.replace(/\D/g, '').slice(-4) : value }
+      : account),
+  });
+
+  const removeBankAccountInline = (id) => onSave({
+    ...profile,
+    bankAccounts: profile.bankAccounts.filter((account) => account.id !== id),
+  });
+
+  const handleImageUpload = async (event, field, maxDimension) => {
+    const [file] = event.target.files || [];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Choose an image file.');
+      event.target.value = '';
+      return;
+    }
+    try {
+      const imageData = await resizeProfileImage(file, maxDimension);
+      if (isEditing) updateDraft(field, imageData);
+      else if (!onSave({ ...profile, [field]: imageData })) setUploadError('Could not save this image on the device.');
+      else setUploadError('');
+    } catch (error) {
+      setUploadError(error.message);
+    }
+    event.target.value = '';
+  };
+
+  const addBankAccount = () => updateDraft('bankAccounts', [
+    ...draft.bankAccounts,
+    { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, bank: '', holder: draft.name, last4: '' },
+  ]);
+
+  const updateBankAccount = (id, field, value) => updateDraft('bankAccounts', draft.bankAccounts.map((account) => (
+    account.id === id ? { ...account, [field]: value } : account
+  )));
+
+  const addPhoneNumber = () => updateDraft('phoneNumbers', [
+    ...draft.phoneNumbers,
+    { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, number: '' },
+  ]);
+
+  const updatePhoneNumber = (id, number) => updateDraft('phoneNumbers', draft.phoneNumbers.map((entry) => (
+    entry.id === id ? { ...entry, number } : entry
+  )));
+
+  const removePhoneNumber = (id) => {
+    const phoneNumbers = draft.phoneNumbers.filter((entry) => entry.id !== id);
+    const primaryPhoneId = draft.primaryPhoneId === id ? phoneNumbers[0]?.id || '' : draft.primaryPhoneId;
+    setDraft((current) => ({ ...current, phoneNumbers, primaryPhoneId }));
+  };
+
+  const saveProfile = (event) => {
+    event.preventDefault();
+    const nidaDigits = String(draft.nidaNumber || '').replace(/\D/g, '');
+    if (nidaDigits && nidaDigits.length !== 20) {
+      setUploadError('Enter all 20 NIDA digits before saving.');
+      return;
+    }
+    setUploadError('');
+    const nextProfile = {
+      ...draft,
+      nidaLast4: nidaDigits ? nidaDigits.slice(-4) : draft.removeNida ? '' : profile.nidaLast4,
+      location: draft.location,
+      phoneNumbers: draft.phoneNumbers.map((entry) => ({ ...entry, number: entry.number.trim() })).filter((entry) => entry.number),
+      bankAccounts: draft.bankAccounts
+        .map((account) => ({
+          id: account.id,
+          bank: account.bank.trim(),
+          holder: account.holder.trim(),
+          last4: String(account.last4).replace(/\D/g, '').slice(-4),
+        }))
+        .filter((account) => account.bank && account.holder && account.last4.length === 4),
+    };
+      const primaryPhone = nextProfile.phoneNumbers.find((entry) => entry.id === draft.primaryPhoneId) || nextProfile.phoneNumbers[0];
+      nextProfile.primaryPhoneId = primaryPhone?.id || '';
+      nextProfile.phone = primaryPhone?.number || '';
+    delete nextProfile.nidaNumber;
+    delete nextProfile.removeNida;
+    if (!onSave(nextProfile)) {
+      setUploadError('Could not save this profile on the device. Try a smaller photo or free browser storage.');
+    } else {
+      setUploadError('');
+      onEditingChange(false);
+    }
+  };
+
+  return (
+    <div className={isEditing ? 'profile-page-shell is-editing' : 'profile-page-shell'}>
       <main className="profile-main-panel">
-        <header className="profile-topbar">
-          <div className="profile-topbar-brand">
-            <h1>AgriTrust</h1>
-          </div>
+        <div className={isEditing ? 'profile-content is-editing' : 'profile-content'}>
+          {isEditing && (
+            <form className="profile-card profile-edit-form" onSubmit={saveProfile}>
+              <div className="profile-edit-heading">
+                <div>
+                  <span className="profile-eyebrow">FARMER RECORD</span>
+                  <h2>Edit your profile</h2>
+                  <p>Update your identity, farm, and financial details.</p>
+                </div>
+                <span className="material-symbols-outlined profile-edit-icon">manage_accounts</span>
+              </div>
 
-          <nav className="profile-topbar-nav">
-            {['Dashboard', 'Marketplace', 'Expert Hub', 'Community'].map((item) => (
-              <button type="button" key={item} className="profile-topbar-link">
-                {item}
-              </button>
-            ))}
-          </nav>
+              <fieldset className="profile-edit-section">
+                <legend>Profile photos</legend>
+                <div className="profile-photo-fields">
+                  <div className="profile-photo-control">
+                    <img src={draft.avatar} alt="Profile preview" />
+                    <div>
+                      <strong>Profile photo</strong>
+                      <label className="profile-upload-btn">
+                        <span className="material-symbols-outlined">photo_camera</span>Choose photo
+                        <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event, 'avatar', 512)} />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="profile-cover-control">
+                    <div className="profile-cover-preview" style={draft.coverPhoto ? { backgroundImage: `url(${draft.coverPhoto})` } : undefined} />
+                    <div>
+                      <strong>Cover photo</strong>
+                      <label className="profile-upload-btn">
+                        <span className="material-symbols-outlined">image</span>Choose cover
+                        <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event, 'coverPhoto', 1600)} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                {uploadError && <p className="profile-form-error" role="alert">{uploadError}</p>}
+              </fieldset>
 
-          <div className="profile-topbar-actions">
-            <button type="button" className="profile-top-icon" aria-label="notifications">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <button type="button" className="profile-top-icon" aria-label="settings">
-              <span className="material-symbols-outlined">settings</span>
-            </button>
-            <button type="button" className="profile-avatar-chip" aria-label="profile">
-              <img
-                alt="Neema Mwangi"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE"
-              />
-            </button>
-          </div>
-        </header>
+              <fieldset className="profile-edit-section">
+                <legend>Personal and identity details</legend>
+                <div className="profile-edit-grid">
+                  <label>Full name<input required autoComplete="name" value={draft.name} onChange={(event) => updateDraft('name', event.target.value)} placeholder="Name as shown on your NIDA card" /></label>
+                  <div className="phone-number-editor profile-edit-full-width">
+                    <div className="phone-number-editor-heading"><span className="profile-field-label">Phone numbers</span><small>Add another number if needed, then choose your main contact.</small></div>
+                    {draft.phoneNumbers.map((entry, index) => (
+                      <div className="phone-number-row" key={entry.id}>
+                        <label className="phone-number-input-label">{index === 0 ? 'Phone number' : `Additional number ${index + 1}`}<input type="tel" autoComplete={index === 0 ? 'tel' : 'off'} inputMode="tel" value={entry.number} onChange={(event) => updatePhoneNumber(entry.id, event.target.value)} placeholder="+255 7XX XXX XXX" /></label>
+                        <label className="phone-primary-choice"><input type="radio" name="primary-phone" checked={draft.primaryPhoneId === entry.id} onChange={() => updateDraft('primaryPhoneId', entry.id)} disabled={!entry.number.trim()} />Main</label>
+                        {draft.phoneNumbers.length > 1 && <button type="button" className="profile-remove-bank" aria-label={`Remove ${index === 0 ? 'phone number' : `additional number ${index + 1}`}`} onClick={() => removePhoneNumber(entry.id)}><span className="material-symbols-outlined">delete</span></button>}
+                      </div>
+                    ))}
+                    <button type="button" className="profile-add-bank" onClick={addPhoneNumber}><span className="material-symbols-outlined">add</span>Add phone number</button>
+                  </div>
+                  <label>Email address<input type="email" autoComplete="email" value={draft.email} onChange={(event) => updateDraft('email', event.target.value)} placeholder="name@example.co.tz" /></label>
+                  <div className="profile-edit-full-width nida-edit-field">
+                    <span className="profile-field-label">NIDA number</span>
+                    <NidaDigitsInput value={draft.nidaNumber} onChange={(value) => updateDraft('nidaNumber', value)} />
+                    <small>{profile.nidaLast4 ? `Saved ending ${profile.nidaLast4}. Enter all 20 digits to replace.` : 'Enter the 20 digits shown on your NIDA card.'}</small>
+                  </div>
+                  <button type="button" className="profile-add-bank profile-edit-full-width" onClick={openLocationEditor}><span className="material-symbols-outlined">location_on</span>Edit address and GPS details</button>
+                </div>
+                {profile.nidaLast4 && <button type="button" className="profile-clear-nida" onClick={() => updateDraft('removeNida', true)}>Remove saved NIDA reference</button>}
+                <p className="profile-private-note">NIDA digits are visible while entering; use the eye button to mask them. For privacy, only the last four digits are saved on this device. NIDA and phone entries are not externally verified.</p>
+              </fieldset>
 
-        <div className="profile-content">
-          <section className="profile-hero-card">
-            <div className="profile-cover-art" />
+              <fieldset className="profile-edit-section">
+                <legend>Farm and farmer details</legend>
+                <div className="profile-edit-grid">
+                  <label>Farm name<input value={draft.farm} onChange={(event) => updateDraft('farm', event.target.value)} placeholder="e.g. Mlimani Farm" /></label>
+                  <label>Farm area (acres)<input type="number" min="0" step="0.1" value={draft.farmSize} onChange={(event) => updateDraft('farmSize', event.target.value)} placeholder="e.g. 3.5" /></label>
+                  <label>Main crops<input value={draft.crops} onChange={(event) => updateDraft('crops', event.target.value)} placeholder="Maize, beans, coffee" /></label>
+                  <label>Livestock head count<input type="number" min="0" step="1" value={draft.livestock} onChange={(event) => updateDraft('livestock', event.target.value)} placeholder="e.g. 12" /></label>
+                  <label>Land tenure<input value={draft.landTenure} onChange={(event) => updateDraft('landTenure', event.target.value)} placeholder="Owned, leased, family land" /></label>
+                  <label>Years farming<input type="number" min="0" step="1" value={draft.yearsFarming} onChange={(event) => updateDraft('yearsFarming', event.target.value)} placeholder="e.g. 8" /></label>
+                  <label>Cooperative / group<input value={draft.cooperative} onChange={(event) => updateDraft('cooperative', event.target.value)} placeholder="Group or cooperative name" /></label>
+                  <label>Irrigation method<input value={draft.irrigation} onChange={(event) => updateDraft('irrigation', event.target.value)} placeholder="Rain-fed, drip, sprinkler" /></label>
+                  <label className="profile-edit-full-width">Training and certifications<input value={draft.certifications} onChange={(event) => updateDraft('certifications', event.target.value)} placeholder="Separate entries with commas" /></label>
+                </div>
+              </fieldset>
+
+              <fieldset className="profile-edit-section">
+                <legend>Bank accounts</legend>
+                <p className="profile-private-note">Add the bank, account holder, and last four digits only. This is a reference, not a bank or Visa/Mastercard connection. Never enter a full card or account number here.</p>
+                <div className="profile-bank-list">
+                  {draft.bankAccounts.map((account) => (
+                    <div className="profile-bank-row" key={account.id}>
+                      <label>Bank<input required value={account.bank} onChange={(event) => updateBankAccount(account.id, 'bank', event.target.value)} placeholder="e.g. NMB, CRDB, NBC" /></label>
+                      <label>Account holder<input required value={account.holder} onChange={(event) => updateBankAccount(account.id, 'holder', event.target.value)} placeholder="Name registered with the bank" /></label>
+                      <label>Last four digits<input required inputMode="numeric" maxLength="4" pattern="[0-9]{4}" value={account.last4} onChange={(event) => updateBankAccount(account.id, 'last4', event.target.value.replace(/\D/g, ''))} placeholder="1234" /></label>
+                      <button type="button" className="profile-remove-bank" aria-label="Remove bank account" onClick={() => updateDraft('bankAccounts', draft.bankAccounts.filter((entry) => entry.id !== account.id))}>
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" className="profile-add-bank" onClick={addBankAccount}><span className="material-symbols-outlined">add</span>Add bank account</button>
+              </fieldset>
+
+              <section className="profile-score-preview" aria-live="polite">
+                <div className="profile-score-preview-heading">
+                  <div><strong>Profile trust score</strong><small>Updates as you complete your farmer record</small></div>
+                  <strong>{trust.score}<small> / 1000 · {trust.tier}</small></strong>
+                </div>
+                <div className="profile-score-factors">
+                  {trust.categories.map((category) => <span key={category.key}>{category.label}: <strong>{category.percent}%</strong></span>)}
+                </div>
+                <p>Completeness indicator only. It is not a credit rating or external identity/bank verification.</p>
+              </section>
+
+              <div className="profile-edit-actions">
+                <button type="button" className="profile-cancel-btn" onClick={() => onEditingChange(false)}>Cancel</button>
+                <button type="submit" className="profile-save-btn"><span className="material-symbols-outlined">save</span>Save changes</button>
+              </div>
+            </form>
+          )}
+          {isLocationEditorOpen && (
+            <div className="location-editor-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsLocationEditorOpen(false); }}>
+              <section className="location-editor" role="dialog" aria-modal="true" aria-labelledby="location-editor-title">
+                <div className="location-editor-heading">
+                  <div>
+                    <span className="profile-eyebrow">FARMER LOCATION</span>
+                    <h2 id="location-editor-title">Edit location</h2>
+                    <p>Use GPS to fill nearby address details, or enter them manually.</p>
+                  </div>
+                  <button type="button" className="location-editor-close" aria-label="Close location editor" onClick={() => setIsLocationEditorOpen(false)}><span className="material-symbols-outlined">close</span></button>
+                </div>
+                <button type="button" className="location-gps-button" onClick={findCurrentLocation} disabled={isFindingLocation}>
+                  <span className="material-symbols-outlined">my_location</span>{isFindingLocation ? 'Finding location…' : 'Use current GPS location'}
+                </button>
+                <div className="location-edit-grid">
+                  <label>Country<input value={locationDraft.country} onChange={(event) => setLocationDraft((current) => ({ ...current, country: event.target.value }))} placeholder="Tanzania" /></label>
+                  <label>Region<input list="tanzania-region-options" value={locationDraft.region} onChange={(event) => setLocationDraft((current) => ({ ...current, region: event.target.value }))} placeholder="Select or type a region" /><datalist id="tanzania-region-options">{tanzaniaRegions.map((region) => <option value={`${region}${region.endsWith('Region') ? '' : ' Region'}`} key={region} />)}</datalist></label>
+                  <label>City / town<input value={locationDraft.city} onChange={(event) => setLocationDraft((current) => ({ ...current, city: event.target.value }))} placeholder="e.g. Iringa" /></label>
+                  <label>District / council<input value={locationDraft.district} onChange={(event) => setLocationDraft((current) => ({ ...current, district: event.target.value }))} placeholder="e.g. Iringa Municipal Council" /></label>
+                  <label>Ward / kata<input value={locationDraft.ward} onChange={(event) => setLocationDraft((current) => ({ ...current, ward: event.target.value }))} placeholder="Enter ward name" /></label>
+                  <label>Street / village<input value={locationDraft.street} onChange={(event) => setLocationDraft((current) => ({ ...current, street: event.target.value }))} placeholder="Street, village, or hamlet" /></label>
+                  <label>GPS latitude<input type="number" min="-90" max="90" step="any" value={locationDraft.latitude} onChange={(event) => setLocationDraft((current) => ({ ...current, latitude: event.target.value }))} placeholder="e.g. -7.770000" /></label>
+                  <label>GPS longitude<input type="number" min="-180" max="180" step="any" value={locationDraft.longitude} onChange={(event) => setLocationDraft((current) => ({ ...current, longitude: event.target.value }))} placeholder="e.g. 35.690000" /></label>
+                </div>
+                {locationStatus && <p className="location-editor-status" role="status">{locationStatus}</p>}
+                <div className="location-editor-actions">
+                  <button type="button" className="profile-cancel-btn" onClick={() => setIsLocationEditorOpen(false)}>Cancel</button>
+                  <button type="button" className="profile-save-btn" onClick={saveLocation}><span className="material-symbols-outlined">save</span>Save location</button>
+                </div>
+              </section>
+            </div>
+          )}
+          <section className="profile-hero-card" id="profile-overview">
+            <div className="profile-cover-stage">
+              <div className="profile-cover-art" style={viewProfile.coverPhoto ? { backgroundImage: `linear-gradient(135deg, rgba(31, 47, 38, 0.18), rgba(168, 110, 71, 0.08)), url(${viewProfile.coverPhoto})` } : undefined} />
+              <label className="profile-cover-edit" aria-label="Replace cover photo" title="Replace cover photo">
+                <span className="material-symbols-outlined">photo_camera</span>
+                <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event, 'coverPhoto', 1600)} />
+              </label>
+            </div>
             <div className="profile-identity-block">
               <div className="profile-avatar-large-wrap">
-                <img
-                  alt="Neema Mwangi profile"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE"
-                />
-                <span className="profile-verified-badge material-symbols-outlined">verified</span>
+                <label className="profile-avatar-edit" aria-label="Replace profile photo" title="Replace profile photo">
+                  <img alt={`${viewProfile.name} profile`} src={viewProfile.avatar} />
+                  <span className="material-symbols-outlined">photo_camera</span>
+                  <input type="file" accept="image/*" onChange={(event) => handleImageUpload(event, 'avatar', 512)} />
+                </label>
               </div>
 
               <div className="profile-hero-copy">
-                <h1>Neema Mwangi</h1>
+                <h1><InlineProfileField label="full name" value={viewProfile.name} onSave={(value) => saveInlineField('name', value)} className="profile-inline-name" /></h1>
                 <div className="profile-location-row">
                   <span className="material-symbols-outlined">location_on</span>
-                  <span>Mbeya Region, Tanzania</span>
+                  <button type="button" className="profile-location-edit-button" onClick={openLocationEditor} aria-label="Edit farmer location">{viewProfile.location}<span className="material-symbols-outlined" aria-hidden="true">edit</span></button>
                 </div>
                 <div className="profile-badges-row">
-                  <span><span className="material-symbols-outlined">verified_user</span> NIDA Verified</span>
-                  <span><span className="material-symbols-outlined">satellite_alt</span> GPS Mapped</span>
+                  <button type="button" className="profile-status-chip" onClick={() => scrollToProfileSection('profile-records')}>
+                    <span className="material-symbols-outlined">badge</span>{viewProfile.nidaLast4 ? `NIDA ending ${viewProfile.nidaLast4} · pending` : 'NIDA not added'}
+                  </button>
+                  <button type="button" className="profile-status-chip" aria-label="Edit location from status" title="Edit location" onClick={openLocationEditor}>
+                    <span className="material-symbols-outlined">location_on</span>{viewProfile.latitude && viewProfile.longitude ? 'GPS mapped' : 'Location recorded'}
+                  </button>
+                </div>
+                <div className="profile-contact-row">
+                  <span><span className="material-symbols-outlined">call</span><InlineProfileField label="phone number" value={viewProfile.phone} onSave={(value) => saveInlineField('phone', value)} className="profile-inline-contact" /></span>
+                  <span><span className="material-symbols-outlined">mail</span><InlineProfileField label="email address" value={viewProfile.email} onSave={(value) => saveInlineField('email', value)} className="profile-inline-contact" /></span>
                 </div>
               </div>
 
-              <button type="button" className="profile-message-btn">Message</button>
+              <div className="profile-hero-actions">
+                <button type="button" className="profile-edit-details-btn" onClick={() => onEditingChange(true)}><span className="material-symbols-outlined">edit</span>Edit details</button>
+                <button type="button" className="profile-message-btn" onClick={onCommunity}>Message</button>
+              </div>
             </div>
           </section>
+          {uploadError && <p className="profile-form-error" role="alert">{uploadError}</p>}
 
           <div className="profile-main-grid">
-            <section className="profile-card profile-trust-card">
+            <section className="profile-card profile-trust-card" id="profile-trust">
               <div className="profile-card-header">
                 <span className="material-symbols-outlined">workspace_premium</span>
                 <h3>Trust Score</h3>
@@ -457,143 +1307,140 @@ function ProfileSettingsPage({ onBack }) {
                 <div className="trust-ring-wrap">
                   <svg viewBox="0 0 36 36" aria-hidden="true">
                     <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e7ddd8" strokeWidth="4" />
-                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#b96543" strokeWidth="4" strokeDasharray="84.5, 100" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#b96543" strokeWidth="4" strokeDasharray={`${trust.score / 10}, 100`} />
                   </svg>
                   <div className="trust-ring-value">
-                    <strong>845</strong>
-                    <span>Excellent</span>
+                    <strong>{trust.score}</strong>
+                    <span>{trust.tier}</span>
                   </div>
                 </div>
 
                 <div className="trust-metrics">
-                  <div className="trust-metric-row">
-                    <div className="trust-metric-head">
-                      <span>Reliability</span>
-                      <strong>92%</strong>
+                  {trust.categories.map((category, index) => (
+                    <div className="trust-metric-row" key={category.key}>
+                      <div className="trust-metric-head"><span>{category.label}</span><strong>{category.percent}%</strong></div>
+                      <div className={`trust-meter trust-tone-${index}`}><span style={{ width: `${category.percent}%` }} /></div>
                     </div>
-                    <div className="trust-meter"><span style={{ width: '92%' }} /></div>
-                  </div>
-                  <div className="trust-metric-row">
-                    <div className="trust-metric-head">
-                      <span>Marketplace Activity</span>
-                      <strong>85%</strong>
-                    </div>
-                    <div className="trust-meter alt"><span style={{ width: '85%' }} /></div>
-                  </div>
-                  <div className="trust-metric-row">
-                    <div className="trust-metric-head">
-                      <span>Community Help</span>
-                      <strong>78%</strong>
-                    </div>
-                    <div className="trust-meter tertiary"><span style={{ width: '78%' }} /></div>
-                  </div>
+                  ))}
                 </div>
               </div>
+              <p className="trust-score-disclaimer">Profile completeness estimate from the details provided. NIDA, phone, and bank details are not externally verified.</p>
             </section>
 
-            <aside className="profile-card profile-sidebar-card">
-              <div className="profile-card-header">
+            <aside className="profile-card profile-sidebar-card" id="profile-farm">
+              <div className="profile-card-header profile-card-heading-row">
                 <span className="material-symbols-outlined">agriculture</span>
                 <h3>Farm Overview</h3>
               </div>
 
               <div className="farm-area-panel">
+                <span>Farm name</span>
+                <InlineProfileField label="farm name" value={viewProfile.farm} onSave={(value) => saveInlineField('farm', value)} className="profile-inline-farm" />
+              </div>
+              <div className="farm-area-panel">
                 <span>Total Area</span>
-                <strong>3.5 Acres</strong>
+                <strong><InlineProfileField label="farm area in acres" value={viewProfile.farmSize} type="number" onSave={(value) => saveInlineField('farmSize', value)} className="profile-inline-number" /> Acres</strong>
               </div>
 
               <div className="farm-crops-row">
                 <span>Main Crops</span>
                 <div className="crop-pills">
-                  <span className="crop-pill maize">Maize</span>
-                  <span className="crop-pill beans">Beans</span>
-                  <span className="crop-pill sunflower">Sunflower</span>
+                  <InlineProfileField
+                    label="main crops"
+                    value={viewProfile.crops}
+                    onSave={(value) => saveInlineField('crops', value)}
+                    className="profile-inline-crops"
+                    displayValue={(value) => String(value || '').split(',').map((crop) => crop.trim()).filter(Boolean).map((crop, index) => (
+                      <span key={crop} className={`crop-pill crop-tone-${index % 3}`}>{crop}</span>
+                    ))}
+                  />
                 </div>
               </div>
 
               <div className="farm-livestock-row">
                 <span className="material-symbols-outlined">cruelty_free</span>
                 <span>Livestock Head Count</span>
-                <strong>12</strong>
+                <strong><InlineProfileField label="livestock head count" value={viewProfile.livestock} type="number" onSave={(value) => saveInlineField('livestock', value)} className="profile-inline-number" /></strong>
               </div>
 
-              <div className="profile-card-header credential-header">
-                <span className="material-symbols-outlined">account_balance</span>
-                <h3>Verified Credentials</h3>
-              </div>
-
-              <ul className="credential-list">
-                {[
-                  ['CRDB Bank', 'Linked •••• 4291'],
-                  ['NBC Bank', 'Linked •••• 8830'],
-                  ['Land Title Deed', 'Verified 2023'],
-                ].map(([name, detail]) => (
-                  <li key={name} className="credential-item">
-                    <div className="credential-left">
-                      <span className="material-symbols-outlined">account_balance</span>
-                      <div>
-                        <strong>{name}</strong>
-                        <small>{detail}</small>
-                      </div>
-                    </div>
-                    <span className="material-symbols-outlined credential-check">check_circle</span>
-                  </li>
-                ))}
-              </ul>
             </aside>
           </div>
 
-          <section className="profile-card profile-activity-card">
+          <div className="profile-details-grid">
+            <section className="profile-card profile-farmer-details">
+              <div className="profile-card-header">
+                <span className="material-symbols-outlined">person_pin_circle</span>
+                <h3>Farmer details</h3>
+              </div>
+              <dl className="farmer-detail-list">
+                {[
+                  ['Land tenure', 'landTenure', 'text'],
+                  ['Years farming', 'yearsFarming', 'number'],
+                  ['Cooperative', 'cooperative', 'text'],
+                  ['Irrigation', 'irrigation', 'text'],
+                  ['Training', 'certifications', 'text'],
+                ].map(([label, field, type]) => (
+                  <div key={field}><dt>{label}</dt><dd><InlineProfileField label={label.toLowerCase()} value={viewProfile[field]} type={type} onSave={(value) => saveInlineField(field, value)} className="profile-inline-detail" /></dd></div>
+                ))}
+              </dl>
+            </section>
+
+            <section className="profile-card profile-records-card" id="profile-records">
+              <div className="profile-card-header">
+                <span className="material-symbols-outlined">account_balance</span>
+                <h3>Accounts & identity records</h3>
+              </div>
+              <ul className="credential-list">
+                <li className="credential-item">
+                  <div className="credential-left">
+                    <span className="material-symbols-outlined">badge</span>
+                    <div>
+                      <strong>NIDA number</strong>
+                      <small>{viewProfile.nidaLast4 ? `Ending ${viewProfile.nidaLast4} · Not verified` : 'Not added · external verification unavailable'}</small>
+                      <InlineProfileField
+                        label="NIDA number"
+                        value={viewProfile.nidaLast4}
+                        secret
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={24}
+                        placeholder="Enter NIDA number to add or replace"
+                        onSave={saveNidaNumber}
+                        className="profile-inline-detail"
+                        displayValue={(last4) => `NIDA ending ${last4} · Replace`}
+                      />
+                    </div>
+                  </div>
+                  {viewProfile.nidaLast4 && <button type="button" className="profile-remove-bank" aria-label="Remove NIDA reference" onClick={() => onSave({ ...profile, nidaLast4: '' })}><span className="material-symbols-outlined">delete</span></button>}
+                </li>
+                {viewProfile.bankAccounts.map((account) => (
+                  <li key={account.id} className="credential-item">
+                    <div className="credential-left">
+                      <span className="material-symbols-outlined">account_balance</span>
+                      <div className="credential-account-fields">
+                        <strong><InlineProfileField label="bank name" value={account.bank} onSave={(value) => updateBankAccountInline(account.id, 'bank', value)} className="profile-inline-detail" /></strong>
+                        <small>Account holder: <InlineProfileField label="account holder" value={account.holder} onSave={(value) => updateBankAccountInline(account.id, 'holder', value)} className="profile-inline-detail" /></small>
+                        <small>Ending <InlineProfileField label="account last four digits" value={account.last4} onSave={(value) => updateBankAccountInline(account.id, 'last4', value)} inputMode="numeric" maxLength={4} className="profile-inline-detail" /> · Not verified</small>
+                      </div>
+                    </div>
+                    <button type="button" className="profile-remove-bank" aria-label="Remove bank account" onClick={() => removeBankAccountInline(account.id)}><span className="material-symbols-outlined">delete</span></button>
+                  </li>
+                ))}
+                {!viewProfile.nidaLast4 && !viewProfile.bankAccounts.length && <li className="profile-empty-credentials">No bank references added yet.</li>}
+              </ul>
+              <button type="button" className="profile-add-bank" onClick={addBankAccountInline}><span className="material-symbols-outlined">add</span>Add bank account</button>
+            </section>
+          </div>
+
+          <section className="profile-card profile-activity-card" id="profile-activity">
             <div className="profile-card-header">
               <span className="material-symbols-outlined">history</span>
-              <h3>Activity Timeline</h3>
+              <h3>Farmer activity</h3>
             </div>
-
-            <div className="timeline-list">
-              <div className="timeline-item">
-                <span className="timeline-dot dot-primary" />
-                <div>
-                  <small>2 days ago</small>
-                  <p>Sold 500kg Maize on Soko</p>
-                </div>
-              </div>
-              <div className="timeline-item">
-                <span className="timeline-dot dot-secondary" />
-                <div>
-                  <small>1 week ago</small>
-                  <p>Completed IPM Workshop</p>
-                </div>
-              </div>
-              <div className="timeline-item">
-                <span className="timeline-dot dot-accent" />
-                <div>
-                  <small>2 weeks ago</small>
-                  <p>Consulted with Dr. Mgata</p>
-                </div>
-              </div>
-            </div>
+            <p className="profile-empty-activity">Verified marketplace, training, and community activity will appear here when those records are connected to this account.</p>
           </section>
         </div>
       </main>
-
-      <nav className="profile-mobile-nav" aria-label="mobile navigation">
-        <button type="button" className="mobile-nav-btn">
-          <span className="material-symbols-outlined">home</span>
-          <span>Home</span>
-        </button>
-        <button type="button" className="mobile-nav-btn">
-          <span className="material-symbols-outlined">hub</span>
-          <span>Network</span>
-        </button>
-        <button type="button" className="mobile-nav-btn">
-          <span className="material-symbols-outlined">qr_code_scanner</span>
-          <span>Scan</span>
-        </button>
-        <button type="button" className="mobile-nav-btn active">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-          <span className="sr-only">Profile</span>
-        </button>
-      </nav>
     </div>
   );
 }
@@ -602,6 +1449,51 @@ function SmallholderDashboard({ onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
+  const [marketplaceSearch, setMarketplaceSearch] = useState('');
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
+  const [farmerProfile, setFarmerProfile] = useState(() => {
+    try {
+      const savedProfile = window.localStorage.getItem('agrinest-farmer-profile');
+      if (!savedProfile) return initialFarmerProfile;
+      const saved = JSON.parse(savedProfile);
+      const legacyNida = String(saved.nidaNumber || '').replace(/\D/g, '');
+      const profile = {
+        ...initialFarmerProfile,
+        ...saved,
+        nidaLast4: legacyNida ? legacyNida.slice(-4) : saved.nidaLast4 || '',
+        bankAccounts: Array.isArray(saved.bankAccounts)
+          ? saved.bankAccounts.map((account, index) => ({
+            id: account.id || `saved-bank-${index}`,
+            bank: account.bank || '',
+            holder: account.holder || '',
+            last4: String(account.last4 || '').replace(/\D/g, '').slice(-4),
+          }))
+          : [],
+        ...normalizePhoneNumbers({ ...saved, phone: saved.phone || initialFarmerProfile.phone }),
+      };
+      delete profile.nidaNumber;
+      return profile;
+    } catch {
+      return initialFarmerProfile;
+    }
+  });
+  const [farmerRecords, setFarmerRecords] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('agrinest-farmer-dashboard-records') || '{}');
+      return {
+        fields: Array.isArray(saved.fields) ? saved.fields : [],
+        listings: Array.isArray(saved.listings) ? saved.listings : [],
+        income: Array.isArray(saved.income) ? saved.income : [],
+        livestock: Array.isArray(saved.livestock) ? saved.livestock : [],
+        groups: Array.isArray(saved.groups) ? saved.groups : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
+        activities: Array.isArray(saved.activities) ? saved.activities : [],
+        requests: Array.isArray(saved.requests) ? saved.requests : [],
+      };
+    } catch {
+      return { fields: [], listings: [], income: [], livestock: [], groups: [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }], activities: [], requests: [] };
+    }
+  });
+  const [liveListingCount, setLiveListingCount] = useState(0);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [weatherData, setWeatherData] = useState(() => buildWeatherSnapshot({
     current: {
@@ -643,6 +1535,56 @@ function SmallholderDashboard({ onLogout }) {
       window.clearInterval(intervalId);
     };
   }, []);
+
+  const saveFarmerProfile = (nextProfile) => {
+    const profileToSave = { ...nextProfile };
+    delete profileToSave.nidaNumber;
+    try {
+      window.localStorage.setItem('agrinest-farmer-profile', JSON.stringify(profileToSave));
+    } catch {
+      return false;
+    }
+    setFarmerProfile(profileToSave);
+    return true;
+  };
+
+  const updateFarmerRecords = (key, nextRecords) => {
+    setFarmerRecords((current) => ({ ...current, [key]: nextRecords }));
+  };
+
+  const farmerNavigationViews = {
+    Dashboard: 'dashboard', 'Digital Farm': 'fields', 'Jicho AI': 'jicho', Livestock: 'livestock',
+    'Hesabu Yangu': 'income', Marketplace: 'marketplace', Transport: 'transport', 'Agrishop Network': 'agrishop',
+    Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
+    Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
+    Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
+    'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
+    'Rent Equipment': 'agrishop', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Crowdfunding: 'crowdfunding',
+    'AGRI-NEST Foundation': 'foundation',
+  };
+  const farmerActionViews = {
+    'Sell Produce': 'marketplace', 'Scan Crop': 'jicho', 'Apply Loan': 'loans', 'Get Expert': 'experts',
+    'Book Transport': 'transport', 'Log Activity': 'activity', 'Rent Space': 'rent-space', 'Hire Labour': 'labour',
+    'Sell Waste': 'waste', 'Get Insurance': 'insurance', 'Smart Loan': 'smart-loan',
+  };
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('agrinest-farmer-dashboard-records', JSON.stringify(farmerRecords));
+    } catch {
+      setStatus('Could not save dashboard records in this browser.');
+    }
+  }, [farmerRecords]);
+
+  useEffect(() => {
+    let isCurrent = true;
+    api.getListings().then((result) => {
+      if (!isCurrent) return;
+      const sellerListings = (Array.isArray(result.items) ? result.items : []).filter((listing) => listing.seller_name === farmerProfile.name);
+      setLiveListingCount(sellerListings.length);
+    }).catch(() => {});
+    return () => { isCurrent = false; };
+  }, [activeView, farmerProfile.name]);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -736,11 +1678,8 @@ function SmallholderDashboard({ onLogout }) {
             <div key={section.heading || `section-${sectionIndex}`} className="nav-section">
               {section.heading && <div className="nav-section-heading">{section.heading}</div>}
               {section.items.map((item) => {
-                const isActive = item.label === 'Community Chat'
-                  ? activeView === 'community'
-                  : item.label === 'Jicho AI'
-                    ? activeView === 'jicho'
-                    : item.active && activeView === 'dashboard';
+                const destination = farmerNavigationViews[item.label] || 'dashboard';
+                const isActive = activeView === destination;
                 return (
                 <a
                   key={item.label}
@@ -748,9 +1687,7 @@ function SmallholderDashboard({ onLogout }) {
                   href="#"
                   onClick={(event) => {
                     event.preventDefault();
-                    if (item.label === 'Community Chat') setActiveView('community');
-                    if (item.label === 'Jicho AI') setActiveView('jicho');
-                    if (item.label === 'Dashboard') setActiveView('dashboard');
+                    setActiveView(destination);
                   }}
                 >
                   <span className={isActive ? 'material-symbols-outlined fill-icon' : 'material-symbols-outlined'}>{item.icon}</span>
@@ -765,7 +1702,7 @@ function SmallholderDashboard({ onLogout }) {
         <div className="sidebar-bottom">
           <div className="nav-user-pill">
             <span className="material-symbols-outlined">person</span>
-            Neema Mwangi
+            {farmerProfile.name}
           </div>
         </div>
       </nav>
@@ -788,9 +1725,11 @@ function SmallholderDashboard({ onLogout }) {
             </button>
             {activeView === 'community' && <h2 className="topbar-page-title">Community Chat</h2>}
             {activeView === 'jicho' && <h2 className="topbar-page-title">Jicho AI</h2>}
+            {activeView === 'marketplace' && <h2 className="topbar-page-title">Soko Marketplace</h2>}
+            {activeView === 'ramani' && <h2 className="topbar-page-title">Ramani GIS</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="text" placeholder="Search..." />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -812,22 +1751,25 @@ function SmallholderDashboard({ onLogout }) {
               onClick={() => setIsProfileMenuOpen((open) => !open)}
             >
               <img
-                alt="Farmer profile"
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
+                alt={`${farmerProfile.name} profile`}
+                src={farmerProfile.avatar}
               />
             </button>
 
             {isProfileMenuOpen && (
-              <div className="profile-menu" role="dialog" aria-label="Profile details" onClick={() => setActiveView('profile')}>
+              <div className="profile-menu" role="dialog" aria-label="Profile details" onClick={() => {
+                setActiveView('profile');
+                setIsProfileMenuOpen(false);
+              }}>
                 <div className="profile-menu-header">
                   <div className="user-avatar-wrap large">
                     <img
-                      alt="Farmer profile"
-                      src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
+                      alt={`${farmerProfile.name} profile`}
+                      src={farmerProfile.avatar}
                     />
                   </div>
                   <div>
-                    <div className="profile-menu-name">Neema Mwangi</div>
+                    <div className="profile-menu-name">{farmerProfile.name}</div>
                     <div className="profile-menu-role">Smallholder Farmer</div>
                   </div>
                 </div>
@@ -835,15 +1777,15 @@ function SmallholderDashboard({ onLogout }) {
                 <div className="profile-menu-details">
                   <div>
                     <span>Phone</span>
-                    <strong>+255 712 345 678</strong>
+                    <strong>{farmerProfile.phone}</strong>
                   </div>
                   <div>
                     <span>Location</span>
-                    <strong>Iringa, Tanzania</strong>
+                    <strong>{farmerProfile.location}</strong>
                   </div>
                   <div>
                     <span>Farm</span>
-                    <strong>Mtakuja Farm</strong>
+                    <strong>{farmerProfile.farm}</strong>
                   </div>
                 </div>
 
@@ -854,6 +1796,7 @@ function SmallholderDashboard({ onLogout }) {
                     onClick={(event) => {
                       event.stopPropagation();
                       setActiveView('profile');
+                      setIsProfileEditing(true);
                       setIsProfileMenuOpen(false);
                     }}
                   >
@@ -877,7 +1820,13 @@ function SmallholderDashboard({ onLogout }) {
         </header>
 
         {activeView === 'profile' ? (
-          <ProfileSettingsPage onBack={() => setActiveView('dashboard')} />
+          <ProfileSettingsPage
+            profile={farmerProfile}
+            isEditing={isProfileEditing}
+            onEditingChange={setIsProfileEditing}
+            onSave={saveFarmerProfile}
+            onCommunity={() => setActiveView('community')}
+          />
         ) : activeView === 'notifications' ? (
           <NotificationCenter
             notifications={notifications}
@@ -885,10 +1834,18 @@ function SmallholderDashboard({ onLogout }) {
             onBackToDashboard={() => setActiveView('dashboard')}
           />
         ) : activeView === 'community' ? (
-          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} />
+          <CommunityChat
+            onBackToDashboard={() => setActiveView('dashboard')}
+            viewerProfile={{ id: 'farmer-neema', name: farmerProfile.name, role: 'Smallholder Farmer', avatar: farmerProfile.avatar, location: farmerProfile.location }}
+            farmerProfile={farmerProfile}
+          />
         ) : activeView === 'jicho' ? (
           <JichoDiagnostic onBackToDashboard={() => setActiveView('dashboard')} />
-        ) : (
+        ) : activeView === 'marketplace' ? (
+          <MarketplacePage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
+        ) : activeView === 'ramani' ? (
+          <RamaniMapPage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
+        ) : activeView === 'dashboard' ? (
         <main className="content-area">
           <section className="welcome-block">
             <div className="welcome-panel">
@@ -924,14 +1881,14 @@ function SmallholderDashboard({ onLogout }) {
 
           <section className="stats-grid">
             {[
-              { icon: '🌾', value: '0', label: 'Active Fields' },
-              { icon: '⭐', value: '855', label: 'Trust Score' },
-              { icon: '🛒', value: '0', label: 'Active Listings' },
-              { icon: '💰', value: '840K', label: 'Season Income' },
-              { icon: '🐄', value: '0', label: 'Livestock Head' },
-              { icon: '👥', value: '1', label: 'My Groups' },
+              { icon: '🌾', value: farmerRecords.fields.length, label: 'Active Fields', view: 'fields' },
+              { icon: '⭐', value: calculateFarmerTrust(farmerProfile).score, label: 'Trust Score', view: 'trust' },
+              { icon: '🛒', value: Math.max(farmerRecords.listings.length, liveListingCount), label: 'Active Listings', view: 'listings' },
+              { icon: '💰', value: `TZS ${farmerRecords.income.reduce((total, entry) => total + Number(entry.amount || 0), 0).toLocaleString('en-TZ')}`, label: 'Season Income', view: 'income' },
+              { icon: '🐄', value: Number(farmerProfile.livestock || 0).toLocaleString(), label: 'Livestock Head', view: 'livestock' },
+              { icon: '👥', value: farmerRecords.groups.length, label: 'My Groups', view: 'groups' },
             ].map((item) => (
-              <div className="stat-card" key={item.label}>
+              <button className="stat-card stat-card-button" key={item.label} type="button" aria-label={`${item.label}: ${item.value}. Open details`} onClick={() => setActiveView(item.view)}>
                 <div className="stat-head">
                   <span>{item.icon}</span>
                 </div>
@@ -939,13 +1896,13 @@ function SmallholderDashboard({ onLogout }) {
                   <p className="stat-value">{item.value}</p>
                   <p className="stat-label">{item.label}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </section>
 
           <section className="action-row">
             {['Sell Produce', 'Scan Crop', 'Apply Loan', 'Get Expert', 'Book Transport', 'Log Activity', 'Rent Space', 'Hire Labour', 'Sell Waste', 'Get Insurance', 'Smart Loan'].map((item, index) => (
-              <button key={item} className="action-pill" type="button">
+              <button key={item} className="action-pill" type="button" onClick={() => setActiveView(farmerActionViews[item])}>
                 <span>{['🛒', '🔍', '🏦', '👨‍🌾', '🚛', '📸', '🏚️', '👷', '♻️', '☂️', '🤖'][index]}</span>
                 {item}
               </button>
@@ -1054,7 +2011,7 @@ function SmallholderDashboard({ onLogout }) {
                 <div className="panel-card crop-card">
                   <div className="panel-header inline-header">
                     <h3>Crop Alerts</h3>
-                    <a href="#">View Jicho <span className="material-symbols-outlined">arrow_forward</span></a>
+                    <button type="button" onClick={() => setActiveView('jicho')}>View Jicho <span className="material-symbols-outlined">arrow_forward</span></button>
                   </div>
                   <div className="crop-list">
                     <div className="crop-row"><span>🟢</span><div><p>Maize: Fall Armyworm</p><small>Early planting before moth flight peak...</small></div></div>
@@ -1096,7 +2053,7 @@ function SmallholderDashboard({ onLogout }) {
               <div className="market-card">
                 <div className="panel-header inline-header">
                   <h3><span className="material-symbols-outlined">monitoring</span>Live Market Prices</h3>
-                  <a href="#">All prices <span className="material-symbols-outlined">arrow_forward</span></a>
+                  <button type="button" onClick={() => setActiveView('marketplace')}>All prices <span className="material-symbols-outlined">arrow_forward</span></button>
                 </div>
                 <div className="chart-box">[Market Chart Placeholder]</div>
                 <div className="market-list">
@@ -1119,11 +2076,22 @@ function SmallholderDashboard({ onLogout }) {
                   <div><p>*123*5#</p><small>Order inputs</small></div>
                   <div className="voice-box"><p>Sauti AI</p><small>Swahili voice bot</small></div>
                 </div>
-                <button type="button" className="ussd-button">📱 Try USSD Simulator</button>
+                <button type="button" className="ussd-button" onClick={() => setActiveView('ussd')}>📱 Try USSD Simulator</button>
               </div>
             </div>
           </section>
         </main>
+        ) : (
+          <FarmerWorkspace
+            page={activeView}
+            profile={farmerProfile}
+            records={farmerRecords}
+            liveListingCount={liveListingCount}
+            onRecordsChange={updateFarmerRecords}
+            onProfileSave={saveFarmerProfile}
+            onNavigate={setActiveView}
+            onBack={() => setActiveView('dashboard')}
+          />
         )}
       </div>
     </div>
@@ -1144,9 +2112,8 @@ function JichoDiagnostic({ onBackToDashboard }) {
   const cameraInputRef = useRef(null);
 
   useEffect(() => {
-    api.getJichoScans({ farmer_id: 'demo-farmer' })
-      .then((payload) => {
-        if (payload?.scans?.length) setScans(payload.scans);
+    api.getJichoScans().then((payload) => {
+      if (payload?.scans?.length) setScans(payload.scans);
       })
       .catch(() => {});
   }, []);
@@ -1293,10 +2260,49 @@ function JichoKnowledge({ title, icon, copy }) {
   return <div className="jicho-knowledge-panel"><span className="material-symbols-outlined">{icon}</span><h1>{title}</h1><p>{opened ? `The ${title.toLowerCase()} workspace is ready for your next field observation.` : copy}</p><button type="button" className="jicho-primary-button" onClick={() => setOpened((value) => !value)}>{opened ? 'Workspace Ready' : `Open ${title} workspace`}</button></div>;
 }
 
-function CommunityChat({ onBackToDashboard }) {
+function CommunityPublicProfile({ profile, onBack, onMessage }) {
+  return (
+    <div className="community-public-profile">
+      <div className="community-public-profile-toolbar">
+        <button type="button" className="community-profile-back" onClick={onBack}>
+          <span className="material-symbols-outlined">arrow_back</span>People
+        </button>
+        <span className="community-profile-kicker">PUBLIC PROFILE</span>
+      </div>
+      <article className="community-profile-card">
+        <div className="community-profile-cover" />
+        <div className="community-profile-identity">
+          {profile.avatar
+            ? <img className="community-profile-avatar" src={profile.avatar} alt={`${profile.name} profile`} />
+            : <span className="community-profile-avatar community-avatar-icon material-symbols-outlined">{profile.icon || 'person'}</span>}
+          <div className="community-profile-copy">
+            <h1>{profile.name}</h1>
+            <p>{profile.role} · {profile.location}</p>
+            <p>{profile.summary}</p>
+          </div>
+          <button type="button" className="community-profile-message" onClick={onMessage}>
+            <span className="material-symbols-outlined">chat</span>Message
+          </button>
+        </div>
+        {!!profile.details?.length && (
+          <dl className="community-profile-details">
+            {profile.details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+          </dl>
+        )}
+      </article>
+      <p className="community-profile-privacy">Only public role and work details are shown here. Private identity and financial details are never shared.</p>
+    </div>
+  );
+}
+
+function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, farmerProfile = readStoredFarmerProfile() }) {
   const [conversations, setConversations] = useState(initialChatConversations);
+  const [directThreads, setDirectThreads] = useState(loadDirectMessageThreads);
+  const [registeredPeople, setRegisteredPeople] = useState([]);
   const [selectedConversationId, setSelectedConversationId] = useState('iringa-women');
   const [searchTerm, setSearchTerm] = useState('');
+  const [directoryMode, setDirectoryMode] = useState('chats');
+  const [selectedPublicProfileId, setSelectedPublicProfileId] = useState(null);
   const [draft, setDraft] = useState('');
   const [attachment, setAttachment] = useState(null);
   const [location, setLocation] = useState(null);
@@ -1308,10 +2314,52 @@ function CommunityChat({ onBackToDashboard }) {
   const mediaRecorderRef = useRef(null);
   const recordingChunksRef = useRef([]);
   const messageListRef = useRef(null);
-  const selectedConversation = conversations.find((conversation) => conversation.id === selectedConversationId) || conversations[0];
-  const visibleConversations = conversations.filter((conversation) => (
+  const samplePeople = getCommunityPeople(farmerProfile, viewerProfile);
+  const sampleNames = new Set(samplePeople.map((person) => person.name.trim().toLowerCase()));
+  const people = [...samplePeople, ...registeredPeople.filter((person) => (
+    person.id !== viewerProfile.id && !sampleNames.has(person.name.trim().toLowerCase())
+  ))];
+  const directConversations = directThreads
+    .filter((thread) => thread.participants.some((participant) => participant.id === viewerProfile.id))
+    .map((thread) => {
+      const otherParticipant = thread.participants.find((participant) => participant.id !== viewerProfile.id);
+      if (!otherParticipant) return null;
+      const lastMessage = thread.messages[thread.messages.length - 1];
+      return {
+        id: thread.id,
+        name: otherParticipant.name,
+        role: otherParticipant.role,
+        avatar: otherParticipant.avatar,
+        time: lastMessage?.time || 'New',
+        preview: lastMessage?.body || lastMessage?.attachmentName || 'Start a conversation',
+        messages: thread.messages.map((message) => ({
+          ...message,
+          author: message.senderId === viewerProfile.id ? 'You' : otherParticipant.name,
+          incoming: message.senderId !== viewerProfile.id,
+          avatar: message.senderId === viewerProfile.id ? undefined : otherParticipant.avatar,
+        })),
+        localDirect: true,
+        otherParticipant,
+      };
+    })
+    .filter(Boolean);
+  const allConversations = [...directConversations, ...conversations];
+  const selectedConversation = allConversations.find((conversation) => conversation.id === selectedConversationId) || allConversations[0];
+  const selectedPublicProfile = people.find((person) => person.id === selectedPublicProfileId);
+  const visibleConversations = allConversations.filter((conversation) => (
     `${conversation.name} ${conversation.role} ${conversation.preview}`.toLowerCase().includes(searchTerm.toLowerCase())
   ));
+  const visiblePeople = people.filter((person) => (
+    `${person.name} ${person.role} ${person.location} ${person.summary}`.toLowerCase().includes(searchTerm.toLowerCase())
+  ));
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('agrinest-direct-message-threads', JSON.stringify(directThreads));
+    } catch {
+      // Keep the current session usable if browser storage is full.
+    }
+  }, [directThreads]);
 
   useEffect(() => {
     let active = true;
@@ -1326,13 +2374,60 @@ function CommunityChat({ onBackToDashboard }) {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    api.getUsers()
+      .then((payload) => {
+        const publicUsers = Array.isArray(payload?.items) ? payload.items : [];
+        if (!active) return;
+        setRegisteredPeople(publicUsers
+          .filter((user) => user.user_id && typeof user.name === 'string' && user.name.trim())
+          .map((user) => {
+            const role = String(user.role || 'farmer').toLowerCase();
+            const isFarmer = ['farmer', 'smallholder', 'smallholder farmer'].includes(role);
+            return {
+              id: `registered-user-${user.user_id}`,
+              name: user.name,
+              role: isFarmer ? 'Smallholder Farmer' : role.replace(/[_-]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+              avatar: isFarmer ? farmerProfile.avatar : null,
+              icon: isFarmer ? 'agriculture' : 'person',
+              location: user.region || 'Tanzania',
+              summary: isFarmer ? 'Smallholder farmer on AGRI-NEST.' : `${role} account on AGRI-NEST.`,
+              details: [
+                ...(user.region ? [['Region', user.region]] : []),
+                ...(user.trust_score !== null && user.trust_score !== undefined ? [['Profile score', `${user.trust_score} / 1000`]] : []),
+              ],
+            };
+          }));
+      })
+      .catch(() => {
+        if (active) setRegisteredPeople([]);
+      });
+    return () => { active = false; };
+  }, [farmerProfile.avatar]);
+
+  useEffect(() => {
     if (messageListRef.current) messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-  }, [selectedConversationId, conversations]);
+  }, [selectedConversationId, conversations, directThreads]);
+
+  const startDirectMessage = (person) => {
+    const participants = [viewerProfile, person].map(({ id, name, role, avatar, location, summary, details }) => ({
+      id, name, role, avatar, location, summary, details,
+    }));
+    const threadId = `dm-${participants.map((participant) => participant.id).sort().join('--')}`;
+    setDirectThreads((current) => current.some((thread) => thread.id === threadId)
+      ? current
+      : [...current, { id: threadId, participants, messages: [], updatedAt: new Date().toISOString() }]);
+    setSelectedConversationId(threadId);
+    setDirectoryMode('chats');
+    setSelectedPublicProfileId(null);
+    setSearchTerm('');
+    setDraft('');
+  };
 
   const sendMessage = () => {
     const body = draft.trim();
     const attachmentName = attachment?.name;
-    if (!body && !attachment && !location) return;
+    if ((!body && !attachment && !location) || !selectedConversation) return;
     const message = {
       id: `message-${Date.now()}`,
       author: 'You',
@@ -1344,20 +2439,28 @@ function CommunityChat({ onBackToDashboard }) {
       attachmentKind: attachment?.kind,
       location,
     };
-    api.sendCommunityMessage(selectedConversation.id, {
-      body,
-      attachmentName,
-      attachmentUrl: attachment?.uploadUrl || attachment?.previewUrl,
-      attachmentKind: attachment?.kind,
-      location,
-    }).catch(() => {
-      // The local state still gives the user an immediate usable conversation.
-    });
-    setConversations((current) => current.map((conversation) => (
-      conversation.id === selectedConversation.id
-        ? { ...conversation, preview: body || attachmentName || (location ? `Location shared: ${location.label}` : ''), time: message.time, messages: [...conversation.messages, message] }
-        : conversation
-    )));
+    if (selectedConversation.localDirect) {
+      setDirectThreads((current) => current.map((thread) => (
+        thread.id === selectedConversation.id
+          ? { ...thread, updatedAt: new Date().toISOString(), messages: [...thread.messages, { ...message, senderId: viewerProfile.id }] }
+          : thread
+      )));
+    } else {
+      api.sendCommunityMessage(selectedConversation.id, {
+        body,
+        attachmentName,
+        attachmentUrl: attachment?.uploadUrl || attachment?.previewUrl,
+        attachmentKind: attachment?.kind,
+        location,
+      }).catch(() => {
+        // The local state still gives the user an immediate usable conversation.
+      });
+      setConversations((current) => current.map((conversation) => (
+        conversation.id === selectedConversation.id
+          ? { ...conversation, preview: body || attachmentName || (location ? `Location shared: ${location.label}` : ''), time: message.time, messages: [...conversation.messages, message] }
+          : conversation
+      )));
+    }
     setDraft('');
     setAttachment(null);
     setLocation(null);
@@ -1455,17 +2558,22 @@ function CommunityChat({ onBackToDashboard }) {
     <main className="community-page">
       <div className="community-chat-layout">
         <section className="community-conversations">
+          <div className="community-directory-heading"><h2>Community</h2><span>{viewerProfile.role}</span></div>
           <div className="community-search">
             <span className="material-symbols-outlined">search</span>
-            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search chats..." aria-label="Search chats" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder={directoryMode === 'chats' ? 'Search chats...' : 'Search people...'} aria-label={directoryMode === 'chats' ? 'Search chats' : 'Search people'} />
           </div>
-          <div className="community-conversation-list">
+          <div className="community-directory-tabs" role="tablist" aria-label="Community views">
+            <button type="button" role="tab" aria-selected={directoryMode === 'chats'} className={directoryMode === 'chats' ? 'active' : ''} onClick={() => { setDirectoryMode('chats'); setSelectedPublicProfileId(null); }}>Chats</button>
+            <button type="button" role="tab" aria-selected={directoryMode === 'people'} className={directoryMode === 'people' ? 'active' : ''} onClick={() => { setDirectoryMode('people'); setSelectedPublicProfileId(null); }}>People</button>
+          </div>
+          {directoryMode === 'chats' ? <div className="community-conversation-list">
             {visibleConversations.map((conversation) => (
               <button
                 type="button"
                 key={conversation.id}
                 className={conversation.id === selectedConversation.id ? 'community-conversation active' : 'community-conversation'}
-                onClick={() => setSelectedConversationId(conversation.id)}
+                onClick={() => { setSelectedConversationId(conversation.id); setSelectedPublicProfileId(null); }}
               >
                 {conversation.avatar ? <img src={conversation.avatar} alt="" /> : <span className="community-avatar-icon material-symbols-outlined">{conversation.icon}</span>}
                 <span className="community-conversation-copy">
@@ -1475,13 +2583,37 @@ function CommunityChat({ onBackToDashboard }) {
               </button>
             ))}
             {!visibleConversations.length && <p className="community-empty">No conversations found.</p>}
-          </div>
+          </div> : <div className="community-people-list">
+            {visiblePeople.map((person) => (
+              <button type="button" className="community-person-card" key={person.id} onClick={() => setSelectedPublicProfileId(person.id)}>
+                {person.avatar ? <img src={person.avatar} alt="" /> : <span className="community-avatar-icon material-symbols-outlined">{person.icon || 'person'}</span>}
+                <span className="community-person-copy"><strong>{person.name}</strong><small>{person.role}</small><small>{person.location}</small></span>
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            ))}
+            {!visiblePeople.length && <p className="community-empty">No people found.</p>}
+          </div>}
         </section>
 
         <section className="community-thread">
+          {selectedPublicProfile ? (
+            <CommunityPublicProfile
+              profile={selectedPublicProfile}
+              onBack={() => setSelectedPublicProfileId(null)}
+              onMessage={() => startDirectMessage(selectedPublicProfile)}
+            />
+          ) : (
+          <>
+          <header className="community-thread-header">
+            <div>
+              <strong>{selectedConversation.name}</strong>
+              <small>{selectedConversation.role}</small>
+            </div>
+            {selectedConversation.localDirect && <button type="button" onClick={() => setSelectedPublicProfileId(selectedConversation.otherParticipant.id)}>View profile</button>}
+          </header>
           <div className="community-security-banner">
             <span>🛡️</span>
-            <p>Your transactions are protected. Never share phone numbers or make payments outside the AGRI-NEST platform.</p>
+            <p>Keep contact and payment details private. Direct messages are saved on this device in this demo.</p>
           </div>
           <div className="community-messages" ref={messageListRef}>
             <div className="community-date-divider"><span>Today</span></div>
@@ -1526,6 +2658,8 @@ function CommunityChat({ onBackToDashboard }) {
               <button type="button" className="community-send-button" onClick={sendMessage} aria-label="Send message"><span className="material-symbols-outlined">send</span></button>
             </div>
           </div>
+          </>
+          )}
         </section>
       </div>
       <button type="button" className="community-back-dashboard" onClick={onBackToDashboard}><span className="material-symbols-outlined">arrow_back</span> Dashboard</button>
@@ -1544,24 +2678,40 @@ function TransporterDashboard({ onLogout }) {
     { id: 'morogoro-tanga', route: 'Morogoro → Tanga', distance: '340km', cargo: '1,500kg Sisal', trust: '99%' },
   ];
 
-  const action = (message) => setNotice(message);
+  const action = (message) => {
+    const lowerMessage = message.toLowerCase();
+    const destination = lowerMessage.includes('calling') ? 'trips' : lowerMessage.includes('bid') || message.includes(':') ? 'jobs' : 'route';
+    const storageKey = 'agrinest-transporter-workspace-records';
+    try {
+      const savedRecords = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
+      const record = { id: `dispatch-${Date.now()}`, title: message, details: 'Follow-up saved from the fleet dashboard.', savedAt: new Date().toISOString() };
+      window.localStorage.setItem(storageKey, JSON.stringify([record, ...(Array.isArray(savedRecords) ? savedRecords : [])]));
+    } catch {
+      setNotice('Could not save this dispatch action in the browser.');
+      return;
+    }
+    setNotice(message);
+    setActiveView(destination);
+  };
 
   return (
     <div className="transporter-shell">
       <nav className="transporter-sidebar">
         <div className="transporter-brand"><span className="transporter-avatar">FM</span><div><strong>Fleet Dashboard</strong><small>Logistic Service Provider</small></div></div>
-        <button type="button" className="transporter-post-button" onClick={() => action('Availability post workspace opened.')}>Post Availability</button>
+        <button type="button" className="transporter-post-button" onClick={() => setActiveView('availability')}>Post Availability</button>
         {[['dashboard', 'Home', 'home'], ['work_history', 'Open Jobs', 'jobs'], ['distance', 'Active Trips', 'trips'], ['local_shipping', 'Fleet Management', 'fleet'], ['account_balance_wallet', 'Earnings', 'earnings'], ['map', 'Route Planner', 'route'], ['forum', 'Community', 'community']].map(([icon, label, id]) => <button type="button" key={id} className={activeView === id ? 'transporter-nav-item active' : 'transporter-nav-item'} onClick={() => setActiveView(id)}><span className="material-symbols-outlined">{icon}</span>{label}</button>)}
-        <div className="transporter-nav-bottom"><button type="button" className="transporter-nav-item" onClick={() => action('Settings opened.')}><span className="material-symbols-outlined">settings</span>Settings</button><button type="button" className="transporter-nav-item" onClick={onLogout}><span className="material-symbols-outlined">logout</span>Log Out</button></div>
+        <div className="transporter-nav-bottom"><button type="button" className="transporter-nav-item" onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button><button type="button" className="transporter-nav-item" onClick={onLogout}><span className="material-symbols-outlined">logout</span>Log Out</button></div>
       </nav>
       <main className="transporter-main">
-        <header className="transporter-topbar"><h1>Agri-Nest Logistics</h1><div><button type="button" onClick={() => action('No new notifications.')}><span className="material-symbols-outlined">notifications</span></button><button type="button" onClick={() => action('Fleet support is ready.')}><span className="material-symbols-outlined">support</span></button><span className="transporter-mini-avatar">JK</span></div></header>
+        <header className="transporter-topbar"><h1>Agri-Nest Logistics</h1><div><button type="button" aria-label="Notifications" onClick={() => setActiveView('notifications')}><span className="material-symbols-outlined">notifications</span></button><button type="button" aria-label="Fleet support" onClick={() => setActiveView('support')}><span className="material-symbols-outlined">support</span></button><span className="transporter-mini-avatar">JK</span></div></header>
         {notice && <button type="button" className="transporter-notice" onClick={() => setNotice('')}>{notice}<span className="material-symbols-outlined">close</span></button>}
-        {activeView === 'home' ? <>
+        {activeView === 'community' ? (
+          <CommunityChat onBackToDashboard={() => setActiveView('home')} viewerProfile={{ id: 'transporter-james', name: 'James Kweka', role: 'Transporter', location: 'Tanzania', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' }} farmerProfile={readStoredFarmerProfile()} />
+        ) : activeView === 'home' ? <>
           <section className="transporter-heading"><div><h2>Habari za asubuhi, James! 🚛</h2><p>Road conditions to Dar es Salaam are clear. You have <b>3 active bids</b> and <b>1 trip in progress</b>.</p></div></section>
-          <section className="transporter-stats"><article><span className="material-symbols-outlined">account_balance_wallet</span><small>Wallet Balance</small><strong>TZS {wallet.toLocaleString()}</strong><button type="button" onClick={() => { setWallet(0); action('Withdrawal request submitted.'); }}>Withdraw</button></article><article><span className="material-symbols-outlined">route</span><small>Trips Done</small><strong>156</strong><p>Historical Total</p></article><article><span className="material-symbols-outlined">star</span><small>Avg Rating</small><strong>4.8 <em>★</em></strong><p className="transporter-badge">Verified Top Rated</p></article><article className="transporter-active-job"><small>Active Job</small><strong>Iringa →<br />Dar es Salaam</strong><span>Maize • In Transit</span></article></section>
+          <section className="transporter-stats"><article><span className="material-symbols-outlined">account_balance_wallet</span><small>Wallet Balance</small><strong>TZS {wallet.toLocaleString()}</strong><button type="button" onClick={() => setActiveView('earnings')}>Withdraw</button></article><article><span className="material-symbols-outlined">route</span><small>Trips Done</small><strong>156</strong><p>Historical Total</p></article><article><span className="material-symbols-outlined">star</span><small>Avg Rating</small><strong>4.8 <em>★</em></strong><p className="transporter-badge">Verified Top Rated</p></article><article className="transporter-active-job"><small>Active Job</small><strong>Iringa →<br />Dar es Salaam</strong><span>Maize • In Transit</span></article></section>
           <section className="transporter-dashboard-grid"><article className="transporter-route-card"><div className="transporter-card-heading"><h3><span className="material-symbols-outlined">route</span>Active Route Overview</h3><span>ID: TRP-9284</span></div><div className="transporter-map"><div><small>DESTINATION</small><strong>Kariakoo Market</strong></div><span className="material-symbols-outlined">navigation</span></div><div className="transporter-route-details"><div><small>Status</small><strong>{tripProgress}% Complete</strong><p>ETA 2h 15m</p><span>📦 Cargo<br /><b>5,000kg Maize</b></span><span>👤 Client<br /><b>Mkulima Co-op</b></span></div><div><button type="button" onClick={() => action('Calling Mkulima Co-op...')}>☎ Contact Client</button><button type="button" onClick={() => setTripProgress((progress) => Math.min(100, progress + 10))}>↻ Update Status</button></div></div></article><aside className="transporter-right-column"><article className="transporter-jobs"><div className="transporter-card-heading"><h3>Open Jobs</h3><button type="button" onClick={() => setActiveView('jobs')}>View All</button></div>{jobs.map((job) => <div className="transporter-job" key={job.id}><div><strong>{job.route}</strong><span>{job.distance}</span></div><p>{job.cargo} • <b>👍 {job.trust} Trust</b></p><div><button type="button" onClick={() => action(`Quick bid started for ${job.route}.`)}>Quick Bid</button><button type="button" onClick={() => action(`${job.route}: ${job.cargo}`)}>Details</button></div></div>)}</article><article className="transporter-earnings"><div className="transporter-card-heading"><h3>Weekly Earnings</h3><small>This Week</small></div><div className="transporter-bars">{[30, 50, 90, 40, 60, 10, 5].map((height, index) => <i className={index === 2 ? 'peak' : ''} style={{ height: `${height}%` }} key={index} />)}</div></article><article className="transporter-alerts"><h3><span className="material-symbols-outlined">warning</span>Road Alerts</h3><button type="button" onClick={() => action('Route alert opened: heavy rain in Morogoro.')}><b>☁ Heavy rain in Morogoro</b><small>Expect 30m delays. Reported 1h ago.</small></button><button type="button" onClick={() => action('Route alert opened: weighbridge delay at Mikumi.')}><b>⚠ Weighbridge delay at Mikumi</b><small>Long queue. Reported 15m ago.</small></button></article></aside></section>
-        </> : <section className="transporter-placeholder"><span className="material-symbols-outlined">{activeView === 'jobs' ? 'work_history' : activeView === 'trips' ? 'distance' : activeView === 'fleet' ? 'local_shipping' : activeView === 'earnings' ? 'account_balance_wallet' : activeView === 'route' ? 'map' : 'forum'}</span><h2>{activeView.replace('-', ' ')}</h2><p>This logistics workspace is ready for the next fleet workflow.</p><button type="button" onClick={() => setActiveView('home')}>Back to Home</button></section>}
+        </> : <RoleWorkspace role="transporter" page={activeView} onBack={() => setActiveView('home')} />}
       </main>
     </div>
   );
@@ -1576,7 +2726,12 @@ function StudentDashboard({ onLogout }) {
 
   useEffect(() => {
     api.getStudentDashboard()
-      .then(setDashboard)
+      .then((studentDashboard) => {
+        if (!studentDashboard || typeof studentDashboard.name !== 'string') {
+          throw new Error('The student dashboard response is incomplete.');
+        }
+        setDashboard(studentDashboard);
+      })
       .catch(() => setDashboard({
         name: 'David K.', programme: 'BSc. Agronomy', year: 'Year 3', semester: 'Semester 2',
         metrics: { credits: 24, certifications: 3, field_hours: 12, trust_score: 8.5 },
@@ -1620,10 +2775,13 @@ function StudentDashboard({ onLogout }) {
         <header className="student-header"><div><h1>Welcome back, {dashboard.name.replace(' K.', '')}</h1><p>Here is your academic overview for {dashboard.semester}.</p></div><button type="button" className="student-submit-button" onClick={() => assignmentInputRef.current?.click()}><span className="material-symbols-outlined">upload_file</span>Submit Assignment</button></header>
         {notice && <button type="button" className="student-notice" onClick={() => setNotice('')}>{notice}<span className="material-symbols-outlined">close</span></button>}
         <input ref={assignmentInputRef} type="file" hidden onChange={(event) => setAssignment(event.target.files?.[0] || null)} />
-        {activeView === 'dashboard' ? <>
-          <section className="student-top-grid"><div className="student-progress-card"><h2>Academic Progress</h2><p>{dashboard.programme} - {dashboard.year}</p><div className="student-metric-grid">{[['school', dashboard.metrics.credits, 'Credits Earned'], ['workspace_premium', dashboard.metrics.certifications, 'Certifications'], ['science', dashboard.metrics.field_hours, 'Field Hours'], ['star', dashboard.metrics.trust_score, 'Trust Score']].map(([icon, value, label]) => <div key={label}><span className="material-symbols-outlined">{icon}</span><strong>{value}</strong><small>{label}</small></div>)}</div></div><div className="student-focus-card"><div><div className="student-focus-title"><h2>Current Focus</h2><span>{dashboard.focus.status}</span></div><h3>{dashboard.focus.title}</h3><p>{dashboard.focus.description}</p></div><button type="button" onClick={() => setNotice('Workspace opened for your thesis.')}>Open Workspace <span className="material-symbols-outlined">arrow_forward</span></button></div></section>
+        {assignment && <div className="student-notice"><span>{assignment.name}</span><button type="button" onClick={submitAssignment}>Save submission</button></div>}
+        {activeView === 'community' ? (
+          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} viewerProfile={{ id: 'student-david', name: dashboard.name, role: 'Agronomy Student', location: 'Morogoro, Tanzania', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' }} farmerProfile={readStoredFarmerProfile()} />
+        ) : activeView === 'dashboard' ? <>
+          <section className="student-top-grid"><div className="student-progress-card"><h2>Academic Progress</h2><p>{dashboard.programme} - {dashboard.year}</p><div className="student-metric-grid">{[['school', dashboard.metrics.credits, 'Credits Earned'], ['workspace_premium', dashboard.metrics.certifications, 'Certifications'], ['science', dashboard.metrics.field_hours, 'Field Hours'], ['star', dashboard.metrics.trust_score, 'Trust Score']].map(([icon, value, label]) => <div key={label}><span className="material-symbols-outlined">{icon}</span><strong>{value}</strong><small>{label}</small></div>)}</div></div><div className="student-focus-card"><div><div className="student-focus-title"><h2>Current Focus</h2><span>{dashboard.focus.status}</span></div><h3>{dashboard.focus.title}</h3><p>{dashboard.focus.description}</p></div><button type="button" onClick={() => setActiveView('workspace')}>Open Workspace <span className="material-symbols-outlined">arrow_forward</span></button></div></section>
           <div className="student-content-grid"><div className="student-left-column"><section><div className="student-section-heading"><h2>Learning Path</h2><button type="button" onClick={() => setActiveView('learning-path')}>View All Courses</button></div><div className="student-course-list">{dashboard.courses.map((course) => <div className="student-course-card" key={course.id}><span className="student-course-icon material-symbols-outlined">{course.id === 'soil-science' ? 'grass' : 'water_drop'}</span><div><div className="student-course-title"><h3>{course.title}</h3><span>{course.progress}%</span></div><p>{course.module}</p><div className="student-course-track"><i style={{ width: `${course.progress}%` }} /></div></div><button type="button" onClick={() => updateProgress(course)} aria-label={`Continue ${course.title}`}><span className="material-symbols-outlined">play_arrow</span></button></div>)}</div></section><section><div className="student-section-heading"><h2>Research Hub</h2><button type="button" onClick={() => setNotice('New research paper workspace created.')}>+ New Paper</button></div><div className="student-research-grid"><article><span>Under Review</span><h3>Impact of Organic Mulching on Moisture Retention in Arid Regions</h3><p>Submitted to East African Journal of Agronomy.</p><small>◉ 12 &nbsp; ◌ 2 Peer Reviews</small></article><article><span>Draft</span><h3>Comparative Study of Local Seed Varieties vs GMO Yields</h3><p>Initial data collection phase completed.</p><small>Edited 2d ago</small></article></div></section></div><aside className="student-right-column"><section className="student-opportunities"><h2><span className="material-symbols-outlined">work</span>Opportunities</h2>{dashboard.opportunities.map((opportunity) => <article key={opportunity.id}><div><strong>{opportunity.title}</strong><p>{opportunity.organization} • {opportunity.location}</p></div><div>{opportunity.tags.map((tag) => <span key={tag}>{tag}</span>)}</div><button type="button" disabled={dashboard.applications.some((item) => item.opportunity_id === opportunity.id)} onClick={() => applyNow(opportunity)}>{dashboard.applications.some((item) => item.opportunity_id === opportunity.id) ? 'Applied' : 'Apply Now'}</button></article>)}<button type="button" className="student-view-all" onClick={() => setNotice('Showing all available postings.')}>View All 14 Postings</button></section><section className="student-forum"><h2>Community Forum</h2><p>Answer questions to earn trust points.</p>{['What is the most organic way to handle aphids on young tomato shoots?', 'Seeking advice on setting up low-cost drip systems for a 1-acre plot.'].map((question) => <button type="button" key={question} onClick={() => setActiveView('community')}><span>Pest Control</span><strong>{question}</strong><small>Asked by Farmer Jane • +15 Trust Pts</small></button>)}</section></aside></div>
-        </> : <section className="student-placeholder"><span className="material-symbols-outlined">{activeView === 'settings' ? 'settings' : activeView === 'community' ? 'forum' : 'school'}</span><h2>{activeView.replace('-', ' ')}</h2><p>This student workspace is connected to the same AGRI-NEST account and ready for its next workflow.</p><button type="button" onClick={() => setActiveView('dashboard')}>Back to Dashboard</button></section>}
+        </> : <RoleWorkspace role="student" page={activeView} onBack={() => setActiveView('dashboard')} />}
         <button type="button" className="student-logout" onClick={onLogout}>Sign out</button>
       </main>
     </div>
@@ -1788,21 +2946,17 @@ function InstitutionalDashboard({ onLogout }) {
         </div>
 
         <nav className="impact-main-nav">
-          <a href="#" className="impact-main-link active">Dashboard</a>
-          <a href="#" className="impact-main-link">Programmes</a>
-          <a href="#" className="impact-main-link">Beneficiaries</a>
-          <a href="#" className="impact-main-link">Impact Reports</a>
-          <a href="#" className="impact-main-link">Field Intelligence</a>
+          {[['dashboard', 'Dashboard'], ['programmes', 'Programmes'], ['beneficiaries', 'Beneficiaries'], ['reports', 'Impact Reports'], ['field-intel', 'Field Intelligence']].map(([view, label]) => <a href="#" key={view} className={activeView === view ? 'impact-main-link active' : 'impact-main-link'} onClick={(event) => { event.preventDefault(); setActiveView(view); }}>{label}</a>)}
         </nav>
 
         <div className="impact-actions">
-          <button type="button" className="impact-icon-button" aria-label="Search">
+          <button type="button" className="impact-icon-button" aria-label="Search" onClick={() => setActiveView('search')}>
             <span className="material-symbols-outlined">search</span>
           </button>
-          <button type="button" className="impact-icon-button" aria-label="Notifications">
+          <button type="button" className="impact-icon-button" aria-label="Notifications" onClick={() => setActiveView('notifications')}>
             <span className="material-symbols-outlined">notifications</span>
           </button>
-          <button type="button" className="impact-icon-button" aria-label="Settings">
+          <button type="button" className="impact-icon-button" aria-label="Settings" onClick={() => setActiveView('settings')}>
             <span className="material-symbols-outlined">settings</span>
           </button>
           <img
@@ -1824,23 +2978,23 @@ function InstitutionalDashboard({ onLogout }) {
           </div>
 
           <nav className="impact-sidebar-nav">
-            <a href="#" className="impact-side-link active">
+            <a href="#" className={activeView === 'dashboard' ? 'impact-side-link active' : 'impact-side-link'} onClick={(event) => { event.preventDefault(); setActiveView('dashboard'); }}>
               <span className="material-symbols-outlined fill">dashboard</span>
               <span>Overview</span>
             </a>
-            <a href="#" className="impact-side-link">
+            <a href="#" className={activeView === 'programmes' ? 'impact-side-link active' : 'impact-side-link'} onClick={(event) => { event.preventDefault(); setActiveView('programmes'); }}>
               <span className="material-symbols-outlined">account_tree</span>
               <span>Programmes</span>
             </a>
-            <a href="#" className="impact-side-link">
+            <a href="#" className={activeView === 'beneficiaries' ? 'impact-side-link active' : 'impact-side-link'} onClick={(event) => { event.preventDefault(); setActiveView('beneficiaries'); }}>
               <span className="material-symbols-outlined">groups</span>
               <span>Beneficiaries</span>
             </a>
-            <a href="#" className="impact-side-link">
+            <a href="#" className={activeView === 'reports' ? 'impact-side-link active' : 'impact-side-link'} onClick={(event) => { event.preventDefault(); setActiveView('reports'); }}>
               <span className="material-symbols-outlined">assessment</span>
               <span>Impact Reports</span>
             </a>
-            <a href="#" className="impact-side-link">
+            <a href="#" className={activeView === 'field-intel' ? 'impact-side-link active' : 'impact-side-link'} onClick={(event) => { event.preventDefault(); setActiveView('field-intel'); }}>
               <span className="material-symbols-outlined">map</span>
               <span>Field Intel</span>
             </a>
@@ -1851,12 +3005,12 @@ function InstitutionalDashboard({ onLogout }) {
           </nav>
 
           <div className="impact-sidebar-actions">
-            <button type="button" className="impact-export-button">
+            <button type="button" className="impact-export-button" onClick={() => setActiveView('reports')}>
               <span className="material-symbols-outlined">download</span>
               Export Report
             </button>
 
-            <a href="#" className="impact-side-link secondary-link">
+            <a href="#" className="impact-side-link secondary-link" onClick={(event) => { event.preventDefault(); setActiveView('support'); }}>
               <span className="material-symbols-outlined">help</span>
               <span>Support</span>
             </a>
@@ -1868,8 +3022,8 @@ function InstitutionalDashboard({ onLogout }) {
         </aside>
 
         {activeView === 'community' ? (
-          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} />
-        ) : (
+          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} viewerProfile={{ id: 'institutional-demo', name: 'Impact Portfolio Team', role: 'Institution', location: 'Tanzania' }} />
+        ) : activeView === 'dashboard' ? (
         <main className="impact-main-content">
           <div className="impact-page-header">
             <div>
@@ -1946,7 +3100,7 @@ function InstitutionalDashboard({ onLogout }) {
             <section className="impact-panel programmes-panel">
               <div className="impact-panel-header">
                 <h2>Active Programmes</h2>
-                <button type="button">View All</button>
+                <button type="button" onClick={() => setActiveView('programmes')}>View All</button>
               </div>
 
               <div className="impact-programme-list">
@@ -2066,6 +3220,8 @@ function InstitutionalDashboard({ onLogout }) {
             </section>
           </div>
         </main>
+        ) : (
+          <RoleWorkspace role="institutional" page={activeView} onBack={() => setActiveView('dashboard')} />
         )}
       </div>
 
@@ -2111,27 +3267,27 @@ function BuyerDashboard({ onLogout }) {
         </div>
 
         <nav className="buyer-nav">
-          <a className="buyer-nav-item active" href="#">
+          <a className={activeView === 'dashboard' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('dashboard'); }}>
             <span className="material-symbols-outlined">dashboard</span>
             Dashboard
           </a>
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'marketplace' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('marketplace'); }}>
             <span className="material-symbols-outlined">storefront</span>
             Marketplace
           </a>
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'orders' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('orders'); }}>
             <span className="material-symbols-outlined">receipt_long</span>
             My Orders
           </a>
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'logistics' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('logistics'); }}>
             <span className="material-symbols-outlined">local_shipping</span>
             Logistics
           </a>
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'suppliers' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('suppliers'); }}>
             <span className="material-symbols-outlined">group</span>
             Suppliers
           </a>
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'analytics' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('analytics'); }}>
             <span className="material-symbols-outlined">analytics</span>
             Analytics
           </a>
@@ -2142,7 +3298,7 @@ function BuyerDashboard({ onLogout }) {
         </nav>
 
         <div className="buyer-nav footer-nav">
-          <a className="buyer-nav-item" href="#">
+          <a className={activeView === 'settings' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('settings'); }}>
             <span className="material-symbols-outlined">settings</span>
             Settings
           </a>
@@ -2176,11 +3332,11 @@ function BuyerDashboard({ onLogout }) {
           </div>
 
           <div className="buyer-header-actions">
-            <button type="button" className="buyer-primary-button">
+            <button type="button" className="buyer-primary-button" onClick={() => setActiveView('new-request')}>
               <span className="material-symbols-outlined">add</span>
               New Request
             </button>
-            <button type="button" className="buyer-icon-button" aria-label="Notifications">
+            <button type="button" className="buyer-icon-button" aria-label="Notifications" onClick={() => setActiveView('alerts')}>
               <span className="material-symbols-outlined">notifications</span>
               <span className="alert-dot" />
             </button>
@@ -2188,8 +3344,8 @@ function BuyerDashboard({ onLogout }) {
         </header>
 
         {activeView === 'community' ? (
-          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} />
-        ) : (
+          <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} viewerProfile={{ id: 'buyer-john', name: 'John Mwakalinga', role: 'Produce Buyer', location: 'Mbeya, Tanzania' }} />
+        ) : activeView === 'dashboard' ? (
         <>
         <section className="buyer-overview-grid">
           <div className="buyer-stat-card">
@@ -2213,9 +3369,6 @@ function BuyerDashboard({ onLogout }) {
             <div className="buyer-stat-label">Pending Deliveries</div>
           </div>
         </section>
-        </>
-        )}
-
         <section className="buyer-content-grid">
           <div className="buyer-panel buyer-market-panel">
             <div className="buyer-panel-header">
@@ -2237,25 +3390,25 @@ function BuyerDashboard({ onLogout }) {
                   <td className="commodity-name"><span className="dot yellow" />White Maize</td>
                   <td>650</td>
                   <td className="trend down">↓ -2.3%</td>
-                  <td><button type="button">Buy</button></td>
+                  <td><button type="button" onClick={() => setActiveView('purchase')}>Buy</button></td>
                 </tr>
                 <tr>
                   <td className="commodity-name"><span className="dot green" />Mbeya Rice</td>
                   <td>2,100</td>
                   <td className="trend up">↑ +1.5%</td>
-                  <td><button type="button">Buy</button></td>
+                  <td><button type="button" onClick={() => setActiveView('purchase')}>Buy</button></td>
                 </tr>
                 <tr>
                   <td className="commodity-name"><span className="dot red" />Red Beans</td>
                   <td>1,850</td>
                   <td className="trend flat">— 0.0%</td>
-                  <td><button type="button">Buy</button></td>
+                  <td><button type="button" onClick={() => setActiveView('purchase')}>Buy</button></td>
                 </tr>
                 <tr>
                   <td className="commodity-name"><span className="dot orange" />Sorghum</td>
                   <td>900</td>
                   <td className="trend up">↑ +0.8%</td>
-                  <td><button type="button">Buy</button></td>
+                  <td><button type="button" onClick={() => setActiveView('purchase')}>Buy</button></td>
                 </tr>
               </tbody>
             </table>
@@ -2264,7 +3417,7 @@ function BuyerDashboard({ onLogout }) {
           <div className="buyer-panel buyer-alert-panel">
             <div className="buyer-panel-header compact">
               <h3><span className="material-symbols-outlined">campaign</span>Alerts</h3>
-              <span className="buyer-link">View All</span>
+              <button type="button" className="buyer-link" onClick={() => setActiveView('alerts')}>View All</button>
             </div>
 
             <div className="alert-list">
@@ -2295,7 +3448,7 @@ function BuyerDashboard({ onLogout }) {
           <div className="buyer-panel buyer-orders-panel">
             <div className="buyer-panel-header compact">
               <h2>Recent Orders</h2>
-              <a href="#">View All</a>
+              <a href="#" onClick={(event) => { event.preventDefault(); setActiveView('orders'); }}>View All</a>
             </div>
 
             <div className="orders-list">
@@ -2340,7 +3493,7 @@ function BuyerDashboard({ onLogout }) {
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                   <path d="M20 50 Q40 25 60 35" />
                 </svg>
-                <div className="map-toggle">Live Tracking</div>
+                <button type="button" className="map-toggle" onClick={() => setActiveView('logistics')}>Live Tracking</button>
               </div>
 
               <div className="logistics-jobs">
@@ -2364,6 +3517,12 @@ function BuyerDashboard({ onLogout }) {
             </div>
           </div>
         </section>
+        </>
+        ) : activeView === 'marketplace' ? (
+          <MarketplacePage profile={{ name: 'John Doe', region: 'Mbeya', city: 'Mbeya', location: 'Mbeya, Tanzania' }} />
+        ) : (
+          <RoleWorkspace role="buyer" page={activeView} onBack={() => setActiveView('dashboard')} />
+        )}
       </main>
     </div>
   );

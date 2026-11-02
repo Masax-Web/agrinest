@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const AuthService = require('./AuthService');
 
 const STORE_PATH = path.join(__dirname, '..', 'data', 'cyber-threat-config.json');
-const SUPER_ADMIN_TOKEN = process.env.SUPER_ADMIN_TOKEN || 'superadmin-token-123';
 
 function loadStore() {
   try {
@@ -58,10 +58,6 @@ function analyzeEvent(eventData) {
   };
 }
 
-function validateSuperAdmin(token) {
-  return token === SUPER_ADMIN_TOKEN;
-}
-
 async function scanEvent(eventData) {
   const store = loadStore();
   if (!store.enabled) {
@@ -90,27 +86,23 @@ async function scanEvent(eventData) {
   };
 }
 
-async function configureDetection({ enabled, superAdminToken }) {
-  if (!validateSuperAdmin(superAdminToken)) {
-    return { success: false, error: 'invalid_super_admin_token' };
-  }
-
+async function configureDetection({ enabled, actorId }) {
   const store = loadStore();
   store.enabled = Boolean(enabled);
   store.updatedAt = new Date().toISOString();
   saveStore(store);
-
+  await AuthService.recordAdminAction({
+    actorId,
+    action: 'security_detection.configured',
+    details: { enabled: store.enabled },
+  });
   return {
     success: true,
     enabled: store.enabled,
   };
 }
 
-async function getStatus({ superAdminToken }) {
-  if (!validateSuperAdmin(superAdminToken)) {
-    return { success: false, error: 'invalid_super_admin_token' };
-  }
-
+async function getStatus() {
   const store = loadStore();
   return {
     success: true,

@@ -34,3 +34,6 @@ Terraform example (AWS ECS - minimal)
 Notes
 - For initial staging, a single t3.small EC2 (or equivalent) with Docker Compose is simplest.
 - Use RDS Postgres with the PostGIS extension enabled for production-like testing.
+- For Railway, create a separate staging project/service and isolated staging database; never point staging at the production database.
+- For Google OAuth, use staging-only callback and frontend URLs and configure credentials directly in the staging secret manager. Follow [authentication setup](./authentication.md) before testing sign-in and administrator permissions.
+- Keep production unchanged until staging authentication, account migration, authorization, moderation, and integration checks pass and production rollout is explicitly approved.

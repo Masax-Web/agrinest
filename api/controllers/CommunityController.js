@@ -1,5 +1,7 @@
 const express = require('express');
+const crypto = require('crypto');
 const db = require('../db');
+const { requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -73,13 +75,13 @@ router.get('/conversations', async (req, res) => {
 
 router.post('/conversations/:conversationId/messages', async (req, res) => {
   const { conversationId } = req.params;
-  const { author = 'You', body, attachmentName, attachmentUrl, attachmentKind, imageUrl, location } = req.body;
+  const { body, attachmentName, attachmentUrl, attachmentKind, imageUrl, location } = req.body;
   if (!body && !attachmentName) return res.status(400).json({ error: 'message_body_required' });
 
   try {
     const [message] = await db('community_messages').insert({
       conversation_id: conversationId,
-      author,
+      author: req.authUser.name || req.authUser.email || 'User',
       body: body || `Attached: ${attachmentName}`,
       attachment_name: attachmentName || null,
       attachment_url: attachmentUrl || null,
@@ -99,6 +101,51 @@ router.post('/conversations/:conversationId/messages', async (req, res) => {
   } catch (error) {
     console.error('CommunityController.createMessage', error);
     res.status(500).json({ error: 'db_error' });
+  }
+});
+
+router.get('/admin/messages', requireAdmin, async (req, res) => {
+  try {
+    const messages = await db('community_messages')
+      .select('message_id', 'conversation_id', 'author', 'body', 'created_at')
+      .orderBy('created_at', 'desc')
+      .limit(100);
+    res.json({ messages });
+  } catch (error) {
+    console.error('CommunityController.moderationList', error);
+    res.status(500).json({ error: 'moderation_list_error' });
+  }
+});
+
+router.delete('/admin/messages/:messageId', requireAdmin, async (req, res) => {
+  try {
+    const result = await db.transaction(async (transaction) => {
+      const [message] = await transaction('community_messages')
+        .where({ message_id: req.params.messageId })
+        .delete()
+        .returning(['message_id', 'conversation_id']);
+      if (!message) return null;
+      const latest = await transaction('community_messages')
+        .where({ conversation_id: message.conversation_id })
+        .orderBy('created_at', 'desc')
+        .first();
+      await transaction('community_conversations').where({ conversation_id: message.conversation_id }).update({
+        preview: latest?.body || 'No messages yet.',
+        updated_at: transaction.fn.now(),
+      });
+      await transaction('auth_audit_log').insert({
+        audit_id: crypto.randomUUID(),
+        actor_user_id: req.authUser.user_id,
+        action: 'content.message_deleted',
+        details: { message_id: String(message.message_id) },
+      });
+      return message;
+    });
+    if (!result) return res.status(404).json({ error: 'message_not_found' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('CommunityController.moderateMessage', error);
+    return res.status(500).json({ error: 'message_moderation_error' });
   }
 });
 

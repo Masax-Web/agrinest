@@ -6,9 +6,7 @@ const db = require('../../../../db');
 router.post('/scan', async (req, res) => {
   try {
     const result = await JichoService.diagnose(req.body);
-    const farmerId = typeof req.body.farmer_id === 'string' && /^[0-9a-f-]{36}$/i.test(req.body.farmer_id)
-      ? req.body.farmer_id
-      : null;
+    const farmerId = req.authUser.user_id;
     const [scan] = await db('jicho_scans').insert({
       farmer_id: farmerId,
       diagnosis: result.diagnosis,
@@ -26,11 +24,8 @@ router.post('/scan', async (req, res) => {
 
 router.get('/scans', async (req, res) => {
   try {
-    const farmerId = typeof req.query.farmer_id === 'string' && /^[0-9a-f-]{36}$/i.test(req.query.farmer_id)
-      ? req.query.farmer_id
-      : null;
     const scanQuery = db('jicho_scans').select('scan_id', 'diagnosis', 'confidence', 'crop', 'recommended_treatment', 'created_at');
-    if (farmerId) scanQuery.where('farmer_id', farmerId);
+    scanQuery.where('farmer_id', req.authUser.user_id);
     const scans = await scanQuery
       .orderBy('created_at', 'desc')
       .limit(20);

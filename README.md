@@ -40,3 +40,5 @@ Build & run
 Notes
 - Native builds require platform tooling (Android Studio / Xcode) and signing keys.
 - This repository prepares the web assets and Capacitor configuration. Plugins and native integrations should be added per feature requirements (camera, geolocation, push).
+
+Authentication setup, Google OAuth callback configuration, and the staging-first rollout checklist are documented in [docs/authentication.md](./docs/authentication.md).

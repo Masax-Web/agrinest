@@ -1,0 +1,567 @@
+const crypto = require('crypto');
+const { promisify } = require('util');
+const knex = require('../db');
+const { personas } = require('../../shared/personas.json');
+
+const scryptAsync = promisify(crypto.scrypt);
+const passwordKeyLength = 64;
+const sessionLifetimeMs = 12 * 60 * 60 * 1000;
+const recentAuthenticationWindowMs = 5 * 60 * 1000;
+const personasById = new Map(personas.map((persona) => [persona.id, persona]));
+const legacyPersonaIds = {
+  smallholder: 'smallholder_farmer', farmer: 'smallholder_farmer', commercial: 'commercial_farmer',
+  buyer: 'local_buyer', bank: 'financial_institution', gov: 'government_agency', student: 'agri_student',
+  transporter: 'transport_provider', coop: 'farmer_group', expert: 'agricultural_expert',
+};
+
+class AuthError extends Error {
+  constructor(code, status = 400) {
+    super(code);
+    this.code = code;
+    this.status = status;
+  }
+}
+
+function fail(code, status) {
+  throw new AuthError(code, status);
+}
+
+function normalizePersonaId(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return legacyPersonaIds[normalized] || normalized;
+}
+
+function normalizePhone(value) {
+  return String(value || '').trim().replace(/[^\d+]/g, '');
+}
+
+function normalizeEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+  return email || null;
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function publicUser(user) {
+  return {
+    user_id: user.user_id,
+    name: user.name,
+    email: user.email || null,
+    phone: user.phone || null,
+    role: normalizePersonaId(user.role),
+    role_status: user.role_status || 'active',
+    region: user.region || null,
+    trust_score: Number(user.trust_score || 0),
+    pin_enabled: Boolean(user.pin_hash),
+    password_enabled: Boolean(user.password_hash),
+    is_admin: normalizePersonaId(user.role) === 'super_admin',
+  };
+}
+
+async function hashCredential(value) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = await scryptAsync(value, salt, passwordKeyLength, {
+    N: 16384,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024,
+  });
+  return `scrypt$16384$8$1$${salt}$${derivedKey.toString('hex')}`;
+}
+
+async function hashPassword(password) {
+  if (typeof password !== 'string' || password.length < 12 || password.length > 128) {
+    fail('password_must_be_12_to_128_characters', 400);
+  }
+  return hashCredential(password);
+}
+
+async function hashPin(pin) {
+  if (typeof pin !== 'string' || !/^\d{6,12}$/.test(pin)) fail('pin_must_be_6_to_12_digits', 400);
+  return hashCredential(pin);
+}
+
+async function verifyPassword(password, passwordHash) {
+  if (typeof password !== 'string' || typeof passwordHash !== 'string') return false;
+  const [algorithm, cost, blockSize, parallelism, salt, expectedHex] = passwordHash.split('$');
+  if (algorithm !== 'scrypt' || cost !== '16384' || blockSize !== '8' || parallelism !== '1' || !salt || !expectedHex) return false;
+  const expected = Buffer.from(expectedHex, 'hex');
+  if (expected.length !== passwordKeyLength) return false;
+  const actual = await scryptAsync(password, salt, passwordKeyLength, {
+    N: 16384,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024,
+  });
+  return crypto.timingSafeEqual(actual, expected);
+}
+
+function hasRecentAuthentication(authenticatedAt) {
+  const timestamp = new Date(authenticatedAt).getTime();
+  const age = Date.now() - timestamp;
+  return Number.isFinite(timestamp) && age >= 0 && age <= recentAuthenticationWindowMs;
+}
+
+async function verifySecurityChange(user, currentPassword, authenticatedAt) {
+  if (user.password_hash) {
+    if (!await verifyPassword(currentPassword, user.password_hash)) fail('current_password_invalid', 401);
+    return;
+  }
+  if (!hasRecentAuthentication(authenticatedAt)) fail('recent_google_signin_required', 401);
+}
+
+async function createSession(userId, database = knex, lifetimeMs = sessionLifetimeMs) {
+  const token = crypto.randomBytes(32).toString('base64url');
+  const expiresAt = new Date(Date.now() + lifetimeMs);
+  await database('auth_sessions').insert({
+    session_id: crypto.randomUUID(),
+    user_id: userId,
+    token_hash: hashToken(token),
+    expires_at: expiresAt,
+  });
+  return { token, expires_at: expiresAt.toISOString() };
+}
+
+function loginLimitKey(identifier, ipAddress = 'unknown') {
+  return hashToken(`${String(ipAddress).slice(0, 100)}:${identifier}`);
+}
+
+async function assertLoginNotLimited(keyHash) {
+  const row = await knex('auth_login_limits').where({ key_hash: keyHash }).first();
+  if (row?.locked_until && new Date(row.locked_until) > new Date()) {
+    fail('too_many_attempts', 429);
+  }
+}
+
+async function recordLoginFailure(keyHash) {
+  await knex.raw(`
+    INSERT INTO auth_login_limits (key_hash, attempt_count, window_started_at)
+    VALUES (?, 1, now())
+    ON CONFLICT (key_hash) DO UPDATE SET
+      attempt_count = CASE
+        WHEN auth_login_limits.window_started_at < now() - interval '15 minutes' THEN 1
+        ELSE auth_login_limits.attempt_count + 1
+      END,
+      window_started_at = CASE
+        WHEN auth_login_limits.window_started_at < now() - interval '15 minutes' THEN now()
+        ELSE auth_login_limits.window_started_at
+      END,
+      locked_until = CASE
+        WHEN auth_login_limits.window_started_at < now() - interval '15 minutes' THEN NULL
+        WHEN auth_login_limits.attempt_count >= 9 THEN now() + interval '15 minutes'
+        ELSE auth_login_limits.locked_until
+      END
+  `, [keyHash]);
+}
+
+async function clearLoginFailures(keyHash) {
+  await knex('auth_login_limits').where({ key_hash: keyHash }).del();
+}
+
+async function makePinChallenge(user, database = knex, rememberMe = false) {
+  const token = crypto.randomBytes(32).toString('base64url');
+  await database('auth_challenges').insert({
+    challenge_id: crypto.randomUUID(),
+    token_hash: hashToken(token),
+    user_id: user.user_id,
+    remember_me: rememberMe,
+    expires_at: new Date(Date.now() + 5 * 60 * 1000),
+  });
+  return { user: publicUser(user), pin_required: true, challenge_token: token, expires_in: 300 };
+}
+
+async function registerUser(input = {}) {
+  const name = String(input.name || '').trim();
+  const phone = normalizePhone(input.phone);
+  const email = normalizeEmail(input.email);
+  const personaId = normalizePersonaId(input.persona_id || input.role);
+  const persona = personasById.get(personaId);
+
+  if (name.length < 2 || name.length > 120) fail('name_must_be_2_to_120_characters', 400);
+  if (!/^\+?[0-9]{9,15}$/.test(phone)) fail('valid_phone_required', 400);
+  if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) fail('valid_email_required', 400);
+  if (!persona) fail('unknown_persona', 400);
+  if (persona.id === 'super_admin') fail('persona_not_available_for_registration', 403);
+  const passwordHash = await hashPassword(input.password);
+
+  return knex.transaction(async (transaction) => {
+    const existingUser = await transaction('users').where({ phone }).first();
+    if (existingUser) fail('account_already_exists', 409);
+    if (email) {
+      const existingEmail = await transaction('users').whereRaw('LOWER(email) = ?', [email]).first();
+      if (existingEmail) fail('account_already_exists', 409);
+    }
+
+    let invitation = null;
+    if (persona.registration === 'invite') {
+      if (!input.invitation_token) fail('invitation_required_for_persona', 403);
+      invitation = await transaction('auth_invitations')
+        .where({ token_hash: hashToken(input.invitation_token), persona_id: persona.id })
+        .whereNull('consumed_at')
+        .andWhere('expires_at', '>', new Date())
+        .forUpdate()
+        .first();
+      if (!invitation) fail('invalid_or_expired_invitation', 403);
+    }
+
+    const roleStatus = persona.registration === 'review' ? 'pending' : 'active';
+    const [user] = await transaction('users').insert({
+      phone,
+      email,
+      name,
+      role: persona.id,
+      role_status: roleStatus,
+      password_hash: passwordHash,
+      trust_score: 0,
+    }).returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+
+    if (invitation) {
+      await transaction('auth_invitations').where({ token_hash: invitation.token_hash }).update({ consumed_at: new Date() });
+    }
+    if (roleStatus === 'pending') return { user: publicUser(user), status: 'pending_approval' };
+    const session = await createSession(user.user_id, transaction);
+    return { user: publicUser(user), status: 'active', ...session };
+  });
+}
+
+async function loginUser({ identifier, phone, password, staff_access: staffAccess = false, remember_me: rememberMe = false } = {}, metadata = {}) {
+  const loginId = String(identifier || phone || '').trim();
+  if (!loginId || !password) fail('identifier_and_password_required', 400);
+  const isEmail = loginId.includes('@');
+  const normalizedId = isEmail ? normalizeEmail(loginId) : normalizePhone(loginId);
+  const limitKey = loginLimitKey(normalizedId, metadata.ip);
+  await assertLoginNotLimited(limitKey);
+  const user = await knex('users').where((query) => {
+    if (isEmail) query.whereRaw('LOWER(email) = ?', [normalizedId]);
+    else query.where({ phone: normalizedId });
+  }).first();
+
+  if (!user || !await verifyPassword(password, user.password_hash)) {
+    await recordLoginFailure(limitKey);
+    fail('invalid_credentials', 401);
+  }
+  if (user.role_status && user.role_status !== 'active') fail('account_pending_approval', 403);
+  if (staffAccess && personasById.get(normalizePersonaId(user.role))?.registration !== 'invite') fail('staff_account_required', 403);
+  await clearLoginFailures(limitKey);
+  if (user.pin_hash) return makePinChallenge(user, knex, rememberMe === true);
+  const lifetime = rememberMe === true ? 30 * 24 * 60 * 60 * 1000 : sessionLifetimeMs;
+  const session = await createSession(user.user_id, knex, lifetime);
+  return { user: publicUser(user), ...session };
+}
+
+async function completePinChallenge({ challenge_token: challengeToken, pin } = {}, metadata = {}) {
+  if (!challengeToken || typeof pin !== 'string' || !/^\d{6,12}$/.test(pin)) fail('invalid_pin_challenge', 400);
+  const challengeHash = hashToken(challengeToken);
+  const limitKey = loginLimitKey(challengeHash, metadata.ip);
+  await assertLoginNotLimited(limitKey);
+
+  const result = await knex.transaction(async (transaction) => {
+    const challenge = await transaction('auth_challenges')
+      .where({ token_hash: challengeHash })
+      .whereNull('consumed_at')
+      .andWhere('expires_at', '>', new Date())
+      .forUpdate()
+      .first();
+    if (!challenge || challenge.attempt_count >= 5) fail('invalid_pin_challenge', 401);
+    await transaction('auth_challenges').where({ challenge_id: challenge.challenge_id })
+      .update({ attempt_count: challenge.attempt_count + 1 });
+    const user = await transaction('users').where({ user_id: challenge.user_id }).first();
+    if (!user || user.role_status !== 'active' || !await verifyPassword(pin, user.pin_hash)) {
+      return { error: 'invalid_pin' };
+    }
+    await transaction('auth_challenges').where({ challenge_id: challenge.challenge_id })
+      .update({ consumed_at: new Date() });
+    const lifetime = challenge.remember_me ? 30 * 24 * 60 * 60 * 1000 : sessionLifetimeMs;
+    const session = await createSession(user.user_id, transaction, lifetime);
+    return { user: publicUser(user), ...session };
+  });
+
+  if (result.error) {
+    await recordLoginFailure(limitKey);
+    fail(result.error, 401);
+  }
+  await clearLoginFailures(limitKey);
+  return result;
+}
+
+async function findOrCreateGoogleUser({ sub, email, name }) {
+  const verifiedEmail = normalizeEmail(email);
+  if (!sub || !verifiedEmail) fail('google_identity_invalid', 401);
+  const bootstrapEmail = normalizeEmail(process.env.ADMIN_BOOTSTRAP_EMAIL);
+
+  return knex.transaction(async (transaction) => {
+    let user = await transaction('users').where({ google_subject: sub }).first();
+    if (user && normalizeEmail(user.email) !== verifiedEmail) fail('google_identity_mismatch', 403);
+    if (!user) {
+      user = await transaction('users').whereRaw('LOWER(email) = ?', [verifiedEmail]).forUpdate().first();
+      if (user?.google_subject && user.google_subject !== sub) fail('google_identity_already_linked', 409);
+
+      if (!user) {
+        let role = 'smallholder_farmer';
+        if (bootstrapEmail === verifiedEmail) {
+          const admin = await transaction('users').where({ role: 'super_admin' }).first();
+          if (!admin) role = 'super_admin';
+        }
+        const [created] = await transaction('users').insert({
+          email: verifiedEmail,
+          google_subject: sub,
+          name: String(name || verifiedEmail).slice(0, 120),
+          phone: null,
+          role,
+          role_status: 'active',
+          trust_score: 0,
+        }).returning('*');
+        user = created;
+      } else {
+        await transaction('users').where({ user_id: user.user_id }).update({
+          google_subject: sub,
+          name: user.name || String(name || verifiedEmail).slice(0, 120),
+          updated_at: new Date(),
+        });
+        user.google_subject = sub;
+        if (!user.name) user.name = String(name || verifiedEmail).slice(0, 120);
+      }
+    }
+
+    if (user.role_status !== 'active') fail('account_pending_approval', 403);
+    if (bootstrapEmail === verifiedEmail && user.role !== 'super_admin') {
+      const admin = await transaction('users').where({ role: 'super_admin' }).forUpdate().first();
+      if (!admin) {
+        await transaction('users').where({ user_id: user.user_id }).update({
+          role: 'super_admin',
+          updated_at: new Date(),
+        });
+        user.role = 'super_admin';
+      }
+    }
+    return user;
+  });
+}
+
+async function createGoogleExchangeCode(userId) {
+  const code = crypto.randomBytes(32).toString('base64url');
+  await knex('auth_exchange_codes').insert({
+    code_hash: hashToken(code),
+    user_id: userId,
+    expires_at: new Date(Date.now() + 2 * 60 * 1000),
+  });
+  return code;
+}
+
+async function exchangeGoogleCode(code) {
+  if (!code) fail('invalid_or_expired_google_code', 401);
+  const codeHash = hashToken(code);
+  return knex.transaction(async (transaction) => {
+    const row = await transaction('auth_exchange_codes')
+      .where({ code_hash: codeHash })
+      .whereNull('consumed_at')
+      .andWhere('expires_at', '>', new Date())
+      .forUpdate()
+      .first();
+    if (!row) fail('invalid_or_expired_google_code', 401);
+    await transaction('auth_exchange_codes').where({ code_hash: codeHash }).update({ consumed_at: new Date() });
+    const user = await transaction('users').where({ user_id: row.user_id }).first();
+    if (!user || user.role_status !== 'active') fail('account_pending_approval', 403);
+    if (user.pin_hash) return makePinChallenge(user, transaction);
+    return createSession(user.user_id, transaction).then((session) => ({ user: publicUser(user), ...session }));
+  });
+}
+
+async function setPin({ userId, currentPassword, authenticatedAt, pin } = {}) {
+  if (typeof pin !== 'string' || !/^\d{6,12}$/.test(pin)) fail('pin_must_be_6_to_12_digits', 400);
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user) fail('account_not_found', 404);
+  await verifySecurityChange(user, currentPassword, authenticatedAt);
+  const pinHash = await hashPin(pin);
+  await knex('users').where({ user_id: userId }).update({ pin_hash: pinHash, updated_at: new Date() });
+  await knex('auth_challenges').where({ user_id: userId }).whereNull('consumed_at').update({ consumed_at: new Date() });
+  return { pin_enabled: true };
+}
+
+async function removePin({ userId, currentPassword, authenticatedAt } = {}) {
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user) fail('account_not_found', 404);
+  await verifySecurityChange(user, currentPassword, authenticatedAt);
+  await knex('users').where({ user_id: userId }).update({ pin_hash: null, updated_at: new Date() });
+  await knex('auth_challenges').where({ user_id: userId }).whereNull('consumed_at').update({ consumed_at: new Date() });
+  return { pin_enabled: false };
+}
+
+async function changePassword({ userId, currentPassword, newPassword } = {}) {
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user || !user.password_hash || !await verifyPassword(currentPassword, user.password_hash)) {
+    fail('current_password_invalid', 401);
+  }
+  const passwordHash = await hashPassword(newPassword);
+  await knex.transaction(async (transaction) => {
+    await transaction('users').where({ user_id: userId }).update({ password_hash: passwordHash, updated_at: new Date() });
+    await transaction('auth_sessions').where({ user_id: userId }).whereNull('revoked_at')
+      .update({ revoked_at: new Date() });
+    await transaction('auth_challenges').where({ user_id: userId }).whereNull('consumed_at')
+      .update({ consumed_at: new Date() });
+  });
+  return { success: true };
+}
+
+async function getSessionUser(token) {
+  if (!token) return null;
+  const row = await knex('auth_sessions as sessions')
+    .join('users', 'users.user_id', 'sessions.user_id')
+    .where('sessions.token_hash', hashToken(token))
+    .whereNull('sessions.revoked_at')
+    .andWhere('sessions.expires_at', '>', new Date())
+    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.created_at as session_created_at')
+    .first();
+  if (!row || (row.role_status && row.role_status !== 'active')) return null;
+  return { user: publicUser(row), sessionCreatedAt: row.session_created_at };
+}
+
+async function revokeSession(token) {
+  if (!token) return false;
+  const affected = await knex('auth_sessions').where({ token_hash: hashToken(token) }).whereNull('revoked_at').update({ revoked_at: new Date() });
+  return affected > 0;
+}
+
+async function createInvitation({ personaId, createdBy, expiresInDays = 7 }) {
+  const persona = personasById.get(normalizePersonaId(personaId));
+  if (!persona || persona.registration !== 'invite' || persona.id === 'super_admin') {
+    fail('persona_does_not_use_invitations', 400);
+  }
+  const token = crypto.randomBytes(32).toString('base64url');
+  const expiresAt = new Date(Date.now() + Math.max(1, Math.min(Number(expiresInDays) || 7, 30)) * 24 * 60 * 60 * 1000);
+  await knex('auth_invitations').insert({
+    invitation_id: crypto.randomUUID(),
+    token_hash: hashToken(token),
+    persona_id: persona.id,
+    created_by: createdBy,
+    expires_at: expiresAt,
+  });
+  return { token, persona_id: persona.id, expires_at: expiresAt.toISOString() };
+}
+
+async function approvePersona(userId) {
+  const [user] = await knex('users')
+    .where({ user_id: userId, role_status: 'pending' })
+    .whereNot('role', 'super_admin')
+    .update({ role_status: 'active', approved_at: new Date(), updated_at: new Date() })
+    .returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+  if (!user) fail('pending_account_not_found', 404);
+  return publicUser(user);
+}
+
+async function listAdminUsers({ query = '', status = '' } = {}) {
+  const usersQuery = knex('users').select('user_id', 'name', 'email', 'phone', 'role', 'role_status', 'created_at', 'pin_hash', 'password_hash');
+  if (status) usersQuery.where({ role_status: status });
+  if (query.trim()) {
+    const search = `%${query.trim().slice(0, 100)}%`;
+    usersQuery.where((builder) => builder.whereILike('name', search)
+      .orWhereILike('email', search).orWhereILike('phone', search));
+  }
+  const users = await usersQuery.orderBy('created_at', 'desc').limit(200);
+  return users.map(publicUser);
+}
+
+async function recordAdminAction({ actorId, targetId = null, action, details = {} }) {
+  await knex('auth_audit_log').insert({
+    audit_id: crypto.randomUUID(),
+    actor_user_id: actorId,
+    target_user_id: targetId,
+    action,
+    details,
+  });
+}
+
+async function setUserStatus({ actorId, userId, status }) {
+  if (!['active', 'suspended'].includes(status)) fail('invalid_account_status', 400);
+  if (actorId === userId) fail('cannot_change_own_account_status', 400);
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user || normalizePersonaId(user.role) === 'super_admin') fail('user_not_found_or_protected', 404);
+  await knex.transaction(async (transaction) => {
+    await transaction('users').where({ user_id: userId }).update({ role_status: status, updated_at: new Date() });
+    if (status === 'suspended') {
+      await transaction('auth_sessions').where({ user_id: userId }).whereNull('revoked_at')
+        .update({ revoked_at: new Date() });
+      await transaction('auth_challenges').where({ user_id: userId }).whereNull('consumed_at')
+        .update({ consumed_at: new Date() });
+    }
+    await transaction('auth_audit_log').insert({
+      audit_id: crypto.randomUUID(), actor_user_id: actorId, target_user_id: userId,
+      action: `user.${status}`, details: {},
+    });
+  });
+  return { user_id: userId, role_status: status };
+}
+
+async function setUserPersona({ actorId, userId, personaId }) {
+  const persona = personasById.get(normalizePersonaId(personaId));
+  if (!persona || persona.id === 'super_admin') fail('invalid_persona_assignment', 400);
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user || normalizePersonaId(user.role) === 'super_admin') fail('user_not_found_or_protected', 404);
+  await knex.transaction(async (transaction) => {
+    await transaction('users').where({ user_id: userId }).update({ role: persona.id, updated_at: new Date() });
+    await transaction('auth_audit_log').insert({
+      audit_id: crypto.randomUUID(), actor_user_id: actorId, target_user_id: userId,
+      action: 'user.persona_changed', details: { persona_id: persona.id },
+    });
+  });
+  return { user_id: userId, role: persona.id };
+}
+
+async function listAdminAuditLog(limit = 100) {
+  return knex('auth_audit_log as audit')
+    .leftJoin('users as actors', 'actors.user_id', 'audit.actor_user_id')
+    .leftJoin('users as targets', 'targets.user_id', 'audit.target_user_id')
+    .select('audit.audit_id', 'audit.action', 'audit.details', 'audit.created_at',
+      'actors.email as actor_email', 'targets.email as target_email')
+    .orderBy('audit.created_at', 'desc')
+    .limit(Math.max(1, Math.min(Number(limit) || 100, 200)));
+}
+
+async function bootstrapSuperAdmin({ name, phone, email, password }) {
+  const normalizedPhone = normalizePhone(phone);
+  if (!name || !/^\+?[0-9]{9,15}$/.test(normalizedPhone)) fail('bootstrap_name_and_phone_required', 400);
+  const passwordHash = await hashPassword(password);
+  const existingAdmin = await knex('users').where({ role: 'super_admin' }).first();
+  if (existingAdmin) fail('super_admin_already_exists', 409);
+  const [user] = await knex('users').insert({
+    name: String(name).trim(),
+    phone: normalizedPhone,
+    email: normalizeEmail(email),
+    role: 'super_admin',
+    role_status: 'active',
+    password_hash: passwordHash,
+    trust_score: 0,
+  }).returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+  return publicUser(user);
+}
+
+module.exports = {
+  AuthError,
+  approvePersona,
+  bootstrapSuperAdmin,
+  changePassword,
+  completePinChallenge,
+  createInvitation,
+  createGoogleExchangeCode,
+  exchangeGoogleCode,
+  findOrCreateGoogleUser,
+  getSessionUser,
+  hashPassword,
+  listAdminAuditLog,
+  listAdminUsers,
+  loginUser,
+  makePinChallenge,
+  normalizePersonaId,
+  personas,
+  publicUser,
+  recordAdminAction,
+  registerUser,
+  removePin,
+  revokeSession,
+  setPin,
+  setUserPersona,
+  setUserStatus,
+  verifyPassword,
+};

@@ -14,8 +14,8 @@ async function createFarm(data) {
   return Array.isArray(result) ? result[0] : result;
 }
 
-async function getFarmById(farmId) {
-  return knex('farms').where({ farm_id: farmId }).first();
+async function getFarmById(farmId, userId) {
+  return knex('farms').where({ farm_id: farmId, user_id: userId }).first();
 }
 
 module.exports = { createFarm, getFarmById };

@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const knex = require('../db');
+const PlatformSettingsService = require('./PlatformSettingsService');
 
-const ADMIN_EMAILS = ['makayaemmanuel42@gmail.com'];
-const ADMIN_SMS = ['+255745759185'];
 const STORE_PATH = path.join(__dirname, '..', 'data', 'communications-store.json');
 
 function loadStore() {
@@ -121,53 +121,22 @@ function registerUssdUser({ phone, name, location, crop }) {
   return newUser;
 }
 
-async function handleGoogleLogin({ idToken, email, name, phone }) {
-  const store = loadStore();
-  const normalizedPhone = normalizePhone(phone || '');
-  let user = store.users.find((u) => u.email === email || u.phone === normalizedPhone);
-  if (!user) {
-    user = {
-      id: `usr_${Date.now()}`,
-      email,
-      phone: normalizedPhone,
-      name: name || email?.split('@')[0],
-      role: 'farmer',
-      deviceType: 'smartphone',
-      verified: true,
-      createdAt: new Date().toISOString(),
-    };
-    store.users.push(user);
-  } else {
-    user.email = email || user.email;
-    user.phone = normalizedPhone || user.phone;
-    user.name = name || user.name;
-    user.deviceType = 'smartphone';
-    user.updatedAt = new Date().toISOString();
-  }
-
-  store.events.unshift({
-    id: `evt_${Date.now()}`,
-    type: 'google_login',
-    timestamp: new Date().toISOString(),
-    email,
-    phone: normalizedPhone,
-    name,
-  });
-  saveStore(store);
-  await notifyAdmins('google_login', { email, phone: normalizedPhone, name });
-  return { success: true, user, token: `google-token-${Date.now()}` };
-}
-
 async function notifyAdmins(event, payload) {
   const message = `${event} event recorded for AGRI-NEST: ${JSON.stringify(payload)}`;
+  const admins = await knex('users').select('email', 'phone').where({ role: 'super_admin', role_status: 'active' });
+  const emails = admins.map((admin) => admin.email).filter(Boolean);
+  const phones = admins.map((admin) => admin.phone).filter(Boolean);
   const notifications = [];
-  notifications.push(sendEmail(ADMIN_EMAILS, `AGRI-NEST ${event}`, message));
-  notifications.push(sendSms(ADMIN_SMS, message));
+  if (emails.length) notifications.push(sendEmail(emails, `AGRI-NEST ${event}`, message));
+  if (phones.length) notifications.push(sendSms(phones, message));
   await Promise.all(notifications);
   return { success: true };
 }
 
 async function sendEmail(recipients, subject, body) {
+  if (!await PlatformSettingsService.isIntegrationEnabled('email')) {
+    return { success: false, reason: 'email_integration_disabled' };
+  }
   if (!process.env.SMTP_HOST) {
     console.log('[CommunicationsService] Email stub:', { recipients, subject, body });
     return { success: false, reason: 'smtp_not_configured' };
@@ -199,6 +168,9 @@ async function sendEmail(recipients, subject, body) {
 }
 
 async function sendSms(recipients, message) {
+  if (!await PlatformSettingsService.isIntegrationEnabled('sms')) {
+    return { success: false, reason: 'sms_integration_disabled' };
+  }
   if (process.env.SMS_API_URL) {
     try {
       const response = await fetch(process.env.SMS_API_URL, {
@@ -222,6 +194,9 @@ async function sendSms(recipients, message) {
 }
 
 async function sendVoiceCall({ phoneNumber, voiceMessage }) {
+  if (!await PlatformSettingsService.isIntegrationEnabled('voice')) {
+    return { success: false, reason: 'voice_integration_disabled' };
+  }
   const payload = { to: phoneNumber, message: voiceMessage, event: 'voice_call' };
   if (process.env.VOICE_API_URL) {
     try {
@@ -246,6 +221,9 @@ async function sendVoiceCall({ phoneNumber, voiceMessage }) {
 }
 
 async function sendAirtimeTopup({ phoneNumber, amount }) {
+  if (!await PlatformSettingsService.isIntegrationEnabled('airtime')) {
+    return { success: false, reason: 'airtime_integration_disabled' };
+  }
   const payload = { to: phoneNumber, amount, event: 'airtime_topup' };
   if (process.env.AIRTIME_API_URL) {
     try {
@@ -271,7 +249,6 @@ async function sendAirtimeTopup({ phoneNumber, amount }) {
 
 module.exports = {
   handleUssdSession,
-  handleGoogleLogin,
   notifyAdmins,
   sendSms,
   sendVoiceCall,
