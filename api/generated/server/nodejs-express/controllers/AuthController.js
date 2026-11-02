@@ -85,6 +85,7 @@ router.get('/google', async (req, res) => {
 
 router.get('/google/callback', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Referrer-Policy', 'no-referrer');
   const appUrl = applicationUrl();
   if (!appUrl) return res.status(503).json({ error: 'app_base_url_not_configured' });
   const secure = process.env.NODE_ENV === 'production' || req.secure;
