@@ -110,6 +110,7 @@ paths:
           schema: { type: string, format: uri }
         - name: scope
           in: query
+          allowReserved: true
           schema: { type: string }
         - name: authuser
           in: query
