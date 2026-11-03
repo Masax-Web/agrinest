@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
+import AgrishopNetwork from './AgrishopNetwork';
 import {
   calculateFieldAreaSquareMeters,
   calculateFieldPerimeterMeters,
@@ -434,6 +435,17 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
   const trust = calculateFarmerTrust(profile);
+  if (page === 'agrishop') {
+    return <AgrishopNetwork
+      user={user}
+      profile={profile}
+      records={records}
+      onRecordsChange={onRecordsChange}
+      search={search}
+      onSearch={onSearch}
+    />;
+  }
+
   const recordsForPage = page === 'trust' || page === 'analytics' || page === 'farm-erp'
     ? records.activities
     : page === 'listings'

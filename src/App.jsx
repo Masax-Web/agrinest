@@ -2203,7 +2203,7 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search fields, crops, soils...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search fields, crops, or soils' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'agrishop' ? 'Search inputs, shops, dealers...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search fields, crops, soils...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'agrishop' ? 'Search Agrishop inputs, shops, or dealers' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search fields, crops, or soils' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2329,7 +2329,7 @@ function SmallholderDashboard({ user, onLogout }) {
             }}
             onMarketplace={(search) => {
               setMarketplaceSearch(search);
-              setActiveView('marketplace');
+              setActiveView(search ? 'marketplace' : 'agrishop');
             }}
             onExpert={() => setActiveView('experts')}
           />
