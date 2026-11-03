@@ -476,7 +476,7 @@ function sanitizeFarmerProfile(profile) {
   delete sanitized.nidaNumber;
   if (Object.hasOwn(sanitized, 'farmRecords')) {
     const records = sanitized.farmRecords;
-    const recordCollections = ['fields', 'listings', 'income', 'livestock', 'groups', 'activities', 'requests'];
+    const recordCollections = ['fields', 'listings', 'income', 'livestock', 'groups', 'activities', 'requests', 'payroll'];
     if (!records || typeof records !== 'object' || Array.isArray(records)
       || recordCollections.some((collection) => !Array.isArray(records[collection])
         || records[collection].length > 5000

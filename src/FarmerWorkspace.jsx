@@ -7,6 +7,7 @@ import {
   formatFarmCoordinate,
   squareMetersPerAcre,
 } from './lib/farm-geometry';
+import LabourWorkspace from './LabourWorkspace';
 import RamaniMapPage from './RamaniMapPage';
 
 const workspaceDetails = {
@@ -22,7 +23,7 @@ const workspaceDetails = {
   transport: { title: 'Transport Booking', icon: 'local_shipping', description: 'Record a produce or farm-input transport request.', recordType: 'requests', submitLabel: 'Save transport request', fields: [['title', 'Route or destination', 'text'], ['amount', 'Load size (kg)', 'number'], ['details', 'Cargo and pickup details', 'textarea']] },
   activity: { title: 'Farm Activity Log', icon: 'edit_calendar', description: 'Record completed farm work. Activity entries are stored on this device.', recordType: 'activities', submitLabel: 'Log activity', fields: [['title', 'Activity', 'text'], ['date', 'Date', 'date'], ['details', 'Field, crop, or notes', 'textarea']] },
   'rent-space': { title: 'Rent Space or Land', icon: 'landscape', description: 'Save a request for land, storage, or farm space.', recordType: 'requests', submitLabel: 'Save space request', fields: [['title', 'Space needed', 'text'], ['amount', 'Area or capacity', 'number'], ['details', 'Location and dates', 'textarea']] },
-  labour: { title: 'Hire Labour', icon: 'engineering', description: 'Record the work and timing for a labour request.', recordType: 'requests', submitLabel: 'Save labour request', fields: [['title', 'Work needed', 'text'], ['amount', 'Number of workers', 'number'], ['details', 'Location and work dates', 'textarea']] },
+  labour: { title: 'Vibarua Network', icon: 'engineering', description: 'Find work, organise worker profiles, and manage hire requests.', recordType: 'requests' },
   insurance: { title: 'Insurance', icon: 'shield', description: 'Record a request for crop, livestock, or equipment cover.', recordType: 'requests', submitLabel: 'Save insurance request', fields: [['title', 'Cover type', 'text'], ['amount', 'Estimated value (TZS)', 'number'], ['details', 'Farm and risk details', 'textarea']] },
   waste: { title: 'Waste Exchange', icon: 'recycling', description: 'Record agricultural waste or by-products available for exchange.', recordType: 'requests', submitLabel: 'Save exchange offer', fields: [['title', 'Material', 'text'], ['amount', 'Available quantity', 'number'], ['details', 'Condition and pickup location', 'textarea']] },
   analytics: { title: 'Farm Analytics', icon: 'analytics', description: 'A summary built from your saved fields, income, listings, livestock, and activity records.', recordType: 'activities' },
@@ -33,7 +34,7 @@ const workspaceDetails = {
   compliance: { title: 'Compliance & Export', icon: 'fact_check', description: 'Track export and compliance tasks for your produce.', recordType: 'requests', submitLabel: 'Add compliance task', fields: [['title', 'Task', 'text'], ['date', 'Due date', 'date'], ['details', 'Requirements or notes', 'textarea']] },
   training: { title: 'Wanafunzi Hub', icon: 'school', description: 'Save a learning activity or request a training follow-up.', recordType: 'activities', submitLabel: 'Save learning note', fields: [['title', 'Course or topic', 'text'], ['details', 'Learning note', 'textarea']] },
   agrishop: { title: 'Agrishop Network', icon: 'storefront', description: 'Browse supplies in the marketplace or record an input you need.', recordType: 'requests', submitLabel: 'Save input request', fields: [['title', 'Input needed', 'text'], ['amount', 'Quantity', 'number'], ['details', 'Preferred supplier or delivery notes', 'textarea']] },
-  payroll: { title: 'Payroll & Labour', icon: 'payments', description: 'Keep a record of farm labour and payments.', recordType: 'requests', submitLabel: 'Save labour record', fields: [['title', 'Worker or work item', 'text'], ['amount', 'Amount (TZS)', 'number'], ['details', 'Payment or work notes', 'textarea']] },
+  payroll: { title: 'Payroll & Labour', icon: 'payments', description: 'Manage labour contracts and keep a clear record of wages paid.', recordType: 'payroll' },
   carbon: { title: 'Carbon Credits', icon: 'eco', description: 'Record a climate-smart practice for follow-up.', recordType: 'activities', submitLabel: 'Save practice', fields: [['title', 'Practice', 'text'], ['date', 'Date started', 'date'], ['details', 'Field and practice notes', 'textarea']] },
   crowdfunding: { title: 'Crowdfunding', icon: 'volunteer_activism', description: 'Save a farm project idea to prepare for a funding request.', recordType: 'requests', submitLabel: 'Save project idea', fields: [['title', 'Project', 'text'], ['amount', 'Funding goal (TZS)', 'number'], ['details', 'Project summary', 'textarea']] },
   foundation: { title: 'AGRI-NEST Foundation', icon: 'groups_2', description: 'Record a request for community or extension support.', recordType: 'requests', submitLabel: 'Save support request', fields: [['title', 'Support needed', 'text'], ['details', 'Location and request details', 'textarea']] },
@@ -484,6 +485,17 @@ export default function FarmerWorkspace({ page, profile, records, farmRecordsSyn
         onNavigate={onNavigate}
       />
     );
+  }
+
+  if (page === 'labour' || page === 'payroll') {
+    return <LabourWorkspace
+      page={page}
+      profile={profile}
+      records={records}
+      onRecordsChange={onRecordsChange}
+      onBack={onBack}
+      onNavigate={onNavigate}
+    />;
   }
 
   return (

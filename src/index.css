@@ -11423,6 +11423,689 @@ body.admin-impersonation-active #root {
   }
 }
 
+.labour-page {
+  --labour-primary: #26170c;
+  --labour-ink: #1d1b1a;
+  --labour-muted: #71655f;
+  --labour-line: rgba(129, 117, 110, 0.18);
+  gap: 1.4rem;
+  width: min(100%, 92rem);
+  color: var(--labour-ink);
+}
+
+.labour-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.labour-heading h1 {
+  margin: 0.2rem 0 0;
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  letter-spacing: -0.035em;
+}
+
+.labour-heading p {
+  margin: 0.25rem 0 0;
+  color: var(--labour-muted);
+  font-size: 0.82rem;
+}
+
+.labour-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 999px;
+  background: #eee7e4;
+  padding: 0.25rem;
+}
+
+.labour-tabs button,
+.labour-primary-button,
+.labour-outline-button,
+.labour-contract-actions button {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.labour-tabs button {
+  min-height: 2.15rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--labour-muted);
+  padding-inline: 1rem;
+}
+
+.labour-tabs button.active,
+.labour-primary-button {
+  background: var(--labour-primary);
+  color: #fff;
+}
+
+.labour-tabs button .material-symbols-outlined,
+.labour-primary-button .material-symbols-outlined,
+.labour-outline-button .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.labour-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.labour-kpis > article,
+.labour-search-card,
+.labour-results,
+.labour-history-card,
+.labour-panel,
+.labour-worker-card,
+.labour-job-card {
+  border: 1px solid var(--labour-line);
+  border-radius: 0.8rem;
+  background: #fff;
+  box-shadow: 0 0.15rem 0.6rem rgba(61, 43, 31, 0.035);
+}
+
+.labour-kpis > article:not(.labour-search-card) {
+  display: flex;
+  min-height: 8rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.labour-kpis > article > span {
+  color: var(--labour-muted);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.labour-kpis > article > strong {
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  line-height: 1.15;
+}
+
+.labour-kpis > article > small {
+  color: var(--labour-muted);
+  font-size: 0.62rem;
+}
+
+.labour-search-card {
+  grid-column: span 2;
+  padding: 1rem;
+}
+
+.labour-search-card > label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--labour-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.labour-search-input {
+  display: flex;
+  min-height: 2.7rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 0.45rem;
+  background: #fff8f5;
+  padding: 0 0.7rem;
+}
+
+.labour-search-input .material-symbols-outlined {
+  color: var(--labour-muted);
+  font-size: 1.1rem;
+}
+
+.labour-search-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--labour-ink);
+  font: inherit;
+  font-size: 0.73rem;
+}
+
+.labour-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.labour-skill-chips button {
+  border: 1px solid var(--labour-line);
+  border-radius: 999px;
+  background: #eee7e4;
+  color: var(--labour-primary);
+  padding: 0.28rem 0.55rem;
+  font: inherit;
+  font-size: 0.61rem;
+  cursor: pointer;
+}
+
+.labour-skill-chips button.active {
+  border-color: #b6dcd2;
+  background: #cfe8e3;
+}
+
+.labour-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(14rem, 0.9fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.labour-results,
+.labour-panel {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.labour-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--labour-line);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.75rem;
+}
+
+.labour-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.labour-section-heading h2,
+.labour-history-card h2 {
+  margin: 0;
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+}
+
+.labour-section-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+}
+
+.labour-primary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.labour-outline-button,
+.labour-contract-actions .labour-quiet-button {
+  border-color: var(--labour-line);
+  background: #fff;
+  color: var(--labour-primary);
+}
+
+.labour-worker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.labour-worker-card {
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.labour-worker-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.labour-avatar {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #d3ebe4;
+  color: #123226;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.labour-worker-heading h3,
+.labour-job-card h3 {
+  margin: 0;
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+}
+
+.labour-worker-heading p,
+.labour-job-card > div > p {
+  margin: 0.15rem 0 0;
+  color: var(--labour-muted);
+  font-size: 0.66rem;
+}
+
+.labour-worker-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  margin-top: 0.65rem;
+}
+
+.labour-worker-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  border-radius: 0.3rem;
+  background: #f3ecea;
+  color: #514842;
+  padding: 0.28rem 0.38rem;
+  font-size: 0.6rem;
+}
+
+.labour-worker-meta .material-symbols-outlined {
+  font-size: 0.8rem;
+}
+
+.labour-worker-bio {
+  margin: 0.55rem 0;
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+.labour-worker-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--labour-muted);
+  font-size: 0.59rem;
+}
+
+.labour-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  background: #eee7e4;
+  color: #514842;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.58rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.labour-status.is-self-reported {
+  background: #cfe8e3;
+  color: #123226;
+  text-transform: none;
+}
+
+.labour-status.is-active,
+.labour-status.is-open {
+  background: #cfe8e3;
+  color: #123226;
+}
+
+.labour-status.is-pending {
+  background: #fbddca;
+  color: #574335;
+}
+
+.labour-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.labour-card-actions > button:first-child {
+  flex: 1;
+}
+
+.labour-sidebar {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.labour-history-card {
+  padding: 0.95rem;
+}
+
+.labour-history-card > div:not(.labour-skill-row) {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border-bottom: 1px solid rgba(129, 117, 110, 0.12);
+  padding: 0.65rem 0;
+  color: var(--labour-muted);
+  font-size: 0.68rem;
+}
+
+.labour-history-card > div strong {
+  color: var(--labour-primary);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.labour-history-card > button {
+  width: 100%;
+  min-height: 2.25rem;
+  margin-top: 0.65rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--labour-primary);
+  font: inherit;
+  font-size: 0.65rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.labour-history-card > p {
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+.labour-history-card h2 > .material-symbols-outlined {
+  color: #d88720;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.labour-skill-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.55rem;
+  color: var(--labour-muted);
+  font-size: 0.67rem;
+}
+
+.labour-skill-row strong {
+  color: var(--labour-primary);
+}
+
+.labour-trust-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 0.65rem;
+  background: #fff8f5;
+  padding: 0.75rem;
+}
+
+.labour-trust-note > .material-symbols-outlined {
+  color: var(--labour-muted);
+  font-size: 1rem;
+}
+
+.labour-trust-note p {
+  margin: 0;
+  color: var(--labour-muted);
+  font-size: 0.61rem;
+  line-height: 1.5;
+}
+
+.labour-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.labour-empty.compact {
+  padding: 1rem;
+}
+
+.labour-empty > .material-symbols-outlined {
+  color: #50766a;
+  font-size: 1.6rem;
+}
+
+.labour-empty strong {
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+}
+
+.labour-empty p {
+  max-width: 30rem;
+  margin: 0;
+  color: var(--labour-muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.labour-empty > button {
+  min-height: 2.2rem;
+  margin-top: 0.25rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: var(--labour-primary);
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.labour-job-list,
+.labour-contract-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.labour-job-card,
+.labour-contract-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.85rem;
+}
+
+.labour-job-card h3 {
+  margin-top: 0.35rem;
+}
+
+.labour-job-card small,
+.labour-contract-card small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--labour-muted);
+  font-size: 0.61rem;
+}
+
+.labour-job-side {
+  display: grid;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.labour-job-side > strong {
+  color: var(--labour-primary);
+  white-space: nowrap;
+}
+
+.labour-job-side > strong small {
+  display: inline;
+  font-size: 0.6rem;
+}
+
+.labour-contract-card > div:first-child {
+  min-width: 0;
+}
+
+.labour-contract-card > div:first-child > strong {
+  color: var(--labour-primary);
+  font-size: 0.75rem;
+}
+
+.labour-contract-card > div:first-child > p {
+  margin: 0.2rem 0 0;
+  color: var(--labour-muted);
+  font-size: 0.63rem;
+}
+
+.labour-contract-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.labour-contract-actions button {
+  min-height: 1.9rem;
+  background: var(--labour-primary);
+  color: #fff;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.6rem;
+}
+
+.labour-panel .labour-section-heading {
+  margin-bottom: 0.5rem;
+}
+
+.labour-table-wrap {
+  overflow-x: auto;
+}
+
+.labour-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.67rem;
+  text-align: left;
+}
+
+.labour-table th,
+.labour-table td {
+  border-bottom: 1px solid var(--labour-line);
+  padding: 0.6rem;
+  white-space: nowrap;
+}
+
+.labour-table th {
+  color: var(--labour-muted);
+  font-size: 0.59rem;
+  text-transform: uppercase;
+}
+
+.labour-dialog {
+  width: min(100%, 40rem);
+}
+
+.labour-dialog form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.labour-dialog form > label:has(textarea),
+.labour-dialog form > .digital-farm-dialog-note,
+.labour-dialog form > .farmer-workspace-submit {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 860px) {
+  .labour-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .labour-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .labour-trust-note {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .labour-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .labour-search-card {
+    grid-column: 1 / -1;
+  }
+
+  .labour-worker-grid,
+  .labour-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .labour-trust-note {
+    grid-column: auto;
+  }
+
+  .labour-job-card,
+  .labour-contract-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .labour-job-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .labour-contract-actions {
+    justify-content: flex-start;
+  }
+
+  .labour-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .labour-tabs button {
+    padding-inline: 0.55rem;
+    font-size: 0.62rem;
+  }
+
+  .labour-dialog form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .labour-dialog form > label:has(textarea),
+  .labour-dialog form > .digital-farm-dialog-note,
+  .labour-dialog form > .farmer-workspace-submit {
+    grid-column: auto;
+  }
+}
+
 .digital-farm-field-actions {
   display: flex;
   flex-wrap: wrap;

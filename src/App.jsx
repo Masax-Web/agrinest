@@ -1640,6 +1640,7 @@ function normalizeFarmerRecords(records = {}) {
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
     requests: collection(records.requests),
+    payroll: collection(records.payroll),
   };
 }
 
