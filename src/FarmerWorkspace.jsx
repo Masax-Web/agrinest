@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
 import AgrishopNetwork from './AgrishopNetwork';
 import HabariIntelligence from './HabariIntelligence';
+import TransportLogisticsWorkspace from './TransportLogisticsWorkspace';
 import {
   calculateFieldAreaSquareMeters,
   calculateFieldPerimeterMeters,
@@ -25,7 +26,7 @@ const workspaceDetails = {
   loans: { title: 'Loan Applications', icon: 'account_balance', description: 'Prepare an application record for a farm or input loan.', recordType: 'requests', submitLabel: 'Save loan request', fields: [['title', 'Loan purpose', 'text'], ['amount', 'Amount requested (TZS)', 'number'], ['details', 'Additional details', 'textarea']] },
   'smart-loan': { title: 'Smart Loan', icon: 'psychology', description: 'Create a loan request using your saved farm and income records.', recordType: 'requests', submitLabel: 'Save smart-loan request', fields: [['title', 'Loan purpose', 'text'], ['amount', 'Amount requested (TZS)', 'number'], ['details', 'How will the loan be used?', 'textarea']] },
   experts: { title: 'Expert Support', icon: 'support_agent', description: 'Describe the topic you need help with and save an expert request.', recordType: 'requests', submitLabel: 'Request expert help', fields: [['title', 'Topic', 'text'], ['details', 'What do you need help with?', 'textarea']] },
-  transport: { title: 'Transport Booking', icon: 'local_shipping', description: 'Record a produce or farm-input transport request.', recordType: 'requests', submitLabel: 'Save transport request', fields: [['title', 'Route or destination', 'text'], ['amount', 'Load size (kg)', 'number'], ['details', 'Cargo and pickup details', 'textarea']] },
+  transport: { title: 'Harvest-to-Market Logistics', icon: 'local_shipping', description: 'Plan an illustrative harvest transport and storage estimate.', recordType: 'requests', submitLabel: 'Save transport request', fields: [['title', 'Route or destination', 'text'], ['amount', 'Load size (kg)', 'number'], ['details', 'Cargo and pickup details', 'textarea']] },
   activity: { title: 'Farm Activity Log', icon: 'edit_calendar', description: 'Record completed farm work. Activity entries are stored on this device.', recordType: 'activities', submitLabel: 'Log activity', fields: [['title', 'Activity', 'text'], ['date', 'Date', 'date'], ['details', 'Field, crop, or notes', 'textarea']] },
   'rent-space': { title: 'Rent Space or Land', icon: 'landscape', description: 'Save a request for land, storage, or farm space.', recordType: 'requests', submitLabel: 'Save space request', fields: [['title', 'Space needed', 'text'], ['amount', 'Area or capacity', 'number'], ['details', 'Location and dates', 'textarea']] },
   labour: { title: 'Vibarua Network', icon: 'engineering', description: 'Find work, organise worker profiles, and manage hire requests.', recordType: 'requests' },
@@ -456,6 +457,15 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       onRecordsChange={onRecordsChange}
       search={search}
       onSearch={onSearch}
+    />;
+  }
+
+  if (page === 'transport') {
+    return <TransportLogisticsWorkspace
+      user={user}
+      profile={profile}
+      records={records}
+      onRecordsChange={onRecordsChange}
     />;
   }
 

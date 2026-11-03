@@ -1,0 +1,884 @@
+.transport-logistics {
+  --transport-green: #126b49;
+  --transport-deep: #092d1f;
+  --transport-mint: #a1f0c5;
+  --transport-ink: #17241d;
+  --transport-muted: #707b75;
+  --transport-line: #e3e9e7;
+  padding: 21px clamp(15px, 2vw, 29px) 36px;
+  color: var(--transport-ink);
+}
+
+.transport-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 15px;
+}
+
+.transport-page-heading > div > p {
+  margin: 0 0 5px;
+  color: #788880;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .13em;
+}
+
+.transport-page-heading h1 {
+  margin: 0;
+  color: #16392a;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+}
+
+.transport-page-heading > div > span {
+  display: block;
+  margin-top: 6px;
+  color: #66746b;
+  font-size: 12px;
+}
+
+.transport-demo-badge,
+.transport-directory-count,
+.transport-demo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid #d5e9dd;
+  border-radius: 20px;
+  background: #eaf8ef;
+  color: #33714e;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.transport-demo-badge .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.transport-demo-disclosure {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 9px 11px;
+  border: 1px solid #ecdfbf;
+  border-radius: 8px;
+  background: #fff9eb;
+  color: #6d5933;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.transport-demo-disclosure > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #a67e32;
+  font-size: 16px;
+}
+
+.transport-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(255px, .82fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.transport-main-column {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
+.transport-card {
+  min-width: 0;
+  border: 1px solid rgb(225 232 230 / 90%);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 4px 18px rgb(23 53 39 / 6%);
+}
+
+.transport-booking-card,
+.transport-storage-card {
+  padding: 16px;
+}
+
+.transport-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  margin-bottom: 15px;
+}
+
+.transport-card-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.transport-card-heading > div > .material-symbols-outlined {
+  color: var(--transport-green);
+  font-size: 19px;
+}
+
+.transport-card-heading h2 {
+  margin: 0;
+  color: var(--transport-green);
+  font-size: 16px;
+  font-weight: 740;
+  letter-spacing: -.02em;
+}
+
+.transport-directory-count {
+  padding: 5px 8px;
+  font-size: 8px;
+}
+
+.transport-route-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-bottom: 16px;
+}
+
+.transport-route-grid label {
+  display: grid;
+  gap: 5px;
+}
+
+.transport-route-grid label > span {
+  padding-left: 2px;
+  color: #66736b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.transport-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid #d7dfdc;
+  border-radius: 7px;
+  background: rgb(255 255 255 / 84%);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.transport-input-wrap:focus-within {
+  border-color: #75a88b;
+  box-shadow: 0 0 0 3px rgb(18 107 73 / 9%);
+}
+
+.transport-input-wrap > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #738178;
+  font-size: 16px;
+}
+
+.transport-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #293d31;
+  font: inherit;
+  font-size: 10px;
+}
+
+.transport-input-wrap input::placeholder {
+  color: #9aa39d;
+}
+
+.transport-section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #637068;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.transport-section-title small {
+  color: #89938c;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: right;
+  text-transform: none;
+}
+
+.transport-driver-list {
+  display: grid;
+  gap: 8px;
+}
+
+.transport-driver {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e3e8e5;
+  border-radius: 9px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.transport-driver:hover {
+  border-color: #b7d4c2;
+  background: #f9fcfa;
+}
+
+.transport-driver.selected {
+  border: 1.5px solid var(--transport-green);
+  background: #e9f8ef;
+  box-shadow: 0 2px 9px rgb(18 107 73 / 7%);
+}
+
+.transport-driver-icon {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  border: 1px solid #d9e8df;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f8fbf8, #dcebe1);
+  color: #467a59;
+}
+
+.transport-driver-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.transport-driver-info,
+.transport-driver-price {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.transport-driver-info > strong {
+  color: #243a2d;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.transport-driver-info > span {
+  overflow: hidden;
+  color: #68766d;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transport-driver-info > small {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #7d8270;
+  font-size: 8px;
+}
+
+.transport-driver-info > small .material-symbols-outlined {
+  color: #b08a35;
+  font-size: 13px;
+  font-variation-settings: "FILL" 1;
+}
+
+.transport-driver-price {
+  justify-items: end;
+}
+
+.transport-driver-price > strong {
+  color: #116747;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.transport-driver-price > small {
+  max-width: 130px;
+  color: #748077;
+  font-size: 8px;
+  text-align: right;
+}
+
+.transport-demo-label {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #829087;
+  font-size: 8px;
+  font-weight: 550;
+  white-space: normal;
+  text-align: right;
+}
+
+.transport-warehouse-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.transport-warehouse {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dfe6e2;
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.transport-warehouse.selected {
+  border-color: #267c52;
+  box-shadow: 0 0 0 1px #267c52, 0 3px 12px rgb(18 107 73 / 8%);
+}
+
+.transport-warehouse-art {
+  position: relative;
+  display: flex;
+  height: 91px;
+  align-items: flex-end;
+  gap: 8px;
+  overflow: hidden;
+  padding: 10px;
+  color: #fff;
+  isolation: isolate;
+}
+
+.transport-warehouse-art::before {
+  position: absolute;
+  z-index: -2;
+  background:
+    linear-gradient(0deg, rgb(8 35 25 / 67%), transparent 75%),
+    repeating-linear-gradient(90deg, transparent 0 32px, rgb(255 255 255 / 12%) 33px 35px, transparent 36px 68px),
+    linear-gradient(145deg, #c8d7ce, #638373 54%, #334c42);
+  content: "";
+  inset: 0;
+}
+
+.transport-warehouse-art::after {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(245 255 246 / 45%);
+  background: repeating-linear-gradient(0deg, rgb(249 255 250 / 36%) 0 2px, transparent 2px 17px);
+  content: "";
+  inset: 10px 12px 0;
+  opacity: .46;
+  transform: perspective(150px) rotateY(-12deg);
+}
+
+.transport-warehouse-art.silo::before {
+  background:
+    linear-gradient(0deg, rgb(8 35 25 / 60%), transparent 65%),
+    repeating-linear-gradient(90deg, transparent 0 30px, rgb(255 255 255 / 15%) 31px 33px, transparent 34px 67px),
+    linear-gradient(150deg, #aed1dc, #7d9d9f 43%, #375f54);
+}
+
+.transport-warehouse-art.silo::after {
+  border: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 15px, rgb(243 247 239 / 90%) 16px 27px, transparent 28px 39px);
+  inset: 15px 12px 0;
+  opacity: .72;
+  transform: perspective(110px) rotateX(-6deg);
+}
+
+.transport-warehouse-art > .material-symbols-outlined {
+  font-size: 17px;
+}
+
+.transport-warehouse-art > span:last-child {
+  margin-bottom: 1px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.transport-warehouse-content {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.transport-warehouse-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.transport-warehouse-title > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.transport-warehouse-title h3 {
+  margin: 0;
+  color: #283c2e;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.transport-warehouse-title > div > span {
+  width: fit-content;
+  padding: 2px 5px;
+  border-radius: 12px;
+  background: #f1f3f1;
+  color: #68736b;
+  font-size: 7px;
+}
+
+.transport-warehouse-title > strong {
+  color: #356a49;
+  font-size: 9px;
+  text-align: right;
+}
+
+.transport-warehouse-title > strong small {
+  display: block;
+  margin-top: 2px;
+  color: #838b84;
+  font-size: 7px;
+  font-weight: 500;
+}
+
+.transport-warehouse-content > p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 9px 0;
+  color: #68756c;
+  font-size: 8px;
+}
+
+.transport-warehouse-content > p .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.transport-occupancy {
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.transport-occupancy > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  color: #7a837c;
+  font-size: 8px;
+}
+
+.transport-occupancy > div strong {
+  color: #3c6748;
+}
+
+.transport-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #e1e6e8;
+}
+
+.transport-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #14704d;
+}
+
+.transport-warehouse-content > button {
+  min-height: 31px;
+  margin-top: 9px;
+  border: 1px solid #c9d6d1;
+  border-radius: 6px;
+  background: #edf2f2;
+  color: #27744f;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .14s ease, background .14s ease, border-color .14s ease;
+}
+
+.transport-warehouse-content > button:hover,
+.transport-warehouse.selected .transport-warehouse-content > button {
+  border-color: #126b49;
+  background: #126b49;
+  color: #fff;
+}
+
+.transport-summary-column {
+  display: grid;
+  gap: 12px;
+}
+
+.transport-summary-card {
+  position: sticky;
+  top: 5rem;
+  padding: 16px;
+  border-color: #cfe0d6;
+}
+
+.transport-summary-card > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.transport-summary-card > header h2 {
+  margin: 0;
+  color: #203d2c;
+  font-size: 16px;
+  font-weight: 740;
+}
+
+.transport-summary-card > header > span {
+  color: #849087;
+  font-size: 8px;
+  text-align: right;
+}
+
+.transport-summary-group {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e8ece9;
+}
+
+.transport-summary-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 1px;
+  color: #304337;
+  font-size: 10px;
+  font-weight: 740;
+}
+
+.transport-summary-group h3 .material-symbols-outlined {
+  color: #22734b;
+  font-size: 15px;
+}
+
+.transport-summary-group > div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  color: #6d7871;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.transport-summary-group > div strong {
+  flex: 0 0 auto;
+  color: #44534a;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.transport-summary-group > p {
+  margin: -2px 0 0;
+  color: #898f87;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.transport-summary-group.service {
+  padding-bottom: 0;
+  margin-bottom: 12px;
+  border-bottom: 0;
+}
+
+.transport-total {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 11px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #e8edf1;
+}
+
+.transport-total > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.transport-total > span small {
+  color: #586760;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.transport-total > span strong {
+  color: #153b29;
+  font-size: 16px;
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+
+.transport-total > small {
+  color: #77827a;
+  font-size: 7px;
+  text-align: right;
+}
+
+.transport-confirm-button {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 7px;
+  background: #116c49;
+  color: #fff;
+  box-shadow: 0 3px 9px rgb(18 107 73 / 18%);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.transport-confirm-button:hover {
+  transform: translateY(-1px);
+  background: #0c593b;
+}
+
+.transport-confirm-button .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.transport-confirm-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 10px 0 0;
+  color: #828b84;
+  font-size: 7px;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.transport-confirm-disclaimer .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+.transport-network-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid #cae9d8;
+  border-radius: 8px;
+  background: #ddf7e9;
+  color: #2b5639;
+}
+
+.transport-network-status > .material-symbols-outlined {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 7px;
+  background: rgb(42 122 73 / 10%);
+  color: #287348;
+  font-size: 17px;
+}
+
+.transport-network-status strong {
+  font-size: 9px;
+}
+
+.transport-network-status p {
+  margin: 4px 0 0;
+  color: #5b7762;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.transport-notice {
+  position: fixed;
+  z-index: 10001;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  max-width: min(440px, calc(100vw - 32px));
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid #d7e5d9;
+  border-radius: 8px;
+  background: #fff;
+  color: #415847;
+  box-shadow: 0 8px 25px rgb(20 40 25 / 15%);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.transport-notice button {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #f0f5ef;
+  color: #68776b;
+  cursor: pointer;
+}
+
+.transport-notice button .material-symbols-outlined {
+  font-size: 15px;
+}
+
+@media (max-width: 1000px) {
+  .transport-layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(240px, .82fr);
+    gap: 11px;
+  }
+
+  .transport-booking-card,
+  .transport-storage-card,
+  .transport-summary-card {
+    padding: 13px;
+  }
+
+  .transport-warehouse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-warehouse-art {
+    height: 105px;
+  }
+}
+
+@media (max-width: 760px) {
+  .transport-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-summary-column {
+    grid-row: 1;
+  }
+
+  .transport-summary-card {
+    position: static;
+  }
+
+  .transport-warehouse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transport-warehouse-art {
+    height: 83px;
+  }
+}
+
+@media (max-width: 540px) {
+  .transport-logistics {
+    padding: 16px 12px 28px;
+  }
+
+  .transport-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .transport-page-heading h1 {
+    font-size: 24px;
+  }
+
+  .transport-page-heading > div > span {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .transport-demo-disclosure {
+    font-size: 9px;
+  }
+
+  .transport-route-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-card-heading {
+    align-items: flex-start;
+  }
+
+  .transport-card-heading h2 {
+    font-size: 14px;
+  }
+
+  .transport-demo-label {
+    max-width: 120px;
+  }
+
+  .transport-driver {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .transport-driver-price {
+    grid-column: 2;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-items: start;
+    gap: 7px;
+  }
+
+  .transport-driver-price > small {
+    text-align: left;
+  }
+
+  .transport-warehouse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-warehouse-art {
+    height: 112px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transport-logistics *,
+  .transport-logistics *::before,
+  .transport-logistics *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
