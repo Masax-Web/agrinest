@@ -23,6 +23,7 @@ import JichoGrowingGuide from './JichoGrowingGuide';
 import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
+import VerifiedActivityArchive from './VerifiedActivityArchive';
 import { personas } from '../shared/personas.json';
 import roleModel from '../shared/role-model.json';
 
@@ -752,7 +753,7 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
@@ -3481,11 +3482,15 @@ function NotificationCenter({ notifications, onNotificationsChange, onBackToDash
   );
 }
 
-function InstitutionalDashboard({ onLogout }) {
+function InstitutionalDashboard({ user, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [activeView, setActiveView] = useState('dashboard');
 
   useNavScrollLock(isSidebarOpen);
+
+  if (activeView === 'evidence') {
+    return <VerifiedActivityArchive user={user} onLogout={onLogout} onNavigate={setActiveView} />;
+  }
 
   return (
     <div className="impact-shell">
@@ -3566,6 +3571,10 @@ function InstitutionalDashboard({ onLogout }) {
               <span className="material-symbols-outlined">map</span>
               <span>Field Intel</span>
             </a>
+            <button type="button" className={activeView === 'evidence' ? 'impact-side-link active action-button' : 'impact-side-link action-button'} onClick={() => setActiveView('evidence')}>
+              <span className="material-symbols-outlined">verified</span>
+              <span>Evidence Archive</span>
+            </button>
             <button type="button" className={activeView === 'community' ? 'impact-side-link active action-button' : 'impact-side-link action-button'} onClick={() => setActiveView('community')}>
               <span className="material-symbols-outlined">forum</span>
               <span>Community Chat</span>
