@@ -2197,13 +2197,14 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'community' && <h2 className="topbar-page-title">Community Chat</h2>}
             {activeView === 'jicho' && <h2 className="topbar-page-title">Jicho AI</h2>}
             {activeView === 'marketplace' && <h2 className="topbar-page-title">Soko Marketplace</h2>}
+            {activeView === 'market-news' && <h2 className="topbar-page-title">Habari Intelligence</h2>}
             {activeView === 'ramani' && <h2 className="topbar-page-title">Ramani GIS</h2>}
             {activeView === 'groups' && <h2 className="topbar-page-title">Vikundi — Farmer Groups</h2>}
             {activeView === 'smart-loan' && <h2 className="topbar-page-title">Smart Loan Application</h2>}
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'agrishop' ? 'Search inputs, shops, dealers...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search fields, crops, soils...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'agrishop' ? 'Search Agrishop inputs, shops, or dealers' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search fields, crops, or soils' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'agrishop' ? 'Search inputs, shops, dealers...' : activeView === 'market-news' ? 'Search crop, region, or news...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search fields, crops, soils...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'agrishop' ? 'Search Agrishop inputs, shops, or dealers' : activeView === 'market-news' ? 'Search crops, regions, or news stories' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search fields, crops, or soils' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2663,6 +2664,8 @@ function SmallholderDashboard({ user, onLogout }) {
             onSearch={setMarketplaceSearch}
             profile={farmerProfile}
             records={farmerRecords}
+            weather={weatherData}
+            weatherStatus={weatherLocationStatus}
             farmRecordsSyncStatus={farmRecordsSyncStatus}
             onRetryFarmRecordsSync={() => {
               setFarmRecordsSyncStatus('pending');

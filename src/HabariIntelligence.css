@@ -1,0 +1,1244 @@
+.habari-page {
+  --habari-primary: #123b2b;
+  --habari-deep: #082b1c;
+  --habari-green: #16764f;
+  --habari-mint: #a4f0c7;
+  --habari-muted: #6d7874;
+  --habari-border: #e5e9ef;
+  --habari-surface: #fff;
+  color: #17231d;
+  font-family: inherit;
+  padding: 18px clamp(16px, 2.1vw, 30px) 34px;
+}
+
+.habari-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.habari-page-heading > div > p {
+  margin: 0 0 5px;
+  color: #789080;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .13em;
+}
+
+.habari-page-heading h1 {
+  margin: 0;
+  color: var(--habari-primary);
+  font-size: clamp(24px, 2.8vw, 32px);
+  font-weight: 750;
+  letter-spacing: -.035em;
+}
+
+.habari-page-heading > div > span {
+  display: block;
+  margin-top: 5px;
+  color: var(--habari-muted);
+  font-size: 13px;
+}
+
+.habari-watch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid #d5e4d7;
+  border-radius: 8px;
+  background: #f3f8f2;
+  color: #3d684d;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, transform .16s ease;
+}
+
+.habari-watch-button:hover {
+  transform: translateY(-1px);
+  background: #e7f2e7;
+}
+
+.habari-watch-button .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.habari-sample-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 17px;
+  padding: 10px 12px;
+  border: 1px solid #eddfbd;
+  border-radius: 8px;
+  background: #fff9ec;
+  color: #6f5c37;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.habari-sample-banner > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #ae8842;
+  font-size: 17px;
+}
+
+.habari-search-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -5px 0 13px;
+  color: #68756c;
+  font-size: 11px;
+}
+
+.habari-search-status button {
+  border: 0;
+  background: transparent;
+  color: #39724b;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.habari-mobile-search {
+  display: none;
+}
+
+.habari-top-grid,
+.habari-middle-grid,
+.habari-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(260px, .92fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.habari-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgb(225 231 235 / 86%);
+  border-radius: 11px;
+  background: var(--habari-surface);
+  box-shadow: 0 4px 17px rgb(22 46 37 / 6%);
+}
+
+.habari-market-card {
+  padding: 17px 18px 13px;
+}
+
+.habari-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.habari-card-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.habari-card-heading > div:first-child > .material-symbols-outlined {
+  color: #24784d;
+  font-size: 20px;
+}
+
+.habari-card-heading h2,
+.habari-tabiri-heading h2,
+.habari-section-header h2,
+.habari-weather-heading h2 {
+  margin: 0;
+  color: var(--habari-primary);
+  font-size: 16px;
+  font-weight: 740;
+  letter-spacing: -.02em;
+}
+
+.habari-card-heading p {
+  margin: 3px 0 0;
+  color: #8b948e;
+  font-size: 9px;
+}
+
+.habari-market-tags {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.habari-market-tags span {
+  padding: 4px 7px;
+  border-radius: 20px;
+  background: #e8f7ed;
+  color: #347650;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.habari-market-tags span + span {
+  background: #f0f2f5;
+  color: #717a78;
+}
+
+.habari-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.habari-table-wrap table {
+  width: 100%;
+  min-width: 490px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.habari-table-wrap thead th {
+  padding: 6px 6px 9px;
+  border-bottom: 1px solid #e8ebee;
+  color: #58665e;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.habari-table-wrap thead th:first-child {
+  padding-left: 0;
+}
+
+.habari-table-wrap tbody tr {
+  border-bottom: 1px solid #f0f2f3;
+  transition: background .14s ease;
+}
+
+.habari-table-wrap tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.habari-table-wrap tbody tr:hover {
+  background: #f7faf7;
+}
+
+.habari-table-wrap tbody th,
+.habari-table-wrap tbody td {
+  padding: 10px 6px;
+  color: #3a4740;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.habari-table-wrap tbody th {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 0;
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.habari-table-wrap tbody th .material-symbols-outlined {
+  color: #b48a36;
+  font-size: 15px;
+}
+
+.habari-trend {
+  display: table-cell;
+  font-weight: 700;
+}
+
+.habari-trend .material-symbols-outlined {
+  margin-right: 3px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.habari-trend.up {
+  color: #138051;
+}
+
+.habari-trend.down {
+  color: #c84548;
+}
+
+.habari-trend.steady {
+  color: #6f7972;
+}
+
+.habari-table-wrap .habari-table-empty {
+  padding: 20px 8px;
+  color: #7e8880;
+  text-align: center;
+  white-space: normal;
+}
+
+.habari-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 9px;
+  padding: 5px 0 0;
+  border: 0;
+  background: transparent;
+  color: #39744c;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.habari-text-link:hover {
+  color: #1d5032;
+  text-decoration: underline;
+}
+
+.habari-text-link .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.habari-tabiri-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 17px;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 11px;
+  background: linear-gradient(145deg, #1d4936, #092d1e 83%);
+  color: #e5f1e9;
+  box-shadow: 0 5px 18px rgb(8 43 28 / 14%);
+}
+
+.habari-tabiri-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.habari-tabiri-heading > .material-symbols-outlined {
+  color: #b4e1c4;
+  font-size: 20px;
+}
+
+.habari-tabiri-heading h2 {
+  color: #d7eee0;
+}
+
+.habari-tabiri-heading span:not(.material-symbols-outlined) {
+  display: block;
+  margin-top: 3px;
+  color: #a7c7b1;
+  font-size: 9px;
+}
+
+.habari-tabiri-card > p {
+  margin: 13px 0;
+  color: #b8d0bf;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.habari-recommendation {
+  display: grid;
+  gap: 5px;
+  margin: auto 0 13px;
+  padding: 11px;
+  border: 1px solid rgb(173 219 187 / 23%);
+  border-radius: 8px;
+  background: rgb(3 35 22 / 35%);
+}
+
+.habari-recommendation span {
+  color: #a9c7af;
+  font-size: 8px;
+}
+
+.habari-recommendation strong {
+  color: #fff;
+  font-size: 11px;
+}
+
+.habari-recommendation small {
+  color: #b8d0bf;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.habari-tabiri-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.habari-tabiri-stats span {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+}
+
+.habari-tabiri-stats span + span {
+  border-left: 1px solid rgb(190 223 198 / 22%);
+}
+
+.habari-tabiri-stats strong {
+  color: #fff;
+  font-size: 10px;
+}
+
+.habari-tabiri-stats small {
+  color: #a6c4ae;
+  font-size: 8px;
+}
+
+.habari-middle-grid {
+  grid-template-columns: minmax(0, 1.9fr) minmax(270px, .92fr);
+  align-items: stretch;
+}
+
+.habari-ministry-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.habari-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #e8ebef;
+  background: #e8edf4;
+}
+
+.habari-section-header > div,
+.habari-weather-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.habari-section-header > div > .material-symbols-outlined {
+  color: #304d41;
+  font-size: 17px;
+}
+
+.habari-section-header h2 {
+  font-size: 14px;
+}
+
+.habari-sample-label {
+  color: #748078;
+  font-size: 8px;
+  font-weight: 650;
+  text-align: right;
+}
+
+.habari-ministry-list {
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-color: #c4cdc5 transparent;
+  scrollbar-width: thin;
+}
+
+.habari-ministry-story {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  border: 0;
+  border-bottom: 1px solid #f0f2f3;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+
+.habari-ministry-story:hover {
+  background: #f7faf7;
+}
+
+.habari-ministry-story > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #87918a;
+  font-size: 8px;
+}
+
+.habari-ministry-story > strong {
+  display: block;
+  color: #203d2c;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.habari-ministry-story:hover > strong {
+  color: #28714a;
+}
+
+.habari-ministry-story > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: #758078;
+  font-size: 9px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.habari-feed-more {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px;
+  border: 0;
+  background: #fff;
+  color: #34734a;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.habari-feed-more:hover {
+  background: #f6f9f5;
+}
+
+.habari-feed-more .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.habari-weather-card {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+}
+
+.habari-weather-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.habari-weather-heading > div > .material-symbols-outlined {
+  color: #347d5b;
+  font-size: 18px;
+}
+
+.habari-weather-heading h2 {
+  font-size: 15px;
+}
+
+.habari-weather-heading > span {
+  max-width: 48%;
+  color: #748078;
+  font-size: 8px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.habari-current-weather {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.habari-weather-symbol {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff8df;
+  font-size: 29px;
+}
+
+.habari-current-weather > div {
+  display: grid;
+  gap: 3px;
+}
+
+.habari-current-weather strong {
+  color: #163d2b;
+  font-size: clamp(23px, 3vw, 30px);
+  font-weight: 760;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.habari-current-weather > div > span {
+  color: #6f7a72;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.habari-wind-alert {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 9px;
+  border-left: 3px solid #dbb85b;
+  background: #fff8e9;
+}
+
+.habari-wind-alert > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #a77a1f;
+  font-size: 16px;
+}
+
+.habari-wind-alert strong {
+  display: block;
+  color: #795b27;
+  font-size: 9px;
+}
+
+.habari-wind-alert p {
+  margin: 3px 0 0;
+  color: #816d48;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.habari-wind-alert small {
+  display: block;
+  margin-top: 4px;
+  color: #89774f;
+  font-size: 8px;
+}
+
+.habari-weather-status {
+  margin: 0 0 7px;
+  color: #7e8980;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.habari-forecast {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: auto;
+}
+
+.habari-forecast-day {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: #eef2f6;
+}
+
+.habari-forecast-day:first-child {
+  border-color: #bfd9c5;
+  background: #f3f8f2;
+}
+
+.habari-forecast-day span:first-child {
+  color: #627068;
+  font-size: 8px;
+}
+
+.habari-forecast-day span:nth-child(2) {
+  font-size: 17px;
+}
+
+.habari-forecast-day strong {
+  color: #264331;
+  font-size: 10px;
+}
+
+.habari-forecast > p {
+  grid-column: 1 / -1;
+  color: #7c867e;
+  font-size: 9px;
+}
+
+.habari-weather-empty {
+  display: grid;
+  justify-items: center;
+  margin: auto 0;
+  padding: 20px 8px;
+  color: #7f8980;
+  text-align: center;
+}
+
+.habari-weather-empty > .material-symbols-outlined {
+  margin-bottom: 5px;
+  color: #819788;
+  font-size: 25px;
+}
+
+.habari-weather-empty strong {
+  color: #485b4d;
+  font-size: 11px;
+}
+
+.habari-weather-empty p {
+  margin: 5px 0 0;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.habari-bottom-grid {
+  grid-template-columns: minmax(245px, .95fr) minmax(0, 1.75fr);
+  align-items: stretch;
+}
+
+.habari-global-card {
+  padding-bottom: 5px;
+}
+
+.habari-global-card .habari-section-header {
+  padding: 13px 14px;
+  border-bottom: 0;
+  background: #fff;
+}
+
+.habari-global-card .habari-section-header > div > .material-symbols-outlined {
+  color: #27764d;
+}
+
+.habari-global-card .habari-section-header h2 {
+  font-size: 14px;
+}
+
+.habari-global-list {
+  display: grid;
+  gap: 4px;
+  padding: 0 12px 11px;
+}
+
+.habari-global-story {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.habari-global-story:hover {
+  background: #f6f8f5;
+}
+
+.habari-story-art {
+  position: relative;
+  display: grid;
+  width: 47px;
+  height: 47px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 6px;
+  background: linear-gradient(140deg, #d6ad61, #73502d);
+}
+
+.habari-story-art::before,
+.habari-story-art::after {
+  position: absolute;
+  width: 130%;
+  height: 35%;
+  border-radius: 50%;
+  background: rgb(250 220 140 / 38%);
+  content: "";
+  transform: rotate(-24deg);
+}
+
+.habari-story-art::before {
+  top: 20%;
+  left: -20%;
+}
+
+.habari-story-art::after {
+  right: -25%;
+  bottom: 8%;
+  background: rgb(61 93 68 / 44%);
+}
+
+.habari-story-art.trade {
+  background: linear-gradient(145deg, #7a9c80, #1f5141);
+}
+
+.habari-story-art.sunflower {
+  background: linear-gradient(140deg, #efc956, #49754a);
+}
+
+.habari-story-art > .material-symbols-outlined {
+  position: relative;
+  z-index: 1;
+  color: rgb(255 255 255 / 88%);
+  font-size: 23px;
+}
+
+.habari-global-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.habari-global-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #294435;
+  font-size: 9px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.habari-global-story:hover .habari-global-copy strong {
+  color: #278052;
+}
+
+.habari-global-copy small {
+  color: #818a83;
+  font-size: 7px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.habari-feature-column {
+  display: grid;
+  grid-template-rows: minmax(200px, 1fr) auto;
+  gap: 12px;
+  min-width: 0;
+}
+
+.habari-success-story {
+  position: relative;
+  min-height: 200px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #547652;
+  box-shadow: 0 4px 17px rgb(22 46 37 / 8%);
+}
+
+.habari-field-art,
+.habari-field-art svg,
+.habari-feature-shade {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.habari-field-art svg {
+  display: block;
+}
+
+.habari-feature-shade {
+  background: linear-gradient(0deg, rgb(5 42 27 / 94%) 0%, rgb(5 42 27 / 58%) 48%, rgb(5 42 27 / 4%) 100%);
+}
+
+.habari-feature-copy {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 18px;
+  color: #fff;
+}
+
+.habari-feature-copy > span {
+  display: inline-block;
+  margin-bottom: 7px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: #1b8055;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.habari-feature-copy h2 {
+  max-width: 520px;
+  margin: 0;
+  font-size: clamp(18px, 2.4vw, 25px);
+  font-weight: 740;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+}
+
+.habari-feature-copy p {
+  max-width: 550px;
+  margin: 6px 0 0;
+  color: rgb(255 255 255 / 84%);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.habari-feature-copy small {
+  display: block;
+  margin-top: 5px;
+  color: rgb(255 255 255 / 70%);
+  font-size: 8px;
+}
+
+.habari-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.habari-shortcuts button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e6e9ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #284534;
+  box-shadow: 0 3px 12px rgb(22 46 37 / 5%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, transform .15s ease;
+}
+
+.habari-shortcuts button:hover {
+  transform: translateY(-1px);
+  border-color: #b8d4be;
+}
+
+.habari-shortcuts button > .material-symbols-outlined:first-child {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 7px;
+  background: #def4e7;
+  color: #35784d;
+  font-size: 18px;
+}
+
+.habari-shortcuts button + button > .material-symbols-outlined:first-child {
+  background: #fff2dc;
+  color: #987139;
+}
+
+.habari-shortcuts button > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.habari-shortcuts strong {
+  color: #334639;
+  font-size: 9px;
+}
+
+.habari-shortcuts small {
+  overflow: hidden;
+  color: #7d877f;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.habari-shortcuts button > .material-symbols-outlined:last-child {
+  margin-left: auto;
+  color: #829087;
+  font-size: 15px;
+}
+
+.habari-no-results {
+  margin: 12px;
+  color: #78837a;
+  font-size: 10px;
+}
+
+.habari-dialog-backdrop {
+  position: fixed;
+  z-index: 10000;
+  display: grid;
+  padding: 18px;
+  place-items: center;
+  background: rgb(10 27 19 / 45%);
+  inset: 0;
+}
+
+.habari-dialog {
+  width: min(100%, 500px);
+  overflow: hidden;
+  border: 1px solid #e3e8e2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgb(10 30 18 / 25%);
+}
+
+.habari-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 15px;
+  border-bottom: 1px solid #edf0ec;
+  background: #f8faf7;
+  color: #6e7c70;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.habari-dialog > header button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: #eef2ed;
+  color: #566a5a;
+  cursor: pointer;
+}
+
+.habari-dialog > header button .material-symbols-outlined {
+  font-size: 17px;
+}
+
+.habari-dialog > div {
+  padding: 18px;
+}
+
+.habari-dialog-date {
+  margin: 0 0 7px;
+  color: #7e8a80;
+  font-size: 9px;
+}
+
+.habari-dialog h2 {
+  margin: 0;
+  color: #244331;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.habari-dialog > div > p:not(.habari-dialog-date) {
+  color: #606e63;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.habari-dialog .habari-dialog-disclaimer {
+  padding: 9px 10px;
+  border: 1px solid #eee3cb;
+  border-radius: 7px;
+  background: #fff9ee;
+  color: #765f36;
+  font-size: 10px;
+}
+
+.habari-toast {
+  position: fixed;
+  z-index: 10001;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  max-width: min(440px, calc(100vw - 32px));
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #dce7dc;
+  border-radius: 8px;
+  background: #fff;
+  color: #405b46;
+  box-shadow: 0 8px 30px rgb(20 40 25 / 15%);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.habari-toast button {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #f1f5ef;
+  color: #647568;
+  cursor: pointer;
+}
+
+.habari-toast button .material-symbols-outlined {
+  font-size: 15px;
+}
+
+@media (min-width: 1500px) {
+  .habari-page {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 1000px) {
+  .habari-top-grid,
+  .habari-middle-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(235px, .9fr);
+    gap: 11px;
+  }
+
+  .habari-bottom-grid {
+    grid-template-columns: minmax(210px, .9fr) minmax(0, 1.5fr);
+    gap: 11px;
+  }
+
+  .habari-market-card {
+    padding: 14px;
+  }
+
+  .habari-market-tags {
+    display: none;
+  }
+
+  .habari-tabiri-card,
+  .habari-weather-card {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 760px) {
+  .habari-mobile-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 0 11px;
+    border: 1px solid #e3e8e4;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgb(22 46 37 / 4%);
+  }
+
+  .habari-mobile-search > .material-symbols-outlined {
+    color: #64746a;
+    font-size: 17px;
+  }
+
+  .habari-mobile-search input {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #35463b;
+    font: inherit;
+    font-size: 11px;
+  }
+
+  .habari-top-grid,
+  .habari-middle-grid,
+  .habari-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .habari-tabiri-card {
+    min-height: 250px;
+  }
+
+  .habari-weather-card {
+    min-height: 240px;
+  }
+
+  .habari-global-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .habari-global-story {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 540px) {
+  .habari-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .habari-watch-button {
+    min-height: 36px;
+  }
+
+  .habari-page-heading > div > span {
+    max-width: 320px;
+    font-size: 11px;
+  }
+
+  .habari-sample-banner {
+    font-size: 10px;
+  }
+
+  .habari-market-card {
+    padding: 12px;
+  }
+
+  .habari-card-heading h2 {
+    font-size: 14px;
+  }
+
+  .habari-global-list {
+    grid-template-columns: 1fr;
+  }
+
+  .habari-global-story {
+    align-items: center;
+  }
+
+  .habari-feature-column {
+    grid-template-rows: 220px auto;
+  }
+
+  .habari-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .habari-section-header {
+    align-items: flex-start;
+  }
+
+  .habari-sample-label {
+    max-width: 125px;
+    line-height: 1.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habari-page *,
+  .habari-page *::before,
+  .habari-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

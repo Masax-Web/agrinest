@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
 import AgrishopNetwork from './AgrishopNetwork';
+import HabariIntelligence from './HabariIntelligence';
 import {
   calculateFieldAreaSquareMeters,
   calculateFieldPerimeterMeters,
@@ -430,11 +431,23 @@ function FieldDataProfile({ field, profile, activities, onBack, onNavigate, onUp
   );
 }
 
-export default function FarmerWorkspace({ page, user, search = '', onSearch, profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
+export default function FarmerWorkspace({ page, user, search = '', onSearch, profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, weather, weatherStatus, onRecordsChange, onProfileSave, onNavigate, onBack }) {
   const details = workspaceDetails[page] || { title: page.replaceAll('-', ' '), icon: 'dashboard', description: 'Record and manage this part of your farm account.', recordType: 'requests', submitLabel: 'Save record', fields: [['title', 'Name', 'text'], ['details', 'Details', 'textarea']] };
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
   const trust = calculateFarmerTrust(profile);
+  if (page === 'market-news') {
+    return <HabariIntelligence
+      weather={weather}
+      weatherStatus={weatherStatus}
+      search={search}
+      onSearch={onSearch}
+      onNavigate={onNavigate}
+      onRecordsChange={onRecordsChange}
+      records={records}
+    />;
+  }
+
   if (page === 'agrishop') {
     return <AgrishopNetwork
       user={user}
