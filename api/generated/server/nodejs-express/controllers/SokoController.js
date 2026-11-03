@@ -1,7 +1,87 @@
 const express = require('express');
 const router = express.Router();
 const ListingService = require('../services/ListingService');
+const ProcurementService = require('../../../../services/ProcurementService');
 const { authenticate } = require('../../../../middleware/auth');
+
+function handleProcurementError(response, error, action) {
+  if (error.status) return response.status(error.status).json({ error: error.message });
+  console.error(`SokoController.${action}`, error);
+  return response.status(500).json({ error: 'db_error' });
+}
+
+router.get('/rfqs', authenticate, async (req, res) => {
+  try {
+    const items = await ProcurementService.listRfqs(req.authUser.user_id);
+    return res.json({ items });
+  } catch (error) {
+    return handleProcurementError(res, error, 'listRfqs');
+  }
+});
+
+router.post('/rfqs', authenticate, async (req, res) => {
+  try {
+    const rfq = await ProcurementService.createRfq({
+      buyerId: req.authUser.user_id,
+      feedType: req.body.feed_type,
+      quantityBags: req.body.quantity_bags,
+      deliveryDate: req.body.required_delivery_date,
+      specifications: req.body.specifications,
+    });
+    return res.status(201).json(rfq);
+  } catch (error) {
+    return handleProcurementError(res, error, 'createRfq');
+  }
+});
+
+router.get('/rfqs/:rfqId/bids', authenticate, async (req, res) => {
+  try {
+    const items = await ProcurementService.listBids(req.params.rfqId, req.authUser.user_id);
+    return res.json({ items });
+  } catch (error) {
+    return handleProcurementError(res, error, 'listBids');
+  }
+});
+
+router.post('/rfqs/:rfqId/bids', authenticate, async (req, res) => {
+  try {
+    const bid = await ProcurementService.submitBid({
+      rfqId: req.params.rfqId,
+      supplierId: req.authUser.user_id,
+      pricePerBag: req.body.price_per_bag,
+      deliveryFee: req.body.delivery_fee,
+      notes: req.body.notes,
+    });
+    return res.status(201).json(bid);
+  } catch (error) {
+    return handleProcurementError(res, error, 'submitBid');
+  }
+});
+
+router.patch('/rfqs/:rfqId/bids/:bidId/accept', authenticate, async (req, res) => {
+  try {
+    const result = await ProcurementService.acceptBid({
+      rfqId: req.params.rfqId,
+      bidId: req.params.bidId,
+      buyerId: req.authUser.user_id,
+    });
+    return res.json(result);
+  } catch (error) {
+    return handleProcurementError(res, error, 'acceptBid');
+  }
+});
+
+router.patch('/rfqs/:rfqId/close', authenticate, async (req, res) => {
+  try {
+    const rfq = await ProcurementService.closeRfq({
+      rfqId: req.params.rfqId,
+      buyerId: req.authUser.user_id,
+    });
+    return res.json(rfq);
+  } catch (error) {
+    return handleProcurementError(res, error, 'closeRfq');
+  }
+});
 
 router.post('/listings', authenticate, async (req, res) => {
   try {

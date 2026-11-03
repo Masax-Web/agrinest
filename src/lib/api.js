@@ -208,6 +208,35 @@ export const api = {
     return apiRequest('/soko/listings');
   },
 
+  async getFeedRfqs() {
+    return apiRequest('/soko/rfqs');
+  },
+
+  async createFeedRfq(data) {
+    return apiRequest('/soko/rfqs', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async getFeedRfqBids(rfqId) {
+    return apiRequest(`/soko/rfqs/${encodeURIComponent(rfqId)}/bids`);
+  },
+
+  async submitFeedRfqBid(rfqId, data) {
+    return apiRequest(`/soko/rfqs/${encodeURIComponent(rfqId)}/bids`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async acceptFeedRfqBid(rfqId, bidId) {
+    return apiRequest(`/soko/rfqs/${encodeURIComponent(rfqId)}/bids/${encodeURIComponent(bidId)}/accept`, {
+      method: 'PATCH',
+    });
+  },
+
+  async closeFeedRfq(rfqId) {
+    return apiRequest(`/soko/rfqs/${encodeURIComponent(rfqId)}/close`, { method: 'PATCH' });
+  },
+
   async createMarketplaceActivity(data) {
     return apiRequest('/soko/activity', { method: 'POST', body: JSON.stringify(data) });
   },

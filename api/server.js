@@ -4,6 +4,7 @@ const express = require('express');
 const app = require('./generated/server/nodejs-express/app');
 const knex = require('./db');
 const { ensureAuthSchema } = require('./services/AuthSchema');
+const { ensureProcurementSchema } = require('./services/ProcurementSchema');
 
 const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, '..', 'dist')));
@@ -13,6 +14,7 @@ app.get('*', (req, res, next) => {
 });
 async function startServer() {
 	await ensureAuthSchema(knex);
+	await ensureProcurementSchema(knex);
 	return app.listen(port, () => console.log(`AGRI-NEST API listening on http://localhost:${port}`));
 }
 

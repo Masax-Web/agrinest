@@ -15,6 +15,7 @@ import AdminDashboard from './AdminDashboard';
 import SecuritySettings from './SecuritySettings';
 import JichoGrowingGuide from './JichoGrowingGuide';
 import JichoPestKnowledge from './JichoPestKnowledge';
+import ProcurementWorkspace from './ProcurementWorkspace';
 import { personas } from '../shared/personas.json';
 
 const personaById = new Map(personas.map((persona) => [persona.id, persona]));
@@ -721,7 +722,7 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'buyer') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><BuyerDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><BuyerDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'gov') {
@@ -1891,7 +1892,7 @@ function SmallholderDashboard({ user, onLogout }) {
 
   const farmerNavigationViews = {
     Dashboard: 'dashboard', 'Digital Farm': 'fields', 'Jicho AI': 'jicho', Livestock: 'livestock',
-    'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', Transport: 'transport', 'Agrishop Network': 'agrishop',
+    'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
@@ -1984,6 +1985,7 @@ function SmallholderDashboard({ user, onLogout }) {
         { label: 'Livestock', icon: 'pets' },
         { label: 'Hesabu Yangu', icon: 'calculate' },
         { label: 'Marketplace', icon: 'shopping_cart' },
+        { label: 'Feed Procurement', icon: 'request_quote' },
         { label: 'Transport', icon: 'local_shipping' },
         { label: 'Agrishop Network', icon: 'storefront' },
         { label: 'Experts', icon: 'person_search' },
@@ -2250,6 +2252,8 @@ function SmallholderDashboard({ user, onLogout }) {
           />
         ) : activeView === 'marketplace' ? (
           <MarketplacePage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
+        ) : activeView === 'procurement' ? (
+          <ProcurementWorkspace user={user} profile={farmerProfile} />
         ) : activeView === 'ramani' ? (
           <RamaniMapPage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
         ) : activeView === 'dashboard' ? (
@@ -3665,7 +3669,7 @@ function InstitutionalDashboard({ onLogout }) {
   );
 }
 
-function BuyerDashboard({ onLogout }) {
+function BuyerDashboard({ user, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -3689,8 +3693,8 @@ function BuyerDashboard({ onLogout }) {
             className="buyer-avatar"
           />
           <div className="buyer-profile-meta">
-            <div className="buyer-profile-name">John Doe</div>
-            <div className="buyer-role">Produce Buyer</div>
+            <div className="buyer-profile-name">{user?.name || 'Buyer'}</div>
+              <div className="buyer-role">Procurement · {user?.role || 'Buyer'}</div>
           </div>
         </div>
 
@@ -3702,6 +3706,10 @@ function BuyerDashboard({ onLogout }) {
           <a className={activeView === 'marketplace' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('marketplace'); }}>
             <span className="material-symbols-outlined">storefront</span>
             Marketplace
+          </a>
+          <a className={activeView === 'procurement' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('procurement'); }}>
+            <span className="material-symbols-outlined">request_quote</span>
+            Feed Procurement
           </a>
           <a className={activeView === 'orders' ? 'buyer-nav-item active' : 'buyer-nav-item'} href="#" onClick={(event) => { event.preventDefault(); setActiveView('orders'); }}>
             <span className="material-symbols-outlined">receipt_long</span>
@@ -3754,13 +3762,13 @@ function BuyerDashboard({ onLogout }) {
               </span>
             </button>
             <div>
-              <h1>Habari za asubuhi, John! 📦</h1>
-              <p>12 new maize listings in Mbeya region since yesterday.</p>
+              <h1>Habari za asubuhi, {user?.name || 'Buyer'}! 📦</h1>
+              <p>Manage your sourcing requests, supplier quotes, and deliveries.</p>
             </div>
           </div>
 
           <div className="buyer-header-actions">
-            <button type="button" className="buyer-primary-button" onClick={() => setActiveView('new-request')}>
+            <button type="button" className="buyer-primary-button" onClick={() => setActiveView('procurement')}>
               <span className="material-symbols-outlined">add</span>
               New Request
             </button>
@@ -3947,7 +3955,9 @@ function BuyerDashboard({ onLogout }) {
         </section>
         </>
         ) : activeView === 'marketplace' ? (
-          <MarketplacePage profile={{ name: 'John Doe', region: 'Mbeya', city: 'Mbeya', location: 'Mbeya, Tanzania' }} />
+          <MarketplacePage profile={{ name: user?.name || 'Buyer', region: user?.region || '', city: user?.region || '', location: user?.region || '' }} />
+        ) : activeView === 'procurement' ? (
+          <ProcurementWorkspace user={user} profile={{ name: user?.name, region: user?.region }} />
         ) : (
           <RoleWorkspace role="buyer" page={activeView} onBack={() => setActiveView('dashboard')} />
         )}

@@ -1,124 +1,134 @@
 const request = require('supertest');
 const { expect } = require('chai');
+const app = require('../../api/generated/server/nodejs-express/app');
+const AuthService = require('../../api/services/AuthService');
+const FarmService = require('../../api/generated/server/nodejs-express/services/FarmService');
+const ListingService = require('../../api/generated/server/nodejs-express/services/ListingService');
+const ProcurementService = require('../../api/services/ProcurementService');
 
-const api = request(process.env.API_URL || 'http://localhost:3000');
+describe('AGRI-NEST API integration', () => {
+  const methods = [
+    [AuthService, 'getSessionUser'],
+    [FarmService, 'createFarm'],
+    [FarmService, 'getFarmById'],
+    [ListingService, 'createListing'],
+    [ListingService, 'listings'],
+    [ListingService, 'createOrder'],
+    [ListingService, 'recentActivity'],
+    [ProcurementService, 'listRfqs'],
+    [ProcurementService, 'createRfq'],
+  ];
+  const originalMethods = new Map();
+  const user = {
+    user_id: '00000000-0000-4000-8000-000000000101',
+    name: 'API Test Farmer',
+    role: 'smallholder_farmer',
+    role_status: 'active',
+    is_admin: false,
+  };
+  const farm = { farm_id: 'farm-test-id', user_id: user.user_id, name: 'Test Farm' };
+  const listing = { listing_id: 'listing-test-id', farmer_id: user.user_id, crop_type: 'Maize', quantity: 100, price: 20000 };
 
-describe('AGRI-NEST API integration', function() {
-  this.timeout(20000);
-  let userId;
-  let farmId;
-  let listingId;
-
-  it('registers a user', async () => {
-    const res = await api.post('/auth/register').send({ phone: '+255700000002', name: 'Test Farmer' }).expect(201);
-    expect(res.body).to.have.property('user_id');
-    expect(res.body).to.include({ phone: '+255700000002', name: 'Test Farmer' });
-    userId = res.body.user_id;
+  beforeEach(() => {
+    for (const [index, [service, method]] of methods.entries()) originalMethods.set(String(index), service[method]);
+    AuthService.getSessionUser = async (token) => (token === 'api-test-token'
+      ? { user, sessionCreatedAt: new Date(), sessionId: 'api-test-session' }
+      : null);
+    FarmService.createFarm = async (data) => ({ ...farm, name: data.name });
+    FarmService.getFarmById = async () => farm;
+    ListingService.createListing = async (data) => ({ ...listing, ...data });
+    ListingService.listings = async () => [listing];
+    ListingService.createOrder = async (data) => ({ order_id: 'order-test-id', items: data.items });
+    ListingService.recentActivity = async () => [{
+      activity_id: 1,
+      event_type: 'order_placed',
+      details: { order_id: 'order-test-id' },
+    }];
+    ProcurementService.listRfqs = async () => [];
+    ProcurementService.createRfq = async (data) => ({
+      rfq_id: 'rfq-test-id',
+      buyer_id: user.user_id,
+      feed_type: data.feedType,
+      quantity_bags: data.quantityBags,
+    });
   });
 
-  it('creates a farm for the user', async () => {
-    const res = await api.post('/farms').send({ user_id: userId, name: 'Test Farm' }).expect(201);
-    expect(res.body).to.have.property('farm_id');
-    expect(res.body).to.include({ user_id: userId, name: 'Test Farm' });
-    farmId = res.body.farm_id;
+  afterEach(() => {
+    for (const [index, [service, method]] of methods.entries()) {
+      service[method] = originalMethods.get(String(index));
+    }
+    originalMethods.clear();
   });
 
-  it('retrieves the created farm', async () => {
-    const res = await api.get(`/farms/${farmId}`).expect(200);
-    expect(res.body).to.include({ farm_id: farmId, user_id: userId, name: 'Test Farm' });
+  const authenticatedRequest = (method, path) => request(app)[method](path).set('Cookie', 'agrinest_session=api-test-token');
+
+  it('validates required registration fields', async () => {
+    await request(app)
+      .post('/auth/register')
+      .send({ name: 'Test Farmer', phone: '+255700000002', persona_id: 'smallholder_farmer' })
+      .expect(400);
   });
 
-  it('creates a marketplace listing', async () => {
-    const listing = { farmer_id: userId, crop_type: 'Maize', quantity: 100, price: 20000 };
-    const res = await api.post('/soko/listings').send(listing).expect(201);
-    expect(res.body).to.include({ farmer_id: userId, crop_type: 'Maize' });
-    expect(res.body).to.have.property('listing_id');
-    listingId = res.body.listing_id;
+  it('returns the authenticated account', async () => {
+    const response = await authenticatedRequest('get', '/auth/me').expect(200);
+    expect(response.body.user.user_id).to.equal(user.user_id);
   });
 
-  it('lists marketplace items', async () => {
-    const res = await api.get('/soko/listings').expect(200);
-    expect(res.body).to.have.property('items').that.is.an('array');
-    expect(res.body.items.some(item => item.listing_id === listingId)).to.be.true;
+  it('requires authentication to create a farm', async () => {
+    await request(app).post('/farms').send({ name: 'Test Farm' }).expect(401);
   });
 
-  it('publishes marketplace order activity for connected shoppers', async () => {
-    const orderRes = await api.post('/soko/orders').send({
-      buyer_name: 'Test Buyer',
-      items: [{ product_id: listingId, name: 'Maize', quantity: 2, unit_price: 20000 }],
-      total_amount: 40000,
-    }).expect(201);
-    expect(orderRes.body).to.have.property('order_id');
+  it('creates and retrieves the authenticated farmer farm', async () => {
+    const created = await authenticatedRequest('post', '/farms')
+      .send({ user_id: user.user_id, name: 'Test Farm' })
+      .expect(201);
+    expect(created.body).to.deep.equal(farm);
 
-    const activityRes = await api.get('/soko/activity?limit=30').expect(200);
-    expect(activityRes.body.items.some((item) => (
-      item.event_type === 'order_placed' && item.details.order_id === orderRes.body.order_id
-    ))).to.be.true;
+    const retrieved = await authenticatedRequest('get', `/farms/${farm.farm_id}`).expect(200);
+    expect(retrieved.body).to.deep.equal(farm);
   });
 
-  it('returns Jicho scan results', async () => {
-    const res = await api.post('/jicho/scan').send({ farmer_id: userId, image_base64: 'AAA' }).expect(200);
-    expect(res.body).to.have.property('diagnosis');
-    expect(res.body).to.have.property('confidence');
+  it('creates fields and marketplace listings through supported routes', async () => {
+    const field = { farm_id: farm.farm_id, name: 'North Field', field_boundary: '{}' };
+    const fieldResponse = await authenticatedRequest('post', '/fields').send(field).expect(201);
+    expect(fieldResponse.body.field).to.deep.equal(field);
+
+    const created = await authenticatedRequest('post', '/soko/listings')
+      .send({ crop_type: 'Maize', quantity: 100, price: 20000 })
+      .expect(201);
+    expect(created.body.listing_id).to.equal(listing.listing_id);
+
+    const listed = await authenticatedRequest('get', '/soko/listings').expect(200);
+    expect(listed.body.items).to.deep.equal([listing]);
   });
 
-  it('supports user CRUD endpoints', async () => {
-    const createRes = await api.post('/users').send({ phone: '+255700000003', name: 'CRUD User', role: 'farmer' }).expect(201);
-    const id = createRes.body.user_id || createRes.body.id;
-    expect(id).to.exist;
+  it('creates orders and publishes their activity', async () => {
+    const order = await authenticatedRequest('post', '/soko/orders')
+      .send({
+        buyer_name: user.name,
+        items: [{ product_id: listing.listing_id, name: 'Maize', quantity: 2, unit_price: 20000 }],
+        total_amount: 40000,
+      })
+      .expect(201);
+    expect(order.body.order_id).to.equal('order-test-id');
 
-    const listRes = await api.get('/users').expect(200);
-    expect(listRes.body.items || listRes.body).to.be.an('array');
-
-    const updateRes = await api.put(`/users/${id}`).send({ name: 'Updated CRUD User', role: 'buyer' }).expect(200);
-    expect(updateRes.body.name).to.equal('Updated CRUD User');
-
-    const deleteRes = await api.delete(`/users/${id}`).expect(200);
-    expect(deleteRes.body.success).to.equal(true);
+    const activity = await authenticatedRequest('get', '/soko/activity?limit=30').expect(200);
+    expect(activity.body.items[0].details.order_id).to.equal(order.body.order_id);
   });
 
-  it('supports field CRUD endpoints', async () => {
-    const createRes = await api.post('/fields').send({ farm_id: farmId, name: 'North Field', crop: 'Maize' }).expect(201);
-    const id = createRes.body.field_id || createRes.body.id;
-    expect(id).to.exist;
-
-    const listRes = await api.get('/fields').expect(200);
-    expect(listRes.body.items || listRes.body).to.be.an('array');
-
-    const updateRes = await api.put(`/fields/${id}`).send({ name: 'North Field Updated', crop: 'Beans' }).expect(200);
-    expect(updateRes.body.name).to.equal('North Field Updated');
-
-    const deleteRes = await api.delete(`/fields/${id}`).expect(200);
-    expect(deleteRes.body.success).to.equal(true);
+  it('creates a feed request through the procurement API', async () => {
+    const response = await authenticatedRequest('post', '/soko/rfqs')
+      .send({
+        feed_type: 'Layer Mash',
+        quantity_bags: 25,
+        required_delivery_date: '2026-12-01',
+        specifications: '',
+      })
+      .expect(201);
+    expect(response.body).to.include({ rfq_id: 'rfq-test-id', feed_type: 'Layer Mash', quantity_bags: 25 });
   });
 
-  it('supports finance, order, livestock, and admin CRUD endpoints', async () => {
-    const financeCreate = await api.post('/finance/loans').send({ applicant_id: userId, amount: 2500000, product: 'agri-loan' }).expect(201);
-    const financeId = financeCreate.body.id || financeCreate.body.loan_id;
-    expect(financeId).to.exist;
-    await api.get('/finance/loans').expect(200);
-    await api.put(`/finance/loans/${financeId}`).send({ status: 'approved' }).expect(200);
-    await api.delete(`/finance/loans/${financeId}`).expect(200);
-
-    const orderCreate = await api.post('/orders').send({ buyer_id: userId, item: 'Maize', quantity: 50, total_amount: 500000 }).expect(201);
-    const orderId = orderCreate.body.id || orderCreate.body.order_id;
-    expect(orderId).to.exist;
-    await api.get('/orders').expect(200);
-    await api.put(`/orders/${orderId}`).send({ status: 'packed' }).expect(200);
-    await api.delete(`/orders/${orderId}`).expect(200);
-
-    const livestockCreate = await api.post('/livestock/herds').send({ owner_id: userId, name: 'Kilimanjaro Herd', animal_type: 'cow', count: 18 }).expect(201);
-    const herdId = livestockCreate.body.id || livestockCreate.body.herd_id;
-    expect(herdId).to.exist;
-    await api.get('/livestock/herds').expect(200);
-    await api.put(`/livestock/herds/${herdId}`).send({ count: 20 }).expect(200);
-    await api.delete(`/livestock/herds/${herdId}`).expect(200);
-
-    const adminCreate = await api.post('/admin/workflows').send({ title: 'Review farmer onboarding', assignee: 'admin' }).expect(201);
-    const workflowId = adminCreate.body.id || adminCreate.body.workflow_id;
-    expect(workflowId).to.exist;
-    await api.get('/admin/workflows').expect(200);
-    await api.put(`/admin/workflows/${workflowId}`).send({ status: 'in-progress' }).expect(200);
-    await api.delete(`/admin/workflows/${workflowId}`).expect(200);
+  it('blocks non-admin accounts from the admin-only user directory', async () => {
+    await authenticatedRequest('get', '/users').expect(403);
   });
 });

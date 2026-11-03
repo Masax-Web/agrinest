@@ -785,6 +785,18 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/User'
+        '401':
+          description: A valid session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       summary: Create a user (administrator access required)
       requestBody:
@@ -847,6 +859,14 @@ paths:
       responses:
         '201':
           description: Field created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, field]
+                properties:
+                  status: { type: string }
+                  field: { type: object, additionalProperties: true }
 
   /jicho/scan:
     post:
@@ -961,6 +981,10 @@ paths:
       responses:
         '201':
           description: Listing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
     get:
       summary: List marketplace items (paginated)
       parameters:
@@ -981,6 +1005,91 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Listing'
+
+  /soko/rfqs:
+    get:
+      summary: List open feed RFQs and the authenticated user's RFQs
+      responses:
+        '200':
+          description: Feed requests available for quotes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+    post:
+      summary: Create a feed request for quotes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FeedRfqCreate' }
+      responses:
+        '201':
+          description: Request for quotes created
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /soko/rfqs/{rfqId}/bids:
+    parameters:
+      - in: path
+        name: rfqId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: List bids for an RFQ owned by the authenticated buyer
+      responses:
+        '200':
+          description: Supplier bids
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+    post:
+      summary: Submit or update a supplier bid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FeedRfqBidCreate' }
+      responses:
+        '201': { description: Bid submitted }
+
+  /soko/rfqs/{rfqId}/bids/{bidId}/accept:
+    parameters:
+      - in: path
+        name: rfqId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: bidId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Accept a bid and award the RFQ
+      responses:
+        '200': { description: Bid accepted and RFQ awarded }
+
+  /soko/rfqs/{rfqId}/close:
+    parameters:
+      - in: path
+        name: rfqId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Close an open RFQ without awarding a bid
+      responses:
+        '200': { description: RFQ closed }
 
   /soko/activity:
     get:
@@ -1019,7 +1128,13 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/MarketplaceOrderCreate' }
       responses:
-        '201': { description: Order request created }
+        '201':
+          description: Order request created
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
   /soko/events:
     get:
@@ -1379,6 +1494,23 @@ components:
         seller_name: { type: string, nullable: true }
         region: { type: string, nullable: true }
         unit: { type: string, nullable: true }
+
+    FeedRfqCreate:
+      type: object
+      required: [feed_type, quantity_bags, required_delivery_date]
+      properties:
+        feed_type: { type: string, minLength: 1, maxLength: 120 }
+        quantity_bags: { type: integer, minimum: 1, maximum: 100000000 }
+        required_delivery_date: { type: string, format: date }
+        specifications: { type: string, maxLength: 2000 }
+
+    FeedRfqBidCreate:
+      type: object
+      required: [price_per_bag]
+      properties:
+        price_per_bag: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000000 }
+        delivery_fee: { type: number, minimum: 0, maximum: 1000000000000 }
+        notes: { type: string, maxLength: 2000 }
 
     MarketplaceActivityCreate:
       type: object
