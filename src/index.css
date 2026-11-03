@@ -11286,6 +11286,143 @@ body.admin-impersonation-active #root {
   }
 }
 
+.digital-farm-livestock {
+  overflow: hidden;
+  border: 1px solid var(--digital-farm-line);
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.digital-farm-local-status {
+  display: grid;
+  justify-items: end;
+  gap: 0.4rem;
+}
+
+.digital-farm-local-status > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #e4f2ee;
+  color: #155347;
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+  font-size: 0.65rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.digital-farm-local-status > button .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.digital-farm-livestock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.65rem;
+  padding: 0 0.95rem 0.9rem;
+}
+
+.digital-farm-livestock-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  border: 1px solid var(--digital-farm-line);
+  border-radius: 0.55rem;
+  background: #fbfcfa;
+  padding: 0.75rem;
+}
+
+.digital-farm-livestock-card > .material-symbols-outlined {
+  color: var(--digital-farm-green);
+}
+
+.digital-farm-livestock-card strong {
+  color: var(--digital-farm-ink);
+  font-size: 0.78rem;
+}
+
+.digital-farm-livestock-card p,
+.digital-farm-livestock-card small,
+.digital-farm-livestock-empty,
+.digital-farm-record-disclaimer {
+  display: block;
+  margin: 0.2rem 0 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+.digital-farm-livestock-empty {
+  padding: 0 0.95rem 0.9rem;
+}
+
+.digital-farm-record-disclaimer {
+  padding: 0 0.95rem 0.8rem;
+}
+
+.digital-farm-photo-preview {
+  width: min(100%, 18rem);
+  max-height: 12rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.digital-farm-journal-photo {
+  display: block;
+  width: 3.75rem;
+  height: 3.75rem;
+  margin-top: 0.35rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+}
+
+.field-profile-soil {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--field-profile-line);
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 1rem;
+}
+
+.field-profile-soil h2 {
+  margin: 0.25rem 0;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1rem;
+}
+
+.field-profile-soil p,
+.field-profile-soil small {
+  margin: 0.2rem 0;
+  color: var(--field-profile-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.field-profile-soil .field-profile-soil-details {
+  color: var(--field-profile-ink);
+}
+
+.field-profile-soil > button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 600px) {
+  .digital-farm-local-status {
+    justify-items: start;
+  }
+
+  .field-profile-soil {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .digital-farm-field-actions {
   display: flex;
   flex-wrap: wrap;

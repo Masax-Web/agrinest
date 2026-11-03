@@ -1626,6 +1626,46 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
   );
 }
 
+const legacyFarmerRecordsKey = 'agrinest-farmer-dashboard-records';
+
+function normalizeFarmerRecords(records = {}) {
+  const collection = (value) => Array.isArray(value)
+    ? value.filter((record) => record && typeof record === 'object' && !Array.isArray(record))
+    : [];
+  return {
+    fields: collection(records.fields),
+    listings: collection(records.listings),
+    income: collection(records.income),
+    livestock: collection(records.livestock),
+    groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
+    activities: collection(records.activities),
+    requests: collection(records.requests),
+  };
+}
+
+function mergeFarmerRecords(localRecords, remoteRecords) {
+  const local = normalizeFarmerRecords(localRecords);
+  const remote = normalizeFarmerRecords(remoteRecords);
+  return Object.fromEntries(Object.keys(local).map((key) => {
+    const recordsById = new Map(remote[key].map((record, index) => [record.id || `remote-${key}-${index}`, record]));
+    local[key].forEach((record, index) => recordsById.set(record.id || `local-${key}-${index}`, record));
+    return [key, [...recordsById.values()]];
+  }));
+}
+
+function readStoredFarmerRecords(userId) {
+  try {
+    const accountKey = `${legacyFarmerRecordsKey}:${userId}`;
+    let serialized = window.localStorage.getItem(accountKey);
+    if (!serialized && window.localStorage.getItem('agrinest-farmer-profile-owner') === userId) {
+      serialized = window.localStorage.getItem(legacyFarmerRecordsKey);
+    }
+    return normalizeFarmerRecords(serialized ? JSON.parse(serialized) : {});
+  } catch {
+    return normalizeFarmerRecords();
+  }
+}
+
 function SmallholderDashboard({ user, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -1656,22 +1696,11 @@ function SmallholderDashboard({ user, onLogout }) {
   const [profileSyncStatus, setProfileSyncStatus] = useState('loading');
   const profileRevisionRef = useRef(0);
   const profileSaveQueueRef = useRef(Promise.resolve());
-  const [farmerRecords, setFarmerRecords] = useState(() => {
-    try {
-      const saved = JSON.parse(window.localStorage.getItem('agrinest-farmer-dashboard-records') || '{}');
-      return {
-        fields: Array.isArray(saved.fields) ? saved.fields : [],
-        listings: Array.isArray(saved.listings) ? saved.listings : [],
-        income: Array.isArray(saved.income) ? saved.income : [],
-        livestock: Array.isArray(saved.livestock) ? saved.livestock : [],
-        groups: Array.isArray(saved.groups) ? saved.groups : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
-        activities: Array.isArray(saved.activities) ? saved.activities : [],
-        requests: Array.isArray(saved.requests) ? saved.requests : [],
-      };
-    } catch {
-      return { fields: [], listings: [], income: [], livestock: [], groups: [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }], activities: [], requests: [] };
-    }
-  });
+  const [farmerRecords, setFarmerRecords] = useState(() => readStoredFarmerRecords(user?.user_id || ''));
+  const [farmRecordsSyncStatus, setFarmRecordsSyncStatus] = useState('loading');
+  const [farmRecordsCanSync, setFarmRecordsCanSync] = useState(false);
+  const [farmRecordsSyncTrigger, setFarmRecordsSyncTrigger] = useState(0);
+  const syncedFarmRecordsRef = useRef(null);
   const [liveListingCount, setLiveListingCount] = useState(0);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [weatherData, setWeatherData] = useState(null);
@@ -1782,6 +1811,16 @@ function SmallholderDashboard({ user, onLogout }) {
       nextProfile = { ...nextProfile, ...normalizePhoneNumbers({ ...nextProfile, phone: nextProfile.phone || '' }) };
       delete nextProfile.nidaNumber;
       if (active) {
+        const remoteFarmRecords = remoteProfile?.farmRecords;
+        if (remoteFarmRecords && typeof remoteFarmRecords === 'object' && !Array.isArray(remoteFarmRecords)) {
+          syncedFarmRecordsRef.current = normalizeFarmerRecords(remoteFarmRecords);
+          setFarmerRecords((current) => mergeFarmerRecords(current, remoteFarmRecords));
+        } else {
+          syncedFarmRecordsRef.current = null;
+        }
+        setFarmRecordsSyncStatus('pending');
+        setFarmRecordsCanSync(true);
+        setFarmRecordsSyncTrigger((current) => current + 1);
         setFarmerProfile(nextProfile);
         window.localStorage.setItem(storageKey, JSON.stringify(nextProfile));
         setProfileSyncStatus(hasSavedProfile ? 'synced' : localProfile ? 'syncing' : 'ready');
@@ -1799,7 +1838,12 @@ function SmallholderDashboard({ user, onLogout }) {
       }
     }).catch((error) => {
       console.error('Could not load the farmer profile from the account:', error.message);
-      if (active) setProfileSyncStatus('local');
+      if (active) {
+        setProfileSyncStatus('local');
+        setFarmRecordsSyncStatus('pending');
+        setFarmRecordsCanSync(true);
+        setFarmRecordsSyncTrigger((current) => current + 1);
+      }
     });
     return () => { active = false; };
   }, [user.user_id, user.name, user.email, user.phone, user.avatar_url, user.region]);
@@ -1809,7 +1853,7 @@ function SmallholderDashboard({ user, onLogout }) {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const saveFarmerProfile = (nextProfile) => {
+  const saveFarmerProfile = (nextProfile, { onSyncResult } = {}) => {
     const profileToSave = { ...nextProfile };
     delete profileToSave.nidaNumber;
     try {
@@ -1820,7 +1864,8 @@ function SmallholderDashboard({ user, onLogout }) {
         window.localStorage.setItem('agrinest-farmer-profile-owner', user.user_id);
         window.localStorage.setItem('agrinest-farmer-profile', serialized);
       }
-    } catch {
+    } catch (error) {
+      onSyncResult?.(false, error);
       return false;
     }
     setFarmerProfile(profileToSave);
@@ -1829,15 +1874,18 @@ function SmallholderDashboard({ user, onLogout }) {
     profileSaveQueueRef.current = profileSaveQueueRef.current.catch(() => {}).then(async () => {
       await api.saveFarmerProfile(profileToSave);
       if (profileRevisionRef.current === revision) setProfileSyncStatus('synced');
+      onSyncResult?.(true);
     }).catch((error) => {
       console.error('Could not sync the farmer profile to the account:', error.message);
       if (profileRevisionRef.current === revision) setProfileSyncStatus('local');
+      onSyncResult?.(false, error);
     });
     return true;
   };
 
   const updateFarmerRecords = (key, nextRecords) => {
     setFarmerRecords((current) => ({ ...current, [key]: nextRecords }));
+    setFarmRecordsSyncStatus(navigator.onLine ? 'pending' : 'offline');
   };
 
   const farmerNavigationViews = {
@@ -1858,11 +1906,51 @@ function SmallholderDashboard({ user, onLogout }) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem('agrinest-farmer-dashboard-records', JSON.stringify(farmerRecords));
+      window.localStorage.setItem(`agrinest-farmer-dashboard-records:${user.user_id}`, JSON.stringify(farmerRecords));
     } catch {
       setStatus('Could not save dashboard records in this browser.');
     }
-  }, [farmerRecords]);
+  }, [farmerRecords, user.user_id]);
+
+  useEffect(() => {
+    if (!farmRecordsCanSync) return;
+    if (!navigator.onLine) {
+      setFarmRecordsSyncStatus('offline');
+      return;
+    }
+
+    const recordsSnapshot = normalizeFarmerRecords(farmerRecords);
+    if (JSON.stringify(syncedFarmRecordsRef.current) === JSON.stringify(recordsSnapshot)) {
+      setFarmRecordsSyncStatus('synced');
+      return;
+    }
+
+    setFarmRecordsSyncStatus('syncing');
+    saveFarmerProfile({ ...farmerProfile, farmRecords: recordsSnapshot }, {
+      onSyncResult: (succeeded) => {
+        if (succeeded) {
+          syncedFarmRecordsRef.current = recordsSnapshot;
+          setFarmRecordsSyncStatus('synced');
+        } else {
+          setFarmRecordsSyncStatus(navigator.onLine ? 'pending' : 'offline');
+        }
+      },
+    });
+  }, [farmerRecords, farmRecordsCanSync, farmRecordsSyncTrigger]);
+
+  useEffect(() => {
+    const onOnline = () => {
+      setFarmRecordsSyncStatus('pending');
+      setFarmRecordsSyncTrigger((current) => current + 1);
+    };
+    const onOffline = () => setFarmRecordsSyncStatus('offline');
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -2441,6 +2529,11 @@ function SmallholderDashboard({ user, onLogout }) {
             page={activeView}
             profile={farmerProfile}
             records={farmerRecords}
+            farmRecordsSyncStatus={farmRecordsSyncStatus}
+            onRetryFarmRecordsSync={() => {
+              setFarmRecordsSyncStatus('pending');
+              setFarmRecordsSyncTrigger((current) => current + 1);
+            }}
             liveListingCount={liveListingCount}
             onRecordsChange={updateFarmerRecords}
             onProfileSave={saveFarmerProfile}

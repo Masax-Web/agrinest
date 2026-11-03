@@ -12,7 +12,7 @@ const farmerProfileFields = new Set([
   'name', 'phone', 'phoneNumbers', 'primaryPhoneId', 'email', 'location', 'country', 'region',
   'city', 'district', 'ward', 'street', 'nidaLast4', 'farm', 'farmSize', 'crops', 'livestock',
   'landTenure', 'yearsFarming', 'cooperative', 'irrigation', 'certifications', 'latitude',
-  'longitude', 'bankAccounts', 'avatar', 'coverPhoto',
+  'longitude', 'bankAccounts', 'avatar', 'coverPhoto', 'farmRecords',
 ]);
 const personasById = new Map(personas.map((persona) => [persona.id, persona]));
 const legacyPersonaIds = {
@@ -474,6 +474,16 @@ function sanitizeFarmerProfile(profile) {
     Object.entries(profile).filter(([key]) => farmerProfileFields.has(key)),
   );
   delete sanitized.nidaNumber;
+  if (Object.hasOwn(sanitized, 'farmRecords')) {
+    const records = sanitized.farmRecords;
+    const recordCollections = ['fields', 'listings', 'income', 'livestock', 'groups', 'activities', 'requests'];
+    if (!records || typeof records !== 'object' || Array.isArray(records)
+      || recordCollections.some((collection) => !Array.isArray(records[collection])
+        || records[collection].length > 5000
+        || records[collection].some((record) => !record || typeof record !== 'object' || Array.isArray(record)))) {
+      fail('invalid_farm_records', 400);
+    }
+  }
   for (const field of ['avatar', 'coverPhoto']) {
     const image = sanitized[field];
     if (image && (typeof image !== 'string'
