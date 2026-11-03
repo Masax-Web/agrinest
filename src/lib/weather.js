@@ -98,7 +98,7 @@ export function buildWeatherSnapshot(data, { location = WEATHER_LOCATION.label, 
   const currentTemperature = Number(current.temperature_2m ?? 0);
   const currentHumidity = Number(current.relative_humidity_2m ?? 0);
   const currentWindSpeed = Number(current.wind_speed_10m ?? 0);
-  const currentPrecipitation = Number(current.precipitation ?? 0);
+  const currentPrecipitation = current.precipitation;
   const currentUvIndex = Number(current.uv_index ?? 0);
 
   const forecast = Array.from({ length: Math.min(7, daily.time?.length || 0) }, (_, index) => {
@@ -106,12 +106,20 @@ export function buildWeatherSnapshot(data, { location = WEATHER_LOCATION.label, 
     const code = Number(daily.weather_code?.[index] ?? 0);
     const meta = getWeatherMeta(code);
     const maxTemp = Number(daily.temperature_2m_max?.[index] ?? 0);
+    const precipitationMmValue = daily.precipitation_sum?.[index];
+    const precipitationProbabilityValue = daily.precipitation_probability_max?.[index];
 
     return {
       day: getDayLabel(date),
       icon: meta.icon,
       temp: `${Math.round(maxTemp)}°`,
       summary: meta.label,
+      precipitationMm: precipitationMmValue === null || precipitationMmValue === undefined || precipitationMmValue === ''
+        ? null
+        : Number.isFinite(Number(precipitationMmValue)) ? Number(precipitationMmValue) : null,
+      precipitationProbabilityPercent: precipitationProbabilityValue === null || precipitationProbabilityValue === undefined || precipitationProbabilityValue === ''
+        ? null
+        : Number.isFinite(Number(precipitationProbabilityValue)) ? Number(precipitationProbabilityValue) : null,
     };
   });
 
@@ -124,7 +132,9 @@ export function buildWeatherSnapshot(data, { location = WEATHER_LOCATION.label, 
       humidity: Math.round(currentHumidity),
       wind: `${Math.round(currentWindSpeed)} km/h`,
       uv: Number.isFinite(currentUvIndex) ? Math.round(currentUvIndex) : 0,
-      rain: `${Number(currentPrecipitation).toFixed(1)}mm`,
+      rain: currentPrecipitation === null || currentPrecipitation === undefined || currentPrecipitation === ''
+        ? 'Not provided'
+        : `${Number(currentPrecipitation).toFixed(1)}mm`,
       conditions: weatherMeta.label,
       symbol: weatherMeta.icon,
     },
@@ -141,7 +151,7 @@ export async function fetchWeatherData({
   if (!isValidCoordinate(Number(latitude), Number(longitude))) {
     throw new Error('Weather coordinates are invalid.');
   }
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max&timezone=auto&forecast_days=7`;
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,precipitation_sum,precipitation_probability_max&timezone=auto&forecast_days=7`;
 
   const response = await fetch(weatherUrl);
   if (!response.ok) {

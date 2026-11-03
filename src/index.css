@@ -15435,3 +15435,124 @@ body.admin-impersonation-active #root {
   .jicho-ndvi-field-bottom { align-items: flex-start; flex-direction: column; gap: 0.2rem; }
   .jicho-ndvi-field-bottom > span { max-width: 100%; text-align: left; }
 }
+
+.irrigation-hub {
+  --irrigation-ink: #1d3028;
+  --irrigation-muted: #66746d;
+  min-height: calc(100vh - 4rem);
+  padding: clamp(1rem, 3vw, 2rem);
+  background: #f5f8f5;
+  color: var(--irrigation-ink);
+}
+.irrigation-hub button,
+.irrigation-hub input,
+.irrigation-hub select { font: inherit; }
+.irrigation-hub button { cursor: pointer; }
+.irrigation-hub button:focus-visible,
+.irrigation-hub input:focus-visible,
+.irrigation-hub select:focus-visible { outline: 2px solid #28734e; outline-offset: 2px; }
+.irrigation-heading,
+.irrigation-disclaimer,
+.irrigation-field-row,
+.irrigation-core-grid,
+.irrigation-lower-grid { width: min(100%, 94rem); margin-right: auto; margin-left: auto; }
+.irrigation-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.irrigation-eyebrow { color: #26734f; font-size: 0.61rem; font-weight: 800; letter-spacing: 0.13em; }
+.irrigation-heading h1 { margin: 0.28rem 0 0.38rem; color: #183728; font: 700 clamp(1.55rem, 2.8vw, 2.25rem)/1.16 'Syne', sans-serif; letter-spacing: -0.045em; }
+.irrigation-heading p { max-width: 48rem; margin: 0; color: var(--irrigation-muted); font-size: 0.78rem; line-height: 1.55; }
+.irrigation-heading-mark { display: grid; width: 3.2rem; height: 3.2rem; flex: 0 0 auto; place-items: center; border-radius: 0.9rem; background: #e2efe6; color: #28734e; font-size: 1.65rem; }
+.irrigation-disclaimer { display: flex; align-items: flex-start; gap: 0.45rem; margin-bottom: 0.9rem; padding: 0.65rem 0.75rem; border: 1px solid #ecdcbf; border-radius: 0.5rem; background: #fff8e9; color: #705930; font-size: 0.63rem; line-height: 1.5; }
+.irrigation-disclaimer .material-symbols-outlined { flex: 0 0 auto; font-size: 1rem; }
+.irrigation-field-row { display: grid; grid-template-columns: minmax(13rem, 0.8fr) minmax(0, 2fr); gap: 0.85rem; margin-bottom: 0.85rem; }
+.irrigation-card { min-width: 0; padding: 1rem; border: 1px solid rgba(67, 93, 75, 0.13); border-radius: 0.72rem; background: #fff; box-shadow: 0 4px 16px rgba(35, 63, 45, 0.045); }
+.irrigation-field-picker { display: grid; align-content: center; gap: 0.45rem; }
+.irrigation-field-picker > label,
+.irrigation-form-grid > label,
+.irrigation-log-card form > label,
+.irrigation-threshold-label { display: grid; min-width: 0; gap: 0.3rem; color: #52635a; font-size: 0.62rem; font-weight: 750; }
+.irrigation-hub input,
+.irrigation-hub select { width: 100%; min-height: 2.45rem; padding: 0.5rem 0.62rem; border: 1px solid #dce5de; border-radius: 0.45rem; background: #fff; color: #27382f; font-size: 0.68rem; }
+.irrigation-field-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.8rem; align-items: center; }
+.irrigation-field-summary > div { display: grid; min-width: 0; gap: 0.24rem; }
+.irrigation-field-summary small { color: #7a877f; font-size: 0.56rem; }
+.irrigation-field-summary strong { overflow: hidden; color: #25392e; font: 600 0.82rem/1.35 'Syne', sans-serif; text-overflow: ellipsis; }
+.irrigation-core-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 0.85rem; margin-bottom: 0.85rem; }
+.irrigation-card-heading { display: flex; align-items: flex-start; gap: 0.55rem; margin-bottom: 0.85rem; }
+.irrigation-card-heading > .material-symbols-outlined { flex: 0 0 auto; color: #28734e; font-size: 1.18rem; }
+.irrigation-card-heading h2 { margin: 0; color: #21382b; font: 600 0.94rem/1.3 'Syne', sans-serif; }
+.irrigation-card-heading p { margin: 0.2rem 0 0; color: #7b8780; font-size: 0.57rem; line-height: 1.45; }
+.irrigation-weather-data { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
+.irrigation-weather-data > div { display: grid; min-width: 0; gap: 0.2rem; padding: 0.55rem; border-radius: 0.45rem; background: #f5f8f6; }
+.irrigation-weather-data small { color: #77847c; font-size: 0.53rem; }
+.irrigation-weather-data strong { overflow: hidden; color: #284335; font-size: 0.68rem; text-overflow: ellipsis; }
+.irrigation-rain-forecast { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; margin-top: 0.65rem; }
+.irrigation-rain-forecast > div { display: grid; min-width: 0; gap: 0.15rem; padding: 0.35rem 0.2rem; border-radius: 0.35rem; background: #f0f5f2; text-align: center; }
+.irrigation-rain-forecast small { color: #75827a; font-size: 0.49rem; }
+.irrigation-rain-forecast strong { color: #24543a; font-size: 0.53rem; }
+.irrigation-rain-forecast span { color: #748078; font-size: 0.45rem; }
+.irrigation-integration-note { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.55rem; padding-top: 0.5rem; border-top: 1px solid #edf1ed; font-size: 0.55rem; line-height: 1.4; }
+.irrigation-integration-note strong { color: #43574b; }
+.irrigation-integration-note span { color: #7b8780; text-align: right; }
+.irrigation-ledger-card { background: linear-gradient(145deg, #fff, #f1f8f3); }
+.irrigation-ledger-value { display: grid; gap: 0.2rem; margin: 0.35rem 0 0.8rem; color: #1d5738; font: 700 clamp(1.5rem, 2.7vw, 2.15rem)/1.12 'Syne', sans-serif; }
+.irrigation-ledger-value small { color: #708077; font: 500 0.56rem 'DM Sans', sans-serif; }
+.irrigation-ledger-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; padding: 0.65rem 0; border-top: 1px solid #e6eee8; border-bottom: 1px solid #e6eee8; }
+.irrigation-ledger-stats > div { display: grid; gap: 0.17rem; }
+.irrigation-ledger-stats strong { color: #31483a; font-size: 0.73rem; }
+.irrigation-ledger-stats span { color: #7b8780; font-size: 0.52rem; }
+.irrigation-footnote { margin: 0.65rem 0 0; color: #758178; font-size: 0.55rem; line-height: 1.5; }
+.irrigation-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.58rem; }
+.irrigation-estimator-card .irrigation-form-grid > label:last-child { grid-column: 1 / -1; }
+.irrigation-estimate-result { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem; border-radius: 0.5rem; background: #edf5ef; }
+.irrigation-estimate-result > div { display: grid; gap: 0.2rem; }
+.irrigation-estimate-result strong { color: #1e5738; font: 700 1rem 'Syne', sans-serif; }
+.irrigation-estimate-result span { color: #6b7b70; font-size: 0.52rem; }
+.irrigation-empty-note { margin: 0.5rem 0; color: #78857d; font-size: 0.6rem; line-height: 1.55; }
+.irrigation-lower-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); align-items: start; gap: 0.85rem; }
+.irrigation-log-card form { display: grid; gap: 0.6rem; }
+.irrigation-log-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.irrigation-primary-button,
+.irrigation-secondary-button { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem 0.75rem; border: 1px solid transparent; border-radius: 0.45rem; font-size: 0.63rem; font-weight: 800; }
+.irrigation-primary-button { background: #236d49; color: #fff; }
+.irrigation-primary-button:hover { background: #185537; }
+.irrigation-secondary-button { border-color: #d7e3da; background: #f6faf7; color: #285c3e; }
+.irrigation-secondary-button:hover { background: #eaf3ed; }
+.irrigation-secondary-button:disabled { cursor: not-allowed; opacity: 0.55; }
+.irrigation-primary-button .material-symbols-outlined { font-size: 0.95rem; }
+.irrigation-status { margin: 0.55rem 0 0; color: #276544; font-size: 0.59rem; line-height: 1.45; }
+.irrigation-recent-heading { margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid #edf1ed; }
+.irrigation-recent-heading h3 { margin: 0; color: #31483a; font: 600 0.76rem 'Syne', sans-serif; }
+.irrigation-log-list { display: grid; gap: 0.15rem; margin: 0.4rem 0 0; padding: 0; list-style: none; }
+.irrigation-log-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.45rem 0; border-top: 1px solid #f0f3f0; }
+.irrigation-log-list li > span { display: grid; min-width: 0; gap: 0.15rem; }
+.irrigation-log-list strong { color: #2a4635; font-size: 0.66rem; }
+.irrigation-log-list small { color: #78857d; font-size: 0.52rem; line-height: 1.4; }
+.irrigation-side-column { display: grid; gap: 0.85rem; }
+.irrigation-chart { display: grid; height: 8rem; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 0.4rem; padding-top: 0.45rem; }
+.irrigation-chart-day { display: grid; min-width: 0; height: 100%; grid-template-rows: 1rem minmax(0, 1fr) 0.9rem; justify-items: center; gap: 0.22rem; }
+.irrigation-chart-day > span { overflow: hidden; max-width: 100%; color: #6a7c70; font-size: 0.44rem; text-overflow: ellipsis; white-space: nowrap; }
+.irrigation-chart-track { display: flex; width: 100%; height: 100%; align-items: flex-end; justify-content: center; border-radius: 0.25rem 0.25rem 0 0; background: #f0f5f1; }
+.irrigation-chart-track i { display: block; width: min(1.3rem, 68%); border-radius: 0.25rem 0.25rem 0 0; background: linear-gradient(180deg, #61ad79, #26734e); }
+.irrigation-chart-day small { color: #7a877f; font-size: 0.49rem; }
+.irrigation-threshold-label { margin-bottom: 0.55rem; }
+.irrigation-equipment-card .irrigation-secondary-button,
+.irrigation-side-column > .irrigation-card:nth-child(2) .irrigation-secondary-button { width: 100%; margin-top: 0.6rem; }
+
+@media (max-width: 1050px) {
+  .irrigation-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .irrigation-estimator-card { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .irrigation-field-row,
+  .irrigation-lower-grid { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-field-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .irrigation-heading { align-items: flex-start; }
+  .irrigation-heading-mark { width: 2.6rem; height: 2.6rem; font-size: 1.35rem; }
+  .irrigation-core-grid { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-estimator-card { grid-column: auto; }
+  .irrigation-log-fields { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-rain-forecast { gap: 0.12rem; }
+  .irrigation-rain-forecast span { font-size: 0.4rem; }
+}

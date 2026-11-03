@@ -17,6 +17,8 @@ describe('weather snapshot builder', () => {
         weather_code: [1, 2, 3],
         temperature_2m_max: [28, 26, 27],
         temperature_2m_min: [18, 17, 19],
+        precipitation_sum: [0, 2.4, null],
+        precipitation_probability_max: [0, 60, null],
       },
       timezone: 'Africa/Dar_es_Salaam',
     });
@@ -31,6 +33,11 @@ describe('weather snapshot builder', () => {
     expect(weather.forecast[0].day).to.equal('Mon');
     expect(weather.forecast[0].temp).to.equal('28°');
     expect(weather.forecast[0].icon).to.equal('🌤️');
+    expect(weather.forecast[0].precipitationMm).to.equal(0);
+    expect(weather.forecast[1].precipitationMm).to.equal(2.4);
+    expect(weather.forecast[1].precipitationProbabilityPercent).to.equal(60);
+    expect(weather.forecast[2].precipitationMm).to.equal(null);
+    expect(weather.forecast[2].precipitationProbabilityPercent).to.equal(null);
   });
 
   it('uses complete saved farm coordinates, including valid zero coordinates', async () => {
@@ -78,5 +85,6 @@ describe('weather snapshot builder', () => {
     });
     expect(weather.location).to.equal('Current GPS location');
     expect(weather.source).to.equal('gps');
+    expect(weather.current.rain).to.equal('Not provided');
   });
 });

@@ -66,6 +66,8 @@ describe('Authenticated farmer profile API', () => {
       carbon: [{ id: 'carbon-activity-1', module: 'carbon-activity', title: 'Planted trees', date: '2026-11-03' }],
       sustainability: [{ id: 'water-1', type: 'water', crop: 'Maize', waterLiters: 1200, yieldKg: 500, date: '2026-11-03' }],
       ndvi: [{ id: 'ndvi-1', fieldId: 'field-1', date: '2026-11-03', value: 0.62, source: 'Test sensor' }],
+      irrigationLogs: [{ id: 'irrigation-1', fieldId: 'field-1', waterLiters: 250, date: '2026-11-03' }],
+      irrigationSettings: [{ id: 'irrigation-setting-1', fieldId: 'field-1', moistureThresholdPercent: 40 }],
       livestock: [],
       groups: [],
       activities: [],
