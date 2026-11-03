@@ -42,3 +42,5 @@ Notes
 - This repository prepares the web assets and Capacitor configuration. Plugins and native integrations should be added per feature requirements (camera, geolocation, push).
 
 Authentication setup, Google OAuth callback configuration, and the staging-first rollout checklist are documented in [docs/authentication.md](./docs/authentication.md).
+
+The farmer Loan Spending planner stores plans and expense notes in browser storage, separately per signed-in account on that device. It does not connect to lender accounts, move or restrict money, or make credit decisions. The supplied notebook describes synthetic training data; until its model artifact and schema are reviewed and evaluated, model predictions are intentionally disabled. Voluntary feedback exports are manual aggregate CSV downloads; they are not training-ready, do not upload data, and do not train a model automatically.

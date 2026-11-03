@@ -1,0 +1,646 @@
+.jicho-growing-guide {
+  width: min(100%, 90rem);
+  margin: 0 auto;
+  color: #161c22;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.jicho-guide-hero {
+  position: relative;
+  display: flex;
+  min-height: 12.5rem;
+  align-items: flex-end;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  background: #022717;
+  box-shadow: 0 0.6rem 1.4rem rgba(2, 39, 23, 0.14);
+}
+
+.jicho-guide-hero > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 48%;
+}
+
+.jicho-guide-hero::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(2, 39, 23, 0.82), rgba(2, 39, 23, 0.18) 85%), linear-gradient(0deg, rgba(2, 39, 23, 0.82), transparent 80%);
+  content: '';
+}
+
+.jicho-guide-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+.jicho-guide-badge {
+  display: inline-flex;
+  margin-bottom: 0.45rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #a1f4c8;
+  color: #002113;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.jicho-guide-hero h1 {
+  max-width: 17ch;
+  margin: 0;
+  color: white;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+}
+
+.jicho-guide-hero-content > div:first-child > p {
+  margin: 0.3rem 0 0;
+  color: #c4ecd2;
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.jicho-guide-hero-stats {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.jicho-guide-hero-stats > div {
+  display: grid;
+  min-width: 6rem;
+  gap: 0.25rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(0.65rem);
+}
+
+.jicho-guide-hero-stats span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.56rem;
+}
+
+.jicho-guide-hero-stats strong {
+  color: #fff;
+  font-size: 0.68rem;
+}
+
+.jicho-guide-new-analysis {
+  position: absolute;
+  z-index: 2;
+  top: 0.7rem;
+  right: 0.7rem;
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #022717;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.18);
+}
+
+.jicho-guide-new-analysis .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.jicho-guide-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(12rem, 0.9fr);
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.jicho-guide-main-column,
+.jicho-guide-side-column {
+  display: grid;
+  min-width: 0;
+  gap: 0.9rem;
+}
+
+.jicho-guide-season,
+.jicho-guide-section,
+.jicho-guide-shop,
+.jicho-guide-experts {
+  border: 1px solid rgba(193, 200, 193, 0.28);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 0.2rem 0.65rem rgba(26, 61, 43, 0.025);
+}
+
+.jicho-guide-season {
+  padding: 0.9rem 1rem;
+}
+
+.jicho-guide-season-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.jicho-guide-season-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #daf4e7;
+  color: #116c4a;
+  font-size: 1rem;
+}
+
+.jicho-guide-season-heading h2,
+.jicho-guide-season-heading p,
+.jicho-guide-stage span {
+  margin: 0;
+}
+
+.jicho-guide-season-heading h2 {
+  color: #022717;
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.jicho-guide-season-heading p,
+.jicho-guide-stage span {
+  color: #5b625e;
+  font-size: 0.55rem;
+}
+
+.jicho-guide-stage {
+  display: grid;
+  gap: 0.08rem;
+  margin-left: auto;
+  text-align: right;
+}
+
+.jicho-guide-stage strong {
+  color: #116c4a;
+  font-size: 0.87rem;
+}
+
+.jicho-guide-progress {
+  height: 0.38rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3e9f0;
+}
+
+.jicho-guide-progress span {
+  display: block;
+  width: 45%;
+  height: 100%;
+  border-radius: inherit;
+  background: #116c4a;
+}
+
+.jicho-guide-season-dates {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  color: #5b625e;
+  font-size: 0.52rem;
+}
+
+.jicho-guide-lifecycle > h2 {
+  margin: 0 0 0.5rem 0.25rem;
+  color: #414843;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.jicho-guide-sections {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.jicho-guide-section {
+  overflow: hidden;
+}
+
+.jicho-guide-section-heading {
+  display: flex;
+  width: 100%;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  background: transparent;
+  color: #161c22;
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+button.jicho-guide-section-heading {
+  cursor: pointer;
+}
+
+.jicho-guide-number {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: #022717;
+  color: #fff;
+  font-size: 0.62rem;
+}
+
+.jicho-guide-chevron {
+  margin-left: auto;
+  color: #414843;
+  transition: transform 160ms ease;
+}
+
+.jicho-guide-section-heading[aria-expanded='true'] .jicho-guide-chevron {
+  transform: rotate(180deg);
+}
+
+.jicho-guide-section-content {
+  padding: 0 0.7rem 0.75rem;
+  color: #414843;
+  font-size: 0.58rem;
+  line-height: 1.55;
+}
+
+.jicho-guide-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.jicho-guide-facts > div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem;
+  border-radius: 0.55rem;
+  background: #eff4fc;
+}
+
+.jicho-guide-facts span {
+  color: #5b625e;
+  font-size: 0.52rem;
+}
+
+.jicho-guide-facts strong {
+  color: #022717;
+  font-size: 0.58rem;
+}
+
+.jicho-guide-section-content > p {
+  margin: 0.55rem 0 0;
+}
+
+.jicho-guide-bullets {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jicho-guide-bullets li::before {
+  display: inline-block;
+  width: 0.75rem;
+  color: #116c4a;
+  content: '•';
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.jicho-guide-bullets strong {
+  color: #161c22;
+}
+
+.jicho-guide-pest-section {
+  border-color: rgba(186, 26, 26, 0.3);
+  background: rgba(255, 250, 250, 0.88);
+}
+
+.jicho-guide-pest-heading {
+  cursor: default;
+}
+
+.jicho-guide-pest-heading .jicho-guide-number {
+  background: #ba1a1a;
+}
+
+.jicho-guide-pest-heading > .material-symbols-outlined {
+  margin-left: auto;
+  color: #ba1a1a;
+}
+
+.jicho-guide-pest-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  padding: 0 0.7rem 0.75rem;
+}
+
+.jicho-guide-pest-content > div {
+  padding-left: 0.55rem;
+  border-left: 2px solid #ba1a1a;
+  font-size: 0.56rem;
+}
+
+.jicho-guide-pest-content > div + div {
+  border-color: #463400;
+}
+
+.jicho-guide-pest-content strong {
+  color: #93000a;
+}
+
+.jicho-guide-pest-content > div + div strong {
+  color: #463400;
+}
+
+.jicho-guide-pest-content p {
+  margin: 0.12rem 0 0;
+  color: #414843;
+  line-height: 1.45;
+}
+
+.jicho-guide-recommendations {
+  padding: 0.9rem;
+  border-radius: 0.9rem;
+  background: #022717;
+  color: #fff;
+  box-shadow: 0 0.35rem 0.8rem rgba(2, 39, 23, 0.12);
+}
+
+.jicho-guide-recommendations h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.65rem;
+  font-size: 0.68rem;
+}
+
+.jicho-guide-recommendations h2 > span {
+  color: #a1f4c8;
+  font-size: 1rem;
+}
+
+.jicho-guide-recommendation {
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.jicho-guide-recommendation-icon {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}
+
+.jicho-guide-recommendation strong {
+  color: #a1f4c8;
+  font-size: 0.58rem;
+}
+
+.jicho-guide-recommendation + .jicho-guide-recommendation strong {
+  color: #ffdf96;
+}
+
+.jicho-guide-recommendation p {
+  margin: 0.12rem 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.55rem;
+  line-height: 1.45;
+}
+
+.jicho-guide-shop,
+.jicho-guide-experts {
+  padding: 0.8rem;
+}
+
+.jicho-guide-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+.jicho-guide-card-heading h2,
+.jicho-guide-experts h2 {
+  margin: 0;
+  color: #022717;
+  font-size: 0.63rem;
+}
+
+.jicho-guide-card-heading button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #116c4a;
+  font-size: 0.54rem;
+  font-weight: 700;
+}
+
+.jicho-guide-supply {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+  padding: 0.45rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #e9eef6;
+  color: #161c22;
+  text-align: left;
+}
+
+.jicho-guide-supply-icon {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #116c4a;
+  font-size: 0.95rem;
+}
+
+.jicho-guide-supply > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.1rem;
+}
+
+.jicho-guide-supply strong {
+  overflow: hidden;
+  font-size: 0.55rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jicho-guide-supply small {
+  color: #5b625e;
+  font-size: 0.48rem;
+}
+
+.jicho-guide-supply > .material-symbols-outlined:last-child {
+  font-size: 0.9rem;
+}
+
+.jicho-guide-experts h2 {
+  margin-bottom: 0.55rem;
+}
+
+.jicho-guide-expert {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #edf2ef;
+  color: #161c22;
+  text-align: left;
+}
+
+.jicho-guide-expert img {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.jicho-guide-expert > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.1rem;
+}
+
+.jicho-guide-expert strong {
+  font-size: 0.55rem;
+}
+
+.jicho-guide-expert small {
+  color: #5b625e;
+  font-size: 0.49rem;
+}
+
+.jicho-guide-expert > .material-symbols-outlined:last-child {
+  display: grid;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #022717;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.jicho-growing-guide button:focus-visible {
+  outline: 2px solid #116c4a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .jicho-guide-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jicho-guide-side-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jicho-guide-recommendations {
+    grid-row: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .jicho-guide-hero {
+    min-height: 17rem;
+  }
+
+  .jicho-guide-hero-content {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+
+  .jicho-guide-hero-stats {
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .jicho-guide-hero-stats > div {
+    min-width: 0;
+    flex: 1;
+    padding: 0.45rem;
+  }
+
+  .jicho-guide-hero-stats strong {
+    font-size: 0.58rem;
+  }
+
+  .jicho-guide-new-analysis {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .jicho-guide-side-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jicho-guide-recommendations {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .jicho-guide-season-heading {
+    align-items: flex-start;
+  }
+
+  .jicho-guide-stage strong {
+    font-size: 0.72rem;
+  }
+
+  .jicho-guide-pest-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

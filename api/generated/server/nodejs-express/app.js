@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const OpenApiValidator = require('express-openapi-validator');
 const authController = require('./controllers/AuthController');
@@ -34,7 +35,11 @@ app.use((req, res, next) => {
   return next();
 });
 app.use(bodyParser.json({ limit: '10mb' }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../../../../dist')));
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 const apiSpec = path.join(__dirname, '..', '..', '..', 'openapi.yaml');
 app.use(

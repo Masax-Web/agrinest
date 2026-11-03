@@ -1,0 +1,1240 @@
+.smart-loan-page {
+  width: min(100%, 74rem);
+  margin: 0 auto;
+  padding: clamp(1.15rem, 3vw, 2.4rem);
+  color: #161c22;
+}
+
+.smart-loan-page,
+.smart-loan-page * {
+  box-sizing: border-box;
+}
+
+.smart-loan-page button,
+.smart-loan-page input,
+.smart-loan-page select {
+  font: inherit;
+}
+
+.smart-loan-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0 auto 1.7rem;
+}
+
+.smart-loan-eyebrow {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #68756e;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.smart-loan-page-header h1,
+.smart-loan-panel-heading h2,
+.smart-loan-summary-header h2,
+.smart-loan-insight-card h3,
+.smart-loan-growth-card h2 {
+  margin: 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+}
+
+.smart-loan-page-header h1 {
+  font-size: clamp(1.55rem, 2.8vw, 2.15rem);
+  line-height: 1.2;
+}
+
+.smart-loan-page-header p {
+  max-width: 43rem;
+  margin: 0.5rem 0 0;
+  color: #55625b;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.smart-loan-back {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #d5ddd7;
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #244231;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smart-loan-back .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.smart-loan-stepper {
+  display: flex;
+  align-items: flex-start;
+  margin: 0 auto 1.65rem;
+  padding: 0.55rem 0.35rem;
+}
+
+.smart-loan-step-wrap {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.smart-loan-step-wrap:last-child {
+  flex: 0 0 auto;
+}
+
+.smart-loan-step {
+  display: flex;
+  min-width: 4.7rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #727d76;
+  font-size: 0.68rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.smart-loan-step:disabled {
+  opacity: 1;
+}
+
+.smart-loan-step:not(:disabled) {
+  cursor: pointer;
+}
+
+.smart-loan-step-number {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4e9e7;
+  color: #67736c;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.smart-loan-step.active {
+  color: #022717;
+  font-weight: 800;
+}
+
+.smart-loan-step.active .smart-loan-step-number {
+  background: #022717;
+  color: #fff;
+  box-shadow: 0 0 0 4px #dce9df;
+}
+
+.smart-loan-step.complete {
+  color: #147442;
+}
+
+.smart-loan-step.complete .smart-loan-step-number {
+  background: #a1f4c8;
+  color: #022717;
+}
+
+.smart-loan-step-line {
+  height: 1px;
+  flex: 1;
+  margin: 1.15rem 0.55rem 0;
+  background: #d7dfd9;
+}
+
+.smart-loan-storage-alert,
+.smart-loan-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.82rem;
+}
+
+.smart-loan-storage-alert {
+  border: 1px solid #e8c5a4;
+  background: #fff8f1;
+  color: #643c1e;
+}
+
+.smart-loan-storage-alert > .material-symbols-outlined,
+.smart-loan-notice > .material-symbols-outlined {
+  flex: 0 0 auto;
+}
+
+.smart-loan-storage-alert strong {
+  display: block;
+}
+
+.smart-loan-storage-alert p {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.smart-loan-storage-alert button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #603b1b;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.smart-loan-notice {
+  align-items: center;
+  border: 1px solid #b7d4c0;
+  background: #eef7f0;
+  color: #174d30;
+}
+
+.smart-loan-notice button {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: 0 0 auto;
+  place-items: center;
+  margin-left: auto;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.smart-loan-notice button .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.smart-loan-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(15rem, 0.9fr);
+  align-items: start;
+  gap: 1.2rem;
+}
+
+.smart-loan-main-column,
+.smart-loan-side-column {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+
+.smart-loan-panel,
+.smart-loan-trust-card,
+.smart-loan-insight-card,
+.smart-loan-summary-card,
+.smart-loan-saved-applications {
+  border: 1px solid rgba(193, 200, 193, 0.45);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 5px 20px rgba(26, 61, 43, 0.07);
+}
+
+.smart-loan-panel {
+  padding: clamp(1rem, 2.3vw, 1.65rem);
+}
+
+.smart-loan-panel-heading {
+  margin-bottom: 1.2rem;
+}
+
+.smart-loan-panel-heading h2 {
+  font-size: clamp(1.12rem, 1.8vw, 1.5rem);
+  line-height: 1.25;
+}
+
+.smart-loan-panel-heading p {
+  margin: 0.35rem 0 0;
+  color: #68756e;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.smart-loan-details-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.smart-loan-crop-field,
+.smart-loan-term-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.smart-loan-crop-field legend,
+.smart-loan-term-field legend,
+.smart-loan-field {
+  margin-bottom: 0.55rem;
+  color: #59665f;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.smart-loan-crop-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.smart-loan-crop-options button {
+  display: flex;
+  min-height: 2.55rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #d7ded9;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #35423a;
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.smart-loan-crop-options button.selected {
+  border: 2px solid #147442;
+  background: #f0f8f2;
+  color: #022717;
+}
+
+.smart-loan-crop-options .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+
+.smart-loan-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.smart-loan-field select,
+.smart-loan-field input {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #cbd4ce;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #1c2821;
+  font-size: 0.82rem;
+}
+
+.smart-loan-field small {
+  color: #78827c;
+  font-size: 0.65rem;
+  font-weight: 450;
+  line-height: 1.45;
+}
+
+.smart-loan-amount-control {
+  margin-bottom: 1.2rem;
+  padding: 1rem 1.15rem 0.85rem;
+  border-radius: 0.75rem;
+  background: #eff4fc;
+}
+
+.smart-loan-amount-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.smart-loan-amount-heading label {
+  color: #68756e;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.smart-loan-amount-heading output {
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 800;
+}
+
+.smart-loan-amount-control input[type='range'] {
+  width: 100%;
+  height: 0.45rem;
+  accent-color: #022717;
+  cursor: pointer;
+}
+
+.smart-loan-range-labels {
+  display: flex;
+  justify-content: space-between;
+  color: #647168;
+  font-size: 0.61rem;
+}
+
+.smart-loan-term-field {
+  margin-bottom: 1rem;
+}
+
+.smart-loan-term-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.smart-loan-term-options button {
+  min-height: 2.55rem;
+  border: 1px solid #cbd4ce;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #35423a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smart-loan-term-options button.selected {
+  border: 2px solid #022717;
+  background: #f0f8f2;
+  color: #022717;
+}
+
+.smart-loan-harvest-date {
+  max-width: 18rem;
+  margin: 0;
+}
+
+.smart-loan-insight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.smart-loan-trust-card,
+.smart-loan-insight-card {
+  position: relative;
+  min-height: 9.5rem;
+  overflow: hidden;
+  padding: 1.1rem;
+}
+
+.smart-loan-trust-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #68756e;
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+}
+
+.smart-loan-tier {
+  padding: 0.24rem 0.5rem;
+  border-radius: 99px;
+  background: #ffdf96;
+  color: #493700;
+  font-size: 0.55rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.smart-loan-trust-score {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.45rem;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 2.3rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.smart-loan-trust-score small {
+  margin-left: 0.3rem;
+  color: #68756e;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.smart-loan-trust-card p,
+.smart-loan-insight-card p,
+.smart-loan-growth-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0.45rem 0 0;
+  color: #68756e;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.smart-loan-trust-watermark {
+  position: absolute;
+  right: 0.45rem;
+  bottom: -0.5rem;
+  color: #022717;
+  font-size: 4rem;
+  opacity: 0.06;
+}
+
+.smart-loan-insight-card {
+  background: #edf4ef;
+}
+
+.smart-loan-insight-card > .material-symbols-outlined {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  margin-bottom: 0.55rem;
+  border-radius: 50%;
+  background: #022717;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.smart-loan-insight-card h3 {
+  font-size: 0.95rem;
+}
+
+.smart-loan-summary-card {
+  position: sticky;
+  top: 1rem;
+  overflow: hidden;
+}
+
+.smart-loan-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  background: #edf2f7;
+}
+
+.smart-loan-summary-header h2 {
+  font-size: 1.05rem;
+}
+
+.smart-loan-summary-header > .material-symbols-outlined {
+  color: #147442;
+  font-size: 1.3rem;
+}
+
+.smart-loan-summary-content {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.1rem;
+}
+
+.smart-loan-summary-row,
+.smart-loan-summary-payment {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.smart-loan-summary-row span,
+.smart-loan-summary-payment span {
+  color: #68756e;
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.smart-loan-summary-row strong {
+  color: #25332b;
+  font-size: 0.77rem;
+  text-align: right;
+}
+
+.smart-loan-summary-payment {
+  align-items: flex-start;
+  flex-direction: column;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed #d1d9d3;
+}
+
+.smart-loan-summary-payment strong {
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.smart-loan-summary-date {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr;
+  align-items: center;
+  column-gap: 0.45rem;
+  color: #59665f;
+  font-size: 0.66rem;
+}
+
+.smart-loan-summary-date .material-symbols-outlined {
+  grid-row: span 2;
+  color: #147442;
+  font-size: 1rem;
+}
+
+.smart-loan-summary-date strong {
+  color: #25332b;
+  font-size: 0.75rem;
+}
+
+.smart-loan-summary-disclaimer {
+  margin: 0;
+  padding: 0.65rem;
+  border-radius: 0.45rem;
+  background: #f8f2e7;
+  color: #6a5830;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.smart-loan-summary-actions {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0 1.1rem 1.1rem;
+}
+
+.smart-loan-summary-actions > button:first-child {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: #022717;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.smart-loan-summary-actions > button:first-child:disabled {
+  background: #a4b2a8;
+  cursor: not-allowed;
+}
+
+.smart-loan-summary-actions > button:first-child .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1rem;
+}
+
+.smart-loan-summary-actions .smart-loan-secondary-action,
+.smart-loan-summary-actions .smart-loan-planner-link {
+  display: flex;
+  min-height: 2.2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.2rem;
+  border: 0;
+  background: transparent;
+  color: #244231;
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+}
+
+.smart-loan-summary-actions .smart-loan-planner-link {
+  border-top: 1px solid #e3e9e4;
+  color: #68756e;
+  font-weight: 650;
+}
+
+.smart-loan-growth-card {
+  display: flex;
+  min-height: 7rem;
+  align-items: flex-end;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 0.8rem;
+  background: linear-gradient(140deg, rgba(2, 39, 23, 0.84), rgba(20, 116, 66, 0.72)), linear-gradient(45deg, #316342, #a5b571);
+  color: #fff;
+}
+
+.smart-loan-growth-card > .material-symbols-outlined {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 0.6rem;
+  color: #fff;
+}
+
+.smart-loan-growth-card h2 {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.smart-loan-growth-card p {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.smart-loan-saved-applications {
+  padding: 0.9rem;
+}
+
+.smart-loan-saved-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.smart-loan-saved-heading h2 {
+  margin: 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+}
+
+.smart-loan-saved-heading button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #cbd4ce;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #244231;
+  font-size: 0.65rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.smart-loan-saved-applications ul {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.smart-loan-saved-applications li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e7ece8;
+}
+
+.smart-loan-saved-applications li > span:first-child {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.smart-loan-saved-applications li strong {
+  color: #35423a;
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
+.smart-loan-saved-applications li small {
+  color: #68756e;
+  font-size: 0.62rem;
+}
+
+.smart-loan-draft-badge {
+  flex: 0 0 auto;
+  padding: 0.22rem 0.4rem;
+  border-radius: 99px;
+  background: #eff4fc;
+  color: #4a5a68;
+  font-size: 0.56rem;
+  font-weight: 750;
+}
+
+.smart-loan-upload {
+  display: flex;
+  min-height: 10rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1rem;
+  border: 1.5px dashed #9aafa0;
+  border-radius: 0.75rem;
+  background: #f7faf8;
+  color: #244231;
+  text-align: center;
+  cursor: pointer;
+}
+
+.smart-loan-upload > .material-symbols-outlined {
+  color: #147442;
+  font-size: 2rem;
+}
+
+.smart-loan-upload strong {
+  font-size: 0.86rem;
+}
+
+.smart-loan-upload > span:last-of-type {
+  color: #68756e;
+  font-size: 0.67rem;
+}
+
+.smart-loan-upload input {
+  width: min(100%, 17rem);
+  margin-top: 0.3rem;
+  color: #58665e;
+  font-size: 0.67rem;
+}
+
+.smart-loan-inline-error {
+  margin: 0.6rem 0 0;
+  color: #a03f29;
+  font-size: 0.75rem;
+}
+
+.smart-loan-evidence-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.smart-loan-evidence-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid #e0e7e2;
+  border-radius: 0.55rem;
+}
+
+.smart-loan-evidence-list li > .material-symbols-outlined {
+  color: #147442;
+}
+
+.smart-loan-evidence-name {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.15rem;
+}
+
+.smart-loan-evidence-name strong {
+  overflow: hidden;
+  color: #35423a;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smart-loan-evidence-name small {
+  color: #78827c;
+  font-size: 0.62rem;
+}
+
+.smart-loan-evidence-list button {
+  padding: 0.25rem 0.45rem;
+  border: 1px solid #d9e0db;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #6b3b32;
+  font-size: 0.64rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smart-loan-no-evidence {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  color: #68756e;
+}
+
+.smart-loan-no-evidence .material-symbols-outlined {
+  color: #829087;
+}
+
+.smart-loan-no-evidence p {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.smart-loan-privacy-note,
+.smart-loan-model-notice,
+.smart-loan-local-only {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.9rem 0 0;
+  padding: 0.7rem;
+  border-radius: 0.55rem;
+  background: #f3f6f4;
+  color: #59665f;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.smart-loan-privacy-note .material-symbols-outlined,
+.smart-loan-model-notice .material-symbols-outlined,
+.smart-loan-local-only .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #147442;
+  font-size: 1rem;
+}
+
+.smart-loan-privacy-note {
+  background: #eff4fc;
+}
+
+.smart-loan-model-notice {
+  margin: 0 0 1rem;
+  background: #f8f2e7;
+  color: #6a5830;
+}
+
+.smart-loan-model-notice .material-symbols-outlined {
+  color: #98762e;
+}
+
+.smart-loan-model-notice p,
+.smart-loan-local-only p {
+  margin: 0;
+}
+
+.smart-loan-model-notice strong {
+  color: #4c3a15;
+}
+
+.smart-loan-schedule-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.smart-loan-schedule-summary > div {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.65rem;
+  border-radius: 0.5rem;
+  background: #f4f7f5;
+}
+
+.smart-loan-schedule-summary span {
+  color: #68756e;
+  font-size: 0.61rem;
+}
+
+.smart-loan-schedule-summary strong {
+  color: #022717;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.smart-loan-schedule-list {
+  display: grid;
+  max-height: 21rem;
+  overflow-y: auto;
+  border-top: 1px solid #e4e9e5;
+}
+
+.smart-loan-schedule-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.15rem;
+  border-bottom: 1px solid #e4e9e5;
+}
+
+.smart-loan-payment-number {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf4ef;
+  color: #147442;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.smart-loan-schedule-row > span:nth-child(2) {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.smart-loan-schedule-row > span:nth-child(2) strong,
+.smart-loan-schedule-row > strong {
+  color: #35423a;
+  font-size: 0.72rem;
+}
+
+.smart-loan-schedule-row small {
+  color: #78827c;
+  font-size: 0.62rem;
+}
+
+.smart-loan-schedule-row > strong {
+  text-align: right;
+}
+
+.smart-loan-harvest-alignment {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  padding: 0.7rem;
+  border-radius: 0.55rem;
+  background: #edf4ef;
+  color: #147442;
+}
+
+.smart-loan-harvest-alignment > .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.smart-loan-harvest-alignment > span:last-child {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.smart-loan-harvest-alignment small {
+  color: #68756e;
+  font-size: 0.62rem;
+}
+
+.smart-loan-harvest-alignment strong {
+  color: #244231;
+  font-size: 0.75rem;
+}
+
+.smart-loan-review-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid #e4e9e5;
+}
+
+.smart-loan-review-list > div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem 0.5rem 0.7rem 0;
+  border-bottom: 1px solid #e4e9e5;
+}
+
+.smart-loan-review-list dt {
+  color: #68756e;
+  font-size: 0.64rem;
+}
+
+.smart-loan-review-list dd {
+  margin: 0;
+  color: #25332b;
+  font-size: 0.78rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.smart-loan-review-evidence {
+  margin-top: 0.9rem;
+  color: #35423a;
+  font-size: 0.72rem;
+}
+
+.smart-loan-review-evidence p {
+  margin: 0.3rem 0 0;
+  color: #68756e;
+}
+
+.smart-loan-review-evidence ul {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.35rem 0 0;
+  padding-left: 1.15rem;
+  color: #68756e;
+}
+
+.smart-loan-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  color: #35423a;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.smart-loan-confirm input {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  margin: 0.1rem 0 0;
+  accent-color: #147442;
+}
+
+.smart-loan-local-only {
+  background: #eff4fc;
+}
+
+.smart-loan-page button:focus-visible,
+.smart-loan-page input:focus-visible,
+.smart-loan-page select:focus-visible {
+  outline: 2px solid #147442;
+  outline-offset: 2px;
+}
+
+@media (max-width: 850px) {
+  .smart-loan-layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(14rem, 0.9fr);
+    gap: 0.8rem;
+  }
+
+  .smart-loan-details-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .smart-loan-summary-header,
+  .smart-loan-summary-content {
+    padding-right: 0.85rem;
+    padding-left: 0.85rem;
+  }
+
+  .smart-loan-summary-actions {
+    padding-right: 0.85rem;
+    padding-left: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .smart-loan-page {
+    padding: 1rem 0.8rem 1.5rem;
+  }
+
+  .smart-loan-page-header {
+    flex-direction: column-reverse;
+    gap: 0.85rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .smart-loan-page-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .smart-loan-page-header p {
+    font-size: 0.8rem;
+  }
+
+  .smart-loan-stepper {
+    margin-bottom: 1rem;
+    padding: 0.35rem 0;
+  }
+
+  .smart-loan-step {
+    min-width: 3.65rem;
+    gap: 0.35rem;
+    font-size: 0.55rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .smart-loan-step-number {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
+
+  .smart-loan-step-line {
+    margin: 0.95rem 0.25rem 0;
+  }
+
+  .smart-loan-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .smart-loan-main-column {
+    order: 0;
+  }
+
+  .smart-loan-side-column {
+    order: 1;
+  }
+
+  .smart-loan-summary-card {
+    position: static;
+  }
+
+  .smart-loan-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .smart-loan-insight-grid {
+    gap: 0.6rem;
+  }
+
+  .smart-loan-trust-card,
+  .smart-loan-insight-card {
+    min-height: 10rem;
+    padding: 0.85rem;
+  }
+
+  .smart-loan-trust-score {
+    font-size: 1.9rem;
+  }
+
+  .smart-loan-trust-card p,
+  .smart-loan-insight-card p {
+    font-size: 0.64rem;
+  }
+
+  .smart-loan-schedule-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .smart-loan-review-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .smart-loan-insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .smart-loan-trust-card,
+  .smart-loan-insight-card {
+    min-height: auto;
+  }
+
+  .smart-loan-term-options {
+    gap: 0.35rem;
+  }
+}

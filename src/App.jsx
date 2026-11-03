@@ -5,10 +5,16 @@ import { buildWeatherSnapshot, fetchWeatherData } from './lib/weather';
 import MarketplacePage from './MarketplacePage';
 import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
+import GroupsDashboard from './GroupsDashboard';
+import LoanSpendingPage from './LoanSpendingPage';
+import SmartLoanApplication from './SmartLoanApplication';
+import LenderDashboard from './LenderDashboard';
 import RoleWorkspace from './RoleWorkspace';
 import RoleDashboard from './RoleDashboard';
 import AdminDashboard from './AdminDashboard';
 import SecuritySettings from './SecuritySettings';
+import JichoGrowingGuide from './JichoGrowingGuide';
+import JichoPestKnowledge from './JichoPestKnowledge';
 import { personas } from '../shared/personas.json';
 
 const personaById = new Map(personas.map((persona) => [persona.id, persona]));
@@ -567,12 +573,16 @@ function App() {
     return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
-  if (loggedIn && ['commercial', 'bank', 'coop', 'expert'].includes(activeDashboard)) {
+  if (loggedIn && activeDashboard === 'bank') {
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><LenderDashboard user={authUser} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+  }
+
+  if (loggedIn && ['commercial', 'coop', 'expert'].includes(activeDashboard)) {
     return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn) {
-    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><SmallholderDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
     return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
@@ -701,8 +711,15 @@ function App() {
 
               <p className="signin-routing-note">Your workspace opens automatically based on your account.</p>
             </form>
+            <div className="auth-divider" aria-hidden="true"><span>or continue with</span></div>
             <button type="button" className="google-signin-button" onClick={() => { window.location.assign(api.googleAuthUrl()); }}>
-              <span className="google-g-mark">G</span>Continue with Google
+              <svg className="google-g-mark" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.91 3.28-4.73 3.28-8.09Z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84C3.96 20.48 7.7 23 12 23Z" />
+                <path fill="#FBBC05" d="M5.84 14.1A7.2 7.2 0 0 1 5.46 12c0-.73.13-1.43.38-2.1V7.06H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.94l3.69-2.84Z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.96 3.52 2.15 7.06l3.69 2.84C6.71 7.31 9.14 5.38 12 5.38Z" />
+              </svg>
+              <span>Continue with Google</span>
             </button>
             </div>
           ) : (
@@ -737,7 +754,13 @@ function App() {
               <p className="password-requirement">Use 12 to 128 characters.</p>
               {personaById.get(selectedRole)?.registration === 'invite' && <label className="field-label"><span>Invitation Token</span><input name="invitation_token" type="text" required autoComplete="one-time-code" /></label>}
               <p className="persona-registration-note">
-                {personaById.get(selectedRole)?.registration === 'invite' ? 'This staff persona is invitation-only.' : personaById.get(selectedRole)?.registration === 'review' ? 'Your account will be activated after an administrator reviews your registration.' : 'You can sign in as soon as your account is created.'}
+                {personaById.get(selectedRole)?.registration === 'invite'
+                  ? 'This staff persona is invitation-only.'
+                  : selectedRole === 'financial_institution'
+                    ? 'Institution accounts require administrator approval before activation. Sign in with an approved financial-institution account to open the lender portal.'
+                    : personaById.get(selectedRole)?.registration === 'review'
+                      ? 'Your account will be activated after an administrator reviews your registration.'
+                      : 'You can sign in as soon as your account is created.'}
               </p>
               {authMessage && <p className="auth-feedback" role="alert">{authMessage}</p>}
               <button type="submit" className="primary-action register-submit" disabled={authBusy}>
@@ -1445,7 +1468,7 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
   );
 }
 
-function SmallholderDashboard({ onLogout }) {
+function SmallholderDashboard({ user, onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
@@ -1554,7 +1577,7 @@ function SmallholderDashboard({ onLogout }) {
 
   const farmerNavigationViews = {
     Dashboard: 'dashboard', 'Digital Farm': 'fields', 'Jicho AI': 'jicho', Livestock: 'livestock',
-    'Hesabu Yangu': 'income', Marketplace: 'marketplace', Transport: 'transport', 'Agrishop Network': 'agrishop',
+    'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
@@ -1563,9 +1586,9 @@ function SmallholderDashboard({ onLogout }) {
     'AGRI-NEST Foundation': 'foundation',
   };
   const farmerActionViews = {
-    'Sell Produce': 'marketplace', 'Scan Crop': 'jicho', 'Apply Loan': 'loans', 'Get Expert': 'experts',
+    'Sell Produce': 'marketplace', 'Scan Crop': 'jicho', 'Get Expert': 'experts',
     'Book Transport': 'transport', 'Log Activity': 'activity', 'Rent Space': 'rent-space', 'Hire Labour': 'labour',
-    'Sell Waste': 'waste', 'Get Insurance': 'insurance', 'Smart Loan': 'smart-loan',
+    'Sell Waste': 'waste', 'Get Insurance': 'insurance', 'Apply Loan': 'smart-loan', 'Smart Loan': 'smart-loan',
   };
 
   useEffect(() => {
@@ -1623,6 +1646,8 @@ function SmallholderDashboard({ onLogout }) {
     {
       heading: 'Finance Hub',
       items: [
+        { label: 'Smart Loans', icon: 'payments' },
+        { label: 'Loan Spending', icon: 'savings' },
         { label: 'Insurance', icon: 'shield' },
         { label: 'Payroll & Labour', icon: 'payments' },
       ],
@@ -1727,9 +1752,11 @@ function SmallholderDashboard({ onLogout }) {
             {activeView === 'jicho' && <h2 className="topbar-page-title">Jicho AI</h2>}
             {activeView === 'marketplace' && <h2 className="topbar-page-title">Soko Marketplace</h2>}
             {activeView === 'ramani' && <h2 className="topbar-page-title">Ramani GIS</h2>}
+            {activeView === 'groups' && <h2 className="topbar-page-title">Vikundi — Farmer Groups</h2>}
+            {activeView === 'smart-loan' && <h2 className="topbar-page-title">Smart Loan Application</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -1840,7 +1867,20 @@ function SmallholderDashboard({ onLogout }) {
             farmerProfile={farmerProfile}
           />
         ) : activeView === 'jicho' ? (
-          <JichoDiagnostic onBackToDashboard={() => setActiveView('dashboard')} />
+          <JichoDiagnostic
+            onBackToDashboard={() => setActiveView('dashboard')}
+            search={marketplaceSearch}
+            onSearch={setMarketplaceSearch}
+            onMap={() => {
+              setMarketplaceSearch('');
+              setActiveView('ramani');
+            }}
+            onMarketplace={(search) => {
+              setMarketplaceSearch(search);
+              setActiveView('marketplace');
+            }}
+            onExpert={() => setActiveView('experts')}
+          />
         ) : activeView === 'marketplace' ? (
           <MarketplacePage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
         ) : activeView === 'ramani' ? (
@@ -1903,7 +1943,7 @@ function SmallholderDashboard({ onLogout }) {
           <section className="action-row">
             {['Sell Produce', 'Scan Crop', 'Apply Loan', 'Get Expert', 'Book Transport', 'Log Activity', 'Rent Space', 'Hire Labour', 'Sell Waste', 'Get Insurance', 'Smart Loan'].map((item, index) => (
               <button key={item} className="action-pill" type="button" onClick={() => setActiveView(farmerActionViews[item])}>
-                <span>{['🛒', '🔍', '🏦', '👨‍🌾', '🚛', '📸', '🏚️', '👷', '♻️', '☂️', '🤖'][index]}</span>
+                <span>{['🛒', '🔍', '🏦', '👨‍🌾', '🚛', '📸', '🏚️', '👷', '♻️', '☂️', '📊'][index]}</span>
                 {item}
               </button>
             ))}
@@ -2081,6 +2121,21 @@ function SmallholderDashboard({ onLogout }) {
             </div>
           </section>
         </main>
+        ) : activeView === 'smart-loan' ? (
+          <SmartLoanApplication
+            userId={user?.user_id}
+            profile={farmerProfile}
+            onBack={() => setActiveView('dashboard')}
+            onOpenPlanner={() => setActiveView('loan-spending')}
+          />
+        ) : activeView === 'loan-spending' ? (
+          <LoanSpendingPage userId={user?.user_id} onBack={() => setActiveView('dashboard')} />
+        ) : activeView === 'groups' ? (
+          <GroupsDashboard
+            profile={farmerProfile}
+            records={farmerRecords}
+            onRecordsChange={updateFarmerRecords}
+          />
         ) : (
           <FarmerWorkspace
             page={activeView}
@@ -2098,7 +2153,7 @@ function SmallholderDashboard({ onLogout }) {
   );
 }
 
-function JichoDiagnostic({ onBackToDashboard }) {
+function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, onSearch, onMap }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [scans, setScans] = useState(initialJichoScans);
@@ -2174,7 +2229,20 @@ function JichoDiagnostic({ onBackToDashboard }) {
           </button>
         ))}
       </div>
-      {activeTab === 'crops' ? <JichoCrops /> : activeTab === 'soils' ? <JichoKnowledge title="Soils" icon="layers" copy="Explore soil profiles, nutrient signals, and practical field preparation guidance." /> : activeTab === 'pests' ? <JichoKnowledge title="Pests & Diseases" icon="bug_report" copy="Review regional pest alerts and connect them to a Jicho scan." /> : activeTab === 'ndvi' ? <JichoKnowledge title="NDVI Monitor" icon="sensors" copy="Monitor crop vigor from satellite vegetation signals and field observations." /> : (
+      {activeTab === 'crops' ? (
+        <JichoGrowingGuide
+          onScan={() => setActiveTab('scan')}
+          onMarketplace={onMarketplace}
+          onExpert={onExpert}
+        />
+      ) : activeTab === 'pests' ? (
+        <JichoPestKnowledge
+          search={search}
+          onSearch={onSearch}
+          onScan={() => setActiveTab('scan')}
+          onMap={onMap}
+        />
+      ) : activeTab === 'soils' ? <JichoKnowledge title="Soils" icon="layers" copy="Explore soil profiles, nutrient signals, and practical field preparation guidance." /> : activeTab === 'ndvi' ? <JichoKnowledge title="NDVI Monitor" icon="sensors" copy="Monitor crop vigor from satellite vegetation signals and field observations." /> : (
       <div className="jicho-layout">
         <section className="jicho-main-column">
           <button type="button" className="jicho-back-button" onClick={onBackToDashboard}><span className="material-symbols-outlined">arrow_back</span> Dashboard</button>
@@ -2218,40 +2286,6 @@ function JichoDiagnostic({ onBackToDashboard }) {
       </div>
       )}
     </main>
-  );
-}
-
-const jichoCropCatalog = [
-  { id: 'maize', name: 'Maize (Hybrid 614)', price: 'TZS 1,200/kg', maturity: '120 - 150 Days', yield: '35 Bags / Acre', image: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=900&q=80', guide: 'Plant with the first reliable rains, maintain 25cm spacing, and scout weekly for armyworm.' },
-  { id: 'beans', name: 'Yellow Beans', price: 'TZS 2,800/kg', maturity: '70 - 90 Days', yield: '12 Bags / Acre', image: 'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=900&q=80', guide: 'Use well-drained soil, inoculate seed before planting, and harvest pods as they mature.' },
-  { id: 'sunflower', name: 'Sunflower (Hysun 33)', price: 'TZS 1,500/kg', maturity: '100 - 120 Days', yield: '1.2 Tons / Acre', image: 'https://images.unsplash.com/photo-1597848212624-e19f6f6d0d1b?auto=format&fit=crop&w=900&q=80', guide: 'Plant in full sun, thin early seedlings, and protect flowering heads from birds.' },
-  { id: 'tomato', name: 'Tomato (Assila F1)', price: 'TZS 4,500/box', maturity: '75 - 80 Days', yield: '25 Tons / Acre', image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=900&q=80', guide: 'Stake plants early, irrigate consistently, and inspect leaves for blight after wet weather.' },
-];
-
-function JichoCrops() {
-  const [selectedCrop, setSelectedCrop] = useState(null);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [activeAlert, setActiveAlert] = useState('');
-
-  return (
-    <div className="jicho-crops-layout">
-      <section className="jicho-crops-main">
-        <div className="jicho-page-heading"><h1>Crops Knowledge Base</h1><p>Practical growing guidance, market context, and crop health signals for your farm.</p></div>
-        <div className="jicho-crop-grid">
-          {jichoCropCatalog.map((crop) => (
-            <article className="jicho-crop-card" key={crop.id}>
-              <div className="jicho-crop-image"><img src={crop.image} alt={crop.name} /><span>{crop.price}</span></div>
-              <div className="jicho-crop-body"><h2>{crop.name}</h2><div className="jicho-crop-facts"><span><small>MATURITY</small><strong>{crop.maturity}</strong></span><span><small>AVG YIELD</small><strong>{crop.yield}</strong></span></div><button type="button" onClick={() => setSelectedCrop(crop)}>View Growing Guide</button></div>
-            </article>
-          ))}
-        </div>
-      </section>
-      <aside className="jicho-crops-aside">
-        <div className="jicho-forecast-card"><div className="jicho-forecast-heading"><span className="material-symbols-outlined">query_stats</span><div><h2>Tabiri Forecast</h2><small>Market Price Trends (30 Days)</small></div></div><div className="jicho-bars">{[40, 55, 50, 70, 85, 75, 60, 50, 65, 80].map((height, index) => <i className={index === 4 ? 'peak' : ''} style={{ height: `${height}%` }} key={index} />)}</div><div className="jicho-chart-labels"><span>Today</span><span>+15d</span><span>+30d</span></div><div className="jicho-advice"><strong><span className="material-symbols-outlined">auto_awesome</span> Smart Advice</strong><p>Based on the 30-day forecast and upcoming rain patterns, plant <b>Maize</b> within the next 7 days to maximize germination and profit.</p><button type="button" onClick={() => setReportOpen((open) => !open)}>Generate Detailed Report <span className="material-symbols-outlined">arrow_forward</span></button>{reportOpen && <div className="jicho-report">Planting window: next 7 days. Projected price movement: positive. Recommended action: prepare seed and fertilizer.</div>}</div></div>
-        <div className="jicho-alerts-card"><h3>Agronomic Alerts</h3><button type="button" onClick={() => setActiveAlert('Fall Armyworm alert opened in Jicho Scan.')}><span className="material-symbols-outlined">warning</span><span><b>Fall Armyworm Alert</b><small>Reported in nearby clusters.</small></span></button><button type="button" onClick={() => setActiveAlert('Irrigation reminder added to your farm tasks.')}><span className="material-symbols-outlined">wb_sunny</span><span><b>Irrigation Needed</b><small>Dry spell expected next week.</small></span></button>{activeAlert && <p className="jicho-alert-feedback">{activeAlert}</p>}</div>
-      </aside>
-      {selectedCrop && <div className="jicho-guide-overlay" role="dialog" aria-modal="true"><div className="jicho-guide-modal"><button type="button" className="jicho-guide-close" onClick={() => setSelectedCrop(null)} aria-label="Close growing guide"><span className="material-symbols-outlined">close</span></button><img src={selectedCrop.image} alt={selectedCrop.name} /><h2>{selectedCrop.name}</h2><p>{selectedCrop.guide}</p><button type="button" className="jicho-primary-button" onClick={() => setSelectedCrop(null)}>Done</button></div></div>}
-    </div>
   );
 }
 

@@ -1,0 +1,712 @@
+.jicho-pest-knowledge {
+  width: min(100%, 90rem);
+  margin: 0 auto;
+  color: #161c22;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.jicho-pest-heading {
+  margin: 0 0 0.8rem;
+}
+
+.jicho-pest-heading h1 {
+  margin: 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.jicho-pest-heading p {
+  max-width: 42rem;
+  margin: 0.35rem 0 0;
+  color: #414843;
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.jicho-pest-layout {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.78fr) minmax(0, 1.72fr);
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.jicho-pest-sidebar,
+.jicho-threat-library {
+  display: grid;
+  min-width: 0;
+  gap: 0.7rem;
+}
+
+.jicho-outbreak-radar,
+.jicho-vision-cta,
+.jicho-threat-card,
+.jicho-control-resources {
+  border: 1px solid rgba(193, 200, 193, 0.3);
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.83);
+  box-shadow: 0 0.2rem 0.7rem rgba(26, 61, 43, 0.055);
+}
+
+.jicho-outbreak-radar {
+  padding: 0.75rem;
+  border-left: 2px solid #ba1a1a;
+}
+
+.jicho-outbreak-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.jicho-outbreak-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+}
+
+.jicho-outbreak-title h2 .material-symbols-outlined {
+  color: #ba1a1a;
+  font-size: 0.9rem;
+}
+
+.jicho-outbreak-title > span {
+  padding: 0.15rem 0.32rem;
+  border-radius: 999px;
+  background: #ffdad6;
+  color: #93000a;
+  font-size: 0.43rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.jicho-outbreak-radar > p {
+  margin: 0 0 0.55rem;
+  color: #414843;
+  font-size: 0.55rem;
+  line-height: 1.45;
+}
+
+.jicho-outbreak-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.jicho-outbreak-list article {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  border-radius: 0.45rem;
+  background: #eff4fc;
+}
+
+.jicho-outbreak-list article > span:first-child {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.jicho-outbreak-list strong {
+  color: #161c22;
+  font-size: 0.55rem;
+}
+
+.jicho-outbreak-list small {
+  color: #414843;
+  font-size: 0.49rem;
+}
+
+.jicho-outbreak-list article > .material-symbols-outlined {
+  color: #463400;
+  font-size: 0.82rem;
+}
+
+.jicho-outbreak-list article > .material-symbols-outlined.risk-high {
+  color: #ba1a1a;
+}
+
+.jicho-outbreak-map {
+  width: 100%;
+  min-height: 1.8rem;
+  margin-top: 0.55rem;
+  border: 1px solid #022717;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #022717;
+  font: inherit;
+  font-size: 0.54rem;
+  cursor: pointer;
+}
+
+.jicho-outbreak-map:hover {
+  background: rgba(2, 39, 23, 0.05);
+}
+
+.jicho-vision-cta {
+  position: relative;
+  overflow: hidden;
+  padding: 0.8rem;
+  background: #1a3d2b;
+  color: #fff;
+}
+
+.jicho-vision-cta > div {
+  position: relative;
+  z-index: 1;
+}
+
+.jicho-vision-cta h2 {
+  margin: 0 0 0.3rem;
+  color: #fff;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+}
+
+.jicho-vision-cta p {
+  margin: 0 0 0.55rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.53rem;
+  line-height: 1.5;
+}
+
+.jicho-vision-cta button {
+  display: inline-flex;
+  min-height: 1.65rem;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: #a1f4c8;
+  color: #002113;
+  font: inherit;
+  font-size: 0.51rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jicho-vision-cta button .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.jicho-vision-watermark {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.6rem;
+  color: rgba(255, 255, 255, 0.08);
+  font-size: 4.5rem;
+  transform: rotate(12deg);
+}
+
+.jicho-threat-toolbar {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.jicho-threat-search {
+  display: none;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.55rem;
+  border: 1px solid #c1c8c1;
+  border-radius: 999px;
+  background: #fff;
+  color: #414843;
+}
+
+.jicho-threat-search .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.jicho-threat-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #161c22;
+  font: inherit;
+  font-size: 0.55rem;
+}
+
+.jicho-threat-search input:focus-visible {
+  outline: 0;
+}
+
+.jicho-threat-filters {
+  display: flex;
+  gap: 0.3rem;
+  overflow-x: auto;
+  padding: 0.05rem 0.05rem 0.2rem;
+  scrollbar-width: thin;
+}
+
+.jicho-threat-filters button {
+  min-height: 1.65rem;
+  flex: 0 0 auto;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #c1c8c1;
+  border-radius: 999px;
+  background: #fff;
+  color: #414843;
+  font: inherit;
+  font-size: 0.49rem;
+  cursor: pointer;
+}
+
+.jicho-threat-filters button.active {
+  border-color: #022717;
+  background: #022717;
+  color: #fff;
+  font-weight: 700;
+}
+
+.jicho-threat-report {
+  display: inline-flex;
+  min-height: 1.65rem;
+  align-items: center;
+  justify-self: start;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #b8c7bb;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #022717;
+  font: inherit;
+  font-size: 0.52rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jicho-threat-report:hover {
+  background: #eef5ef;
+}
+
+.jicho-threat-report:focus-visible {
+  outline: 2px solid #147442;
+  outline-offset: 2px;
+}
+
+.jicho-threat-report .material-symbols-outlined {
+  font-size: 0.75rem;
+}
+
+.jicho-threat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+.jicho-threat-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.jicho-threat-image {
+  position: relative;
+  height: 7rem;
+  overflow: hidden;
+  background: #e3e9f0;
+}
+
+.jicho-threat-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 250ms ease;
+}
+
+.jicho-threat-card:hover .jicho-threat-image img {
+  transform: scale(1.04);
+}
+
+.jicho-threat-severity {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.18rem 0.35rem;
+  border-radius: 999px;
+  background: #ba1a1a;
+  color: #fff;
+  font-size: 0.42rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.jicho-threat-severity.medium {
+  background: #463400;
+}
+
+.jicho-threat-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0.6rem;
+}
+
+.jicho-threat-category {
+  color: #5b625e;
+  font-size: 0.43rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.jicho-threat-body h3 {
+  margin: 0.17rem 0 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.jicho-threat-scientific {
+  margin: 0.12rem 0 0.4rem;
+  color: #414843;
+  font-size: 0.48rem;
+  font-style: italic;
+}
+
+.jicho-threat-crops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: auto 0 0.5rem;
+}
+
+.jicho-threat-crops span {
+  padding: 0.14rem 0.3rem;
+  border-radius: 0.2rem;
+  background: #a1f4c8;
+  color: #1b724f;
+  font-size: 0.42rem;
+}
+
+.jicho-threat-guide-button {
+  width: 100%;
+  min-height: 1.65rem;
+  padding: 0.3rem 0.45rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: #1a3d2b;
+  color: #fff;
+  font: inherit;
+  font-size: 0.49rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jicho-threat-guide-button:hover {
+  background: #116c4a;
+}
+
+.jicho-threat-empty {
+  display: grid;
+  min-height: 12rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid rgba(193, 200, 193, 0.3);
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.75);
+  text-align: center;
+}
+
+.jicho-threat-empty > .material-symbols-outlined {
+  color: #116c4a;
+  font-size: 1.5rem;
+}
+
+.jicho-threat-empty strong {
+  color: #022717;
+  font-size: 0.68rem;
+}
+
+.jicho-threat-empty p {
+  margin: 0;
+  color: #414843;
+  font-size: 0.55rem;
+}
+
+.jicho-threat-empty button {
+  margin-top: 0.3rem;
+  border: 0;
+  background: transparent;
+  color: #116c4a;
+  font: inherit;
+  font-size: 0.55rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jicho-control-resources {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  padding: 0.7rem;
+}
+
+.jicho-resources-icon {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #a1f4c8;
+  color: #1b724f;
+  font-size: 1rem;
+}
+
+.jicho-resources-copy {
+  flex: 1;
+}
+
+.jicho-resources-copy h2 {
+  margin: 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.65rem;
+}
+
+.jicho-resources-copy p {
+  max-width: 28rem;
+  margin: 0.15rem 0 0;
+  color: #414843;
+  font-size: 0.49rem;
+  line-height: 1.4;
+}
+
+.jicho-resource-links {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.jicho-resource-links button,
+.jicho-resource-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #022717;
+  font: inherit;
+  font-size: 0.49rem;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.jicho-resource-links button:hover,
+.jicho-resource-links a:hover {
+  text-decoration: underline;
+}
+
+.jicho-resource-links .material-symbols-outlined {
+  font-size: 0.72rem;
+}
+
+.jicho-report-status {
+  display: flex;
+  min-height: 1.7rem;
+  align-items: center;
+  justify-content: space-between;
+  color: #116c4a;
+  font-size: 0.52rem;
+}
+
+.jicho-report-status:empty {
+  display: none;
+}
+
+.jicho-report-status button {
+  display: grid;
+  width: 1.3rem;
+  height: 1.3rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #414843;
+  cursor: pointer;
+}
+
+.jicho-report-status button .material-symbols-outlined {
+  font-size: 0.8rem;
+}
+
+.jicho-threat-modal-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 1rem;
+  background: rgba(2, 39, 23, 0.52);
+}
+
+.jicho-threat-modal {
+  position: relative;
+  width: min(100%, 27rem);
+  max-height: min(90vh, 42rem);
+  overflow-y: auto;
+  padding: 0.9rem;
+  border-radius: 0.75rem;
+  background: #f7f9ff;
+  box-shadow: 0 1rem 3rem rgba(2, 39, 23, 0.25);
+}
+
+.jicho-threat-modal > img {
+  width: 100%;
+  height: 9rem;
+  margin-bottom: 0.55rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.jicho-threat-modal-close {
+  position: absolute;
+  top: 1.15rem;
+  right: 1.15rem;
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  color: #022717;
+  cursor: pointer;
+}
+
+.jicho-threat-modal-close .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.jicho-threat-modal > h2 {
+  margin: 0.25rem 0 0;
+  color: #022717;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+}
+
+.jicho-threat-modal > .jicho-threat-scientific {
+  margin: 0.15rem 0 0.6rem;
+}
+
+.jicho-threat-modal h3 {
+  margin: 0.55rem 0 0.2rem;
+  color: #022717;
+  font-size: 0.64rem;
+}
+
+.jicho-threat-modal > div > p,
+.jicho-threat-safety-note {
+  margin: 0;
+  color: #414843;
+  font-size: 0.57rem;
+  line-height: 1.55;
+}
+
+.jicho-threat-safety-note {
+  margin-top: 0.7rem;
+  padding: 0.5rem;
+  border-left: 2px solid #116c4a;
+  background: #eff4fc;
+}
+
+.jicho-threat-modal > .jicho-threat-guide-button {
+  margin-top: 0.7rem;
+}
+
+.jicho-pest-knowledge button:focus-visible,
+.jicho-pest-knowledge a:focus-visible,
+.jicho-threat-modal button:focus-visible {
+  outline: 2px solid #116c4a;
+  outline-offset: 2px;
+}
+
+@media (min-width: 1200px) {
+  .jicho-threat-search {
+    display: flex;
+    max-width: 22rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .jicho-pest-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jicho-pest-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .jicho-threat-search {
+    display: flex;
+  }
+
+  .jicho-threat-image {
+    height: 8rem;
+  }
+
+  .jicho-control-resources {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .jicho-resources-copy {
+    min-width: calc(100% - 3rem);
+  }
+
+  .jicho-resource-links {
+    width: 100%;
+    padding-left: 2.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .jicho-pest-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jicho-threat-grid {
+    gap: 0.45rem;
+  }
+
+  .jicho-threat-image {
+    height: 6rem;
+  }
+
+  .jicho-threat-body {
+    padding: 0.5rem;
+  }
+
+  .jicho-threat-body h3 {
+    font-size: 0.65rem;
+  }
+
+  .jicho-control-resources {
+    gap: 0.45rem;
+    padding: 0.55rem;
+  }
+}
