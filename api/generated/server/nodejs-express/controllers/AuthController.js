@@ -3,7 +3,22 @@ const router = express.Router();
 const AuthService = require('../../../../services/AuthService');
 const GoogleOAuthService = require('../../../../services/GoogleOAuthService');
 const PlatformSettingsService = require('../../../../services/PlatformSettingsService');
-const { authenticate, readBearerToken, requireAdmin } = require('../../../../middleware/auth');
+const { authenticate, authenticateAdminSession, readBearerToken, readCookie, requireAdmin } = require('../../../../middleware/auth');
+
+const publicGoogleErrorCodes = new Set([
+  'account_pending_approval',
+  'google_authorization_failed',
+  'google_email_not_verified',
+  'google_identity_already_linked',
+  'google_identity_invalid',
+  'google_identity_mismatch',
+  'google_oauth_not_configured',
+  'google_oauth_unavailable',
+]);
+
+function publicGoogleErrorCode(error, fallback = 'google_signin_failed') {
+  return publicGoogleErrorCodes.has(error.code) ? error.code : fallback;
+}
 
 function sendAuthError(response, error, operation) {
   const status = Number(error.status) || 500;
@@ -15,23 +30,23 @@ function cookieOptions(maxAgeSeconds, secure = process.env.NODE_ENV === 'product
   return `Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}${secure ? '; Secure' : ''}`;
 }
 
-function readCookie(request, name) {
-  const cookies = String(request.headers.cookie || '').split(';');
-  const entry = cookies.map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith(`${name}=`));
-  return entry ? decodeURIComponent(entry.slice(name.length + 1)) : '';
-}
-
 function setSessionCookie(response, result, request) {
   if (!result.token) return response.status(200).json(result);
   const maxAge = Math.max(0, Math.ceil((new Date(result.expires_at).getTime() - Date.now()) / 1000));
   const secure = process.env.NODE_ENV === 'production' || request.secure;
-  response.setHeader('Set-Cookie', `agrinest_session=${encodeURIComponent(result.token)}; ${cookieOptions(maxAge, secure)}`);
+  response.setHeader('Set-Cookie', [
+    `agrinest_session=${encodeURIComponent(result.token)}; ${cookieOptions(maxAge, secure)}`,
+    `agrinest_impersonation=; ${cookieOptions(0, secure)}`,
+  ]);
   return response.status(response.statusCode || 200).json({ user: result.user, expires_at: result.expires_at });
 }
 
 function clearSessionCookie(response, request) {
   const secure = process.env.NODE_ENV === 'production' || request.secure;
-  response.setHeader('Set-Cookie', `agrinest_session=; ${cookieOptions(0, secure)}`);
+  response.setHeader('Set-Cookie', [
+    `agrinest_session=; ${cookieOptions(0, secure)}`,
+    `agrinest_impersonation=; ${cookieOptions(0, secure)}`,
+  ]);
 }
 
 function applicationUrl() {
@@ -79,7 +94,10 @@ router.get('/google', async (req, res) => {
     res.setHeader('Set-Cookie', `agrinest_oauth_state=${state}; ${cookieOptions(600, secure).replace('Path=/', 'Path=/auth/google')}`);
     res.redirect(302, authorizationUrl);
   } catch (err) {
-    sendAuthError(res, err, 'googleStart');
+    const appUrl = applicationUrl();
+    const errorCode = publicGoogleErrorCode(err);
+    if (appUrl) return res.redirect(`${appUrl}/?auth_error=${encodeURIComponent(errorCode)}`);
+    return sendAuthError(res, err, 'googleStart');
   }
 });
 
@@ -104,7 +122,7 @@ router.get('/google/callback', async (req, res) => {
     return res.redirect(`${appUrl}/?google_code=${encodeURIComponent(exchangeCode)}`);
   } catch (err) {
     if (!Number(err.status) || Number(err.status) >= 500) console.error('AuthController.googleCallback', err.message);
-    return res.redirect(`${appUrl}/?auth_error=google_signin_failed`);
+    return res.redirect(`${appUrl}/?auth_error=${encodeURIComponent(publicGoogleErrorCode(err))}`);
   }
 });
 
@@ -118,12 +136,57 @@ router.post('/google/exchange', async (req, res) => {
 });
 
 router.get('/me', authenticate, (req, res) => {
-  res.json({ user: req.authUser });
+  res.json({
+    user: req.authUser,
+    impersonation: req.authImpersonation
+      ? { admin: req.authImpersonation.actor, expires_at: req.authImpersonation.expiresAt }
+      : null,
+  });
+});
+
+router.post('/admin/impersonate', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const result = await AuthService.startAdminImpersonation({
+      actorId: req.authUser.user_id,
+      actorSessionId: req.authSessionId,
+      targetId: req.body.user_id,
+    });
+    const secure = process.env.NODE_ENV === 'production' || req.secure;
+    const maxAge = Math.max(0, Math.ceil((new Date(result.expiresAt).getTime() - Date.now()) / 1000));
+    res.setHeader('Set-Cookie', `agrinest_impersonation=${encodeURIComponent(result.token)}; ${cookieOptions(maxAge, secure)}`);
+    return res.status(200).json({
+      user: result.user,
+      impersonation: { admin: result.admin, expires_at: result.expiresAt },
+    });
+  } catch (err) {
+    return sendAuthError(res, err, 'startAdminImpersonation');
+  }
+});
+
+router.post('/admin/impersonate/end', authenticateAdminSession, async (req, res) => {
+  try {
+    const token = readCookie(req, 'agrinest_impersonation');
+    await AuthService.endAdminImpersonation({ token, actorId: req.authUser.user_id });
+    const secure = process.env.NODE_ENV === 'production' || req.secure;
+    res.setHeader('Set-Cookie', `agrinest_impersonation=; ${cookieOptions(0, secure)}`);
+    return res.json({ user: req.authUser });
+  } catch (err) {
+    return sendAuthError(res, err, 'endAdminImpersonation');
+  }
 });
 
 router.post('/logout', async (req, res) => {
   try {
-    await AuthService.revokeSession(readBearerToken(req));
+    const sessionToken = readBearerToken(req);
+    const session = await AuthService.getSessionUser(sessionToken);
+    if (session?.user.is_admin) {
+      await AuthService.endAdminImpersonation({
+        token: readCookie(req, 'agrinest_impersonation'),
+        actorId: session.user.user_id,
+        reason: 'administrator_signed_out',
+      });
+    }
+    await AuthService.revokeSession(sessionToken);
     clearSessionCookie(res, req);
     res.status(200).json({ success: true });
   } catch (err) {

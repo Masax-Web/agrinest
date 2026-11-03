@@ -7,6 +7,7 @@ const scryptAsync = promisify(crypto.scrypt);
 const passwordKeyLength = 64;
 const sessionLifetimeMs = 12 * 60 * 60 * 1000;
 const recentAuthenticationWindowMs = 5 * 60 * 1000;
+const adminImpersonationLifetimeMs = 15 * 60 * 1000;
 const personasById = new Map(personas.map((persona) => [persona.id, persona]));
 const legacyPersonaIds = {
   smallholder: 'smallholder_farmer', farmer: 'smallholder_farmer', commercial: 'commercial_farmer',
@@ -412,10 +413,162 @@ async function getSessionUser(token) {
     .where('sessions.token_hash', hashToken(token))
     .whereNull('sessions.revoked_at')
     .andWhere('sessions.expires_at', '>', new Date())
-    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.created_at as session_created_at')
+    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.session_id', 'sessions.created_at as session_created_at')
     .first();
   if (!row || (row.role_status && row.role_status !== 'active')) return null;
-  return { user: publicUser(row), sessionCreatedAt: row.session_created_at };
+  return { user: publicUser(row), sessionCreatedAt: row.session_created_at, sessionId: row.session_id };
+}
+
+async function startAdminImpersonation({ actorId, actorSessionId, targetId } = {}) {
+  const token = crypto.randomBytes(32).toString('base64url');
+  const sessionId = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + adminImpersonationLifetimeMs);
+  return knex.transaction(async (transaction) => {
+    const actor = await transaction('users').where({ user_id: actorId }).forUpdate().first();
+    if (!actor || normalizePersonaId(actor.role) !== 'super_admin' || actor.role_status !== 'active') {
+      fail('admin_access_required', 403);
+    }
+    if (actorId === targetId) fail('cannot_impersonate_self', 400);
+    const actorSession = await transaction('auth_sessions')
+      .where({ session_id: actorSessionId, user_id: actorId })
+      .whereNull('revoked_at')
+      .andWhere('expires_at', '>', new Date())
+      .forUpdate()
+      .first();
+    if (!actorSession) fail('session_invalid_or_expired', 401);
+
+    const target = await transaction('users').where({ user_id: targetId }).forUpdate().first();
+    if (!target || target.role_status !== 'active' || normalizePersonaId(target.role) === 'super_admin') {
+      fail('impersonation_target_unavailable', 404);
+    }
+
+    await transaction('auth_admin_impersonation_sessions').insert({
+      session_id: sessionId,
+      token_hash: hashToken(token),
+      actor_user_id: actorId,
+      actor_session_id: actorSessionId,
+      target_user_id: targetId,
+      expires_at: expiresAt,
+    });
+    await transaction('auth_audit_log').insert({
+      audit_id: crypto.randomUUID(),
+      actor_user_id: actorId,
+      target_user_id: targetId,
+      action: 'admin.impersonation_started',
+      details: { session_id: sessionId, target_role: normalizePersonaId(target.role), expires_at: expiresAt.toISOString() },
+    });
+    return { token, sessionId, expiresAt: expiresAt.toISOString(), user: publicUser(target), admin: publicUser(actor) };
+  });
+}
+
+async function getAdminImpersonation(token) {
+  if (!token) return null;
+  const tokenHash = hashToken(token);
+  return knex.transaction(async (transaction) => {
+    const row = await transaction('auth_admin_impersonation_sessions as impersonations')
+      .join('users as actors', 'actors.user_id', 'impersonations.actor_user_id')
+      .join('users as targets', 'targets.user_id', 'impersonations.target_user_id')
+      .join('auth_sessions as admin_sessions', 'admin_sessions.session_id', 'impersonations.actor_session_id')
+      .where('impersonations.token_hash', tokenHash)
+      .whereNull('impersonations.ended_at')
+      .forUpdate()
+      .select(
+        'impersonations.session_id',
+        'impersonations.actor_user_id',
+        'impersonations.target_user_id',
+        'impersonations.expires_at',
+        'admin_sessions.revoked_at as actor_session_revoked_at',
+        'admin_sessions.expires_at as actor_session_expires_at',
+        'actors.name as actor_name',
+        'actors.email as actor_email',
+        'actors.phone as actor_phone',
+        'actors.role as actor_role',
+        'actors.region as actor_region',
+        'actors.trust_score as actor_trust_score',
+        'actors.pin_hash as actor_pin_hash',
+        'actors.password_hash as actor_password_hash',
+        'actors.role_status as actor_status',
+        'targets.user_id',
+        'targets.name',
+        'targets.email',
+        'targets.phone',
+        'targets.role',
+        'targets.role_status',
+        'targets.region',
+        'targets.trust_score',
+        'targets.pin_hash',
+        'targets.password_hash',
+      )
+      .first();
+    if (!row) return null;
+
+    const expired = new Date(row.expires_at) <= new Date();
+    const actorUnavailable = normalizePersonaId(row.actor_role) !== 'super_admin'
+      || row.actor_status !== 'active'
+      || row.actor_session_revoked_at
+      || new Date(row.actor_session_expires_at) <= new Date();
+    const targetUnavailable = row.role_status !== 'active' || normalizePersonaId(row.role) === 'super_admin';
+    if (expired || actorUnavailable || targetUnavailable) {
+      const endReason = expired ? 'expired'
+        : actorUnavailable ? 'administrator_session_unavailable'
+          : 'target_unavailable';
+      await transaction('auth_admin_impersonation_sessions')
+        .where({ session_id: row.session_id })
+        .whereNull('ended_at')
+        .update({ ended_at: new Date(), end_reason: endReason });
+      await transaction('auth_audit_log').insert({
+        audit_id: crypto.randomUUID(),
+        actor_user_id: row.actor_user_id,
+        target_user_id: row.target_user_id,
+        action: 'admin.impersonation_ended',
+        details: { session_id: row.session_id, reason: endReason },
+      });
+      return null;
+    }
+
+    const { user_id: _userId, name, email, phone, role, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash } = row;
+    return {
+      user: publicUser({ user_id: row.user_id, name, email, phone, role, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash }),
+      actor: publicUser({
+        user_id: row.actor_user_id,
+        name: row.actor_name,
+        email: row.actor_email,
+        phone: row.actor_phone,
+        role: row.actor_role,
+        role_status: row.actor_status,
+        region: row.actor_region,
+        trust_score: row.actor_trust_score,
+        pin_hash: row.actor_pin_hash,
+        password_hash: row.actor_password_hash,
+      }),
+      sessionId: row.session_id,
+      expiresAt: new Date(row.expires_at).toISOString(),
+    };
+  });
+}
+
+async function endAdminImpersonation({ token, actorId, reason = 'administrator_returned' } = {}) {
+  if (!token || !actorId) return false;
+  const tokenHash = hashToken(token);
+  return knex.transaction(async (transaction) => {
+    const session = await transaction('auth_admin_impersonation_sessions')
+      .where({ token_hash: tokenHash, actor_user_id: actorId })
+      .whereNull('ended_at')
+      .forUpdate()
+      .first();
+    if (!session) return false;
+    await transaction('auth_admin_impersonation_sessions')
+      .where({ session_id: session.session_id })
+      .update({ ended_at: new Date(), end_reason: reason });
+    await transaction('auth_audit_log').insert({
+      audit_id: crypto.randomUUID(),
+      actor_user_id: actorId,
+      target_user_id: session.target_user_id,
+      action: 'admin.impersonation_ended',
+      details: { session_id: session.session_id, reason },
+    });
+    return true;
+  });
 }
 
 async function revokeSession(token) {
@@ -546,7 +699,9 @@ module.exports = {
   createInvitation,
   createGoogleExchangeCode,
   exchangeGoogleCode,
+  endAdminImpersonation,
   findOrCreateGoogleUser,
+  getAdminImpersonation,
   getSessionUser,
   hashPassword,
   listAdminAuditLog,
@@ -561,6 +716,7 @@ module.exports = {
   removePin,
   revokeSession,
   setPin,
+  startAdminImpersonation,
   setUserPersona,
   setUserStatus,
   verifyPassword,

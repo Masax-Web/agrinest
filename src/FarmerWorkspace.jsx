@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
+import RamaniMapPage from './RamaniMapPage';
 
 const workspaceDetails = {
   fields: { title: 'Digital Farm', icon: 'agriculture', description: 'Register fields and keep their crop and area records together.', recordType: 'fields', submitLabel: 'Add field', fields: [['name', 'Field name', 'text'], ['crop', 'Crop', 'text'], ['area', 'Area (acres)', 'number']] },
@@ -84,6 +85,17 @@ export default function FarmerWorkspace({ page, profile, records, liveListingCou
     setNotice(`${details.title} record saved on this device.`);
   };
 
+  if (page === 'fields') {
+    return (
+      <DigitalFarmPage
+        profile={profile}
+        records={records}
+        onRecordsChange={onRecordsChange}
+        onNavigate={onNavigate}
+      />
+    );
+  }
+
   return (
     <main className="farmer-workspace" aria-label={details.title}>
       <header className="farmer-workspace-header">
@@ -131,6 +143,268 @@ export default function FarmerWorkspace({ page, profile, records, liveListingCou
           <small>{record.date ? new Date(record.date).toLocaleDateString() : record.status || ''}</small>
         </article>)}</div> : <div className="farmer-workspace-empty"><span className="material-symbols-outlined">inventory_2</span><h2>No records here yet</h2><p>New records saved in this workspace will appear here.</p></div>}
       </section>
+    </main>
+  );
+}
+
+const farmActivityTypes = [
+  ['Irrigation', 'water_drop'],
+  ['Spraying', 'pest_control'],
+  ['Weeding', 'grass'],
+  ['Planting', 'eco'],
+  ['Fertilizer', 'compost'],
+  ['Pest observation', 'bug_report'],
+  ['Flooding', 'flood'],
+  ['Harvest', 'agriculture'],
+  ['Other', 'edit_note'],
+];
+
+const localDateTimeValue = () => {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
+
+const acresToHectares = (acres) => Number(acres || 0) * 0.4046856422;
+
+function formatFarmDate(value, options = { month: 'short', day: 'numeric', year: 'numeric' }) {
+  if (!value) return 'Date not recorded';
+  const valueString = String(value);
+  const datePart = valueString.slice(0, 10).split('-');
+  if (datePart.length !== 3) return 'Date not recorded';
+  const date = valueString.includes('T')
+    ? new Date(valueString)
+    : new Date(Number(datePart[0]), Number(datePart[1]) - 1, Number(datePart[2]));
+  return Number.isNaN(date.getTime()) ? 'Date not recorded' : date.toLocaleDateString(undefined, options);
+}
+
+function DigitalFarmPage({ profile, records, onRecordsChange, onNavigate }) {
+  const [dialog, setDialog] = useState('');
+  const [fieldDraft, setFieldDraft] = useState({ name: '', crop: '', area: '', plantedOn: '', season: '' });
+  const [activityDraft, setActivityDraft] = useState({ category: farmActivityTypes[0][0], fieldId: '', date: localDateTimeValue(), details: '' });
+  const [gpsStamp, setGpsStamp] = useState(null);
+  const [gpsMessage, setGpsMessage] = useState('');
+  const [notice, setNotice] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activityFilter, setActivityFilter] = useState('all');
+  const [fieldFilter, setFieldFilter] = useState('all');
+
+  const fields = records.fields;
+  const farmActivities = records.activities.filter((item) => item.module === 'activity' || (item.category && (item.fieldId || item.verification)));
+  const acres = fields.reduce((total, field) => total + (Number(field.area) || 0), 0);
+  const activeCrops = new Set(fields.map((field) => String(field.crop || '').trim().toLowerCase()).filter(Boolean)).size;
+  const filteredActivities = farmActivities
+    .filter((item) => activityFilter === 'all' || (item.category || item.title) === activityFilter)
+    .filter((item) => fieldFilter === 'all' || item.fieldId === fieldFilter)
+    .sort((left, right) => new Date(right.date || right.createdAt || 0) - new Date(left.date || left.createdAt || 0));
+
+  const openActivityDialog = () => {
+    setActivityDraft({ category: farmActivityTypes[0][0], fieldId: '', date: localDateTimeValue(), details: '' });
+    setGpsStamp(null);
+    setGpsMessage('');
+    setNotice('');
+    setDialog('activity');
+  };
+
+  const saveField = (event) => {
+    event.preventDefault();
+    const name = fieldDraft.name.trim();
+    const crop = fieldDraft.crop.trim();
+    const area = Number(fieldDraft.area);
+    if (!name || !crop || !Number.isFinite(area) || area <= 0) return;
+    onRecordsChange('fields', [...fields, {
+      ...fieldDraft,
+      name,
+      crop,
+      area,
+      id: createRecordId(),
+      module: 'fields',
+      status: 'Saved locally',
+      createdAt: new Date().toISOString(),
+    }]);
+    setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', season: '' });
+    setDialog('');
+    setNotice('Field record saved on this device. Add its boundary in the GIS map when ready.');
+  };
+
+  const stampActivityLocation = () => {
+    if (!navigator.geolocation) {
+      setGpsMessage('This browser does not support GPS location. You can still save as a manual entry.');
+      return;
+    }
+    setGpsMessage('Requesting location. Allow access if you want to add a GPS stamp.');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setGpsStamp({ latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy, stampedAt: new Date().toISOString() });
+        setGpsMessage(`GPS stamp ready · approximate accuracy ±${Math.round(coords.accuracy)} m.`);
+      },
+      (error) => {
+        const reason = error.code === error.PERMISSION_DENIED
+          ? 'Location permission was denied.'
+          : error.code === error.POSITION_UNAVAILABLE
+            ? 'Your location is unavailable.'
+            : 'Location request timed out.';
+        setGpsMessage(`${reason} You can still save as a manual entry.`);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+    );
+  };
+
+  const saveActivity = (event) => {
+    event.preventDefault();
+    const field = fields.find((item) => item.id === activityDraft.fieldId);
+    const activityDate = new Date(activityDraft.date);
+    if (Number.isNaN(activityDate.getTime())) {
+      setNotice('Choose a valid activity date and time.');
+      return;
+    }
+    onRecordsChange('activities', [...records.activities, {
+      id: createRecordId(),
+      module: 'activity',
+      category: activityDraft.category,
+      title: activityDraft.category,
+      fieldId: field?.id || '',
+      fieldName: field?.name || '',
+      details: activityDraft.details.trim(),
+      date: activityDate.toISOString(),
+      gpsStamp,
+      verification: gpsStamp ? 'GPS stamped' : 'Manual entry',
+    }]);
+    setDialog('');
+    setGpsStamp(null);
+    setGpsMessage('');
+    setNotice('Activity saved on this device.');
+  };
+
+  return (
+    <main className="farmer-workspace digital-farm-page" aria-label="Digital Farm">
+      {notice && <div className="farmer-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
+
+      <header className="digital-farm-heading">
+        <div>
+          <h1>Shamba Langu</h1>
+          <p>Manage your fields, track activities, and monitor your farm records.</p>
+        </div>
+        <span className="digital-farm-local-badge"><span className="material-symbols-outlined">cloud_done</span>Saved on this device</span>
+      </header>
+
+      <section className="digital-farm-stats" aria-label="Farm summary">
+        <article className="digital-farm-stat">
+          <span className="material-symbols-outlined">landscape</span>
+          <strong>{acres.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong>
+          <small>ACRES RECORDED · {acresToHectares(acres).toLocaleString(undefined, { maximumFractionDigits: 1 })} ha</small>
+        </article>
+        <article className="digital-farm-stat">
+          <span className="material-symbols-outlined">grass</span>
+          <strong>{activeCrops}</strong>
+          <small>ACTIVE CROPS</small>
+        </article>
+        <article className="digital-farm-stat">
+          <span className="material-symbols-outlined">history</span>
+          <strong>{farmActivities.length}</strong>
+          <small>ACTIVITY LOGS</small>
+        </article>
+        <button type="button" className="digital-farm-log-card" onClick={openActivityDialog}>
+          <span className="digital-farm-log-icon"><span className="material-symbols-outlined">add</span></span>
+          <strong>Log New Activity</strong>
+        </button>
+      </section>
+
+      <section className="digital-farm-overview">
+        <article className="digital-farm-map-card">
+          <div className="digital-farm-card-heading">
+            <h2><span className="material-symbols-outlined">map</span>Live Farm Map</h2>
+            <button type="button" onClick={() => onNavigate('ramani')}><span className="material-symbols-outlined">draw</span>Open GIS tools</button>
+          </div>
+          <div className="digital-farm-map">
+            <RamaniMapPage profile={profile} search="" onSearch={() => {}} compact />
+          </div>
+          <p className="digital-farm-map-note">Map boundaries and drawings are managed in Ramani GIS.</p>
+        </article>
+
+        <section className="digital-farm-fields">
+          <div className="digital-farm-fields-heading">
+            <h2>My Fields</h2>
+            <button type="button" onClick={() => { setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', season: '' }); setDialog('field'); }}>Add field</button>
+          </div>
+          {fields.length ? fields.map((field) => {
+            const fieldActivities = farmActivities.filter((activity) => activity.fieldId === field.id);
+            return (
+              <article className="digital-farm-field-card" key={field.id}>
+                <div className="digital-farm-field-main">
+                  <span className="digital-farm-crop-icon"><span className="material-symbols-outlined">eco</span></span>
+                  <div><h3>{field.name} — {field.crop}</h3><p>{Number(field.area || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} acres · {acresToHectares(field.area).toLocaleString(undefined, { maximumFractionDigits: 2 })} ha{field.plantedOn ? ` · Planted ${formatFarmDate(field.plantedOn, { month: 'short', day: 'numeric' })}` : ''}</p></div>
+                </div>
+                <div className="digital-farm-field-meta">
+                  <span>{field.season || 'Season not set'}</span>
+                  <span>{fieldActivities.length} logged {fieldActivities.length === 1 ? 'activity' : 'activities'}</span>
+                </div>
+                <button type="button" className="digital-farm-field-journal" onClick={() => { setFieldFilter(field.id); setFilterOpen(true); document.querySelector('.digital-farm-journal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>View field journal</button>
+              </article>
+            );
+          }) : (
+            <div className="digital-farm-empty-field">
+              <span className="material-symbols-outlined">agriculture</span>
+              <h3>No field records yet</h3>
+              <p>Add a field record, then draw or trace its boundary in GIS.</p>
+              <button type="button" onClick={() => setDialog('field')}>Add your first field</button>
+            </div>
+          )}
+        </section>
+      </section>
+
+      <section className="digital-farm-journal">
+        <div className="digital-farm-journal-heading">
+          <div><h2>Digital Journal</h2><p>Field work recorded by you</p></div>
+          <button type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)}><span className="material-symbols-outlined">filter_list</span>Filter</button>
+        </div>
+        {filterOpen && <div className="digital-farm-filters">
+          <label>Activity<select value={activityFilter} onChange={(event) => setActivityFilter(event.target.value)}><option value="all">All activities</option>{farmActivityTypes.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label>Field<select value={fieldFilter} onChange={(event) => setFieldFilter(event.target.value)}><option value="all">All fields</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.name}</option>)}</select></label>
+        </div>}
+        {filteredActivities.length ? (
+          <div className="digital-farm-journal-table-wrap">
+            <table className="digital-farm-journal-table">
+              <thead><tr><th>Date</th><th>Field</th><th>Activity</th><th className="digital-farm-notes-column">Notes</th><th>Verification</th></tr></thead>
+              <tbody>{filteredActivities.map((activity) => {
+                const category = activity.category || activity.title || 'Activity';
+                const icon = farmActivityTypes.find(([name]) => name === category)?.[1] || 'edit_note';
+                return <tr key={activity.id}>
+                  <td>{formatFarmDate(activity.date || activity.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}<small>{activity.date && !Number.isNaN(new Date(activity.date).getTime()) ? new Date(activity.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</small></td>
+                  <td>{activity.fieldName || fields.find((field) => field.id === activity.fieldId)?.name || 'Farm-wide'}</td>
+                  <td><span className="digital-farm-activity-pill"><span className="material-symbols-outlined">{icon}</span>{category}</span></td>
+                  <td className="digital-farm-notes-column">{activity.details || activity.notes || '—'}</td>
+                  <td><span className={activity.gpsStamp ? 'digital-farm-gps-stamp' : 'digital-farm-manual-stamp'}><span className="material-symbols-outlined">{activity.gpsStamp ? 'location_on' : 'location_off'}</span>{activity.gpsStamp ? `GPS ±${Math.round(activity.gpsStamp.accuracy)} m` : 'Manual entry'}</span></td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        ) : <div className="digital-farm-journal-empty"><span className="material-symbols-outlined">edit_calendar</span><strong>{farmActivities.length ? 'No activities match these filters' : 'Your farm journal is ready'}</strong><p>{farmActivities.length ? 'Try another activity or field filter.' : 'Log planting, irrigation, spraying, pests, flooding, or harvest as work happens.'}</p>{!farmActivities.length && <button type="button" onClick={openActivityDialog}>Log your first activity</button>}</div>}
+      </section>
+
+      {dialog && <div className="digital-farm-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}>
+        <section className="digital-farm-dialog" role="dialog" aria-modal="true" aria-labelledby="digital-farm-dialog-title">
+          <div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">{dialog === 'field' ? 'FIELD RECORD' : 'FIELD JOURNAL'}</span><h2 id="digital-farm-dialog-title">{dialog === 'field' ? 'Add a field' : 'Log farm activity'}</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div>
+          {dialog === 'field' ? <form onSubmit={saveField}>
+            <label>Field name<input required value={fieldDraft.name} onChange={(event) => setFieldDraft((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. North field" /></label>
+            <label>Crop<input required value={fieldDraft.crop} onChange={(event) => setFieldDraft((current) => ({ ...current, crop: event.target.value }))} placeholder="e.g. Maize" /></label>
+            <label>Area (acres)<input required type="number" min="0.01" step="any" value={fieldDraft.area} onChange={(event) => setFieldDraft((current) => ({ ...current, area: event.target.value }))} /></label>
+            <label>Planting date<input type="date" value={fieldDraft.plantedOn} onChange={(event) => setFieldDraft((current) => ({ ...current, plantedOn: event.target.value }))} /></label>
+            <label>Season<input value={fieldDraft.season} onChange={(event) => setFieldDraft((current) => ({ ...current, season: event.target.value }))} placeholder="e.g. 2026 short rains" /></label>
+            <p className="digital-farm-dialog-note">This saves the field details locally. Draw or trace its map boundary separately in GIS.</p>
+            <button className="farmer-workspace-submit" type="submit"><span className="material-symbols-outlined">add</span>Save field</button>
+          </form> : <form onSubmit={saveActivity}>
+            <label>Activity<select value={activityDraft.category} onChange={(event) => setActivityDraft((current) => ({ ...current, category: event.target.value }))}>{farmActivityTypes.map(([name]) => <option key={name}>{name}</option>)}</select></label>
+            <label>Field<select value={activityDraft.fieldId} onChange={(event) => setActivityDraft((current) => ({ ...current, fieldId: event.target.value }))}><option value="">Farm-wide / not specified</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.name} — {field.crop}</option>)}</select></label>
+            <label>Date and time<input required type="datetime-local" value={activityDraft.date} onChange={(event) => setActivityDraft((current) => ({ ...current, date: event.target.value }))} /></label>
+            <label>Notes<textarea value={activityDraft.details} onChange={(event) => setActivityDraft((current) => ({ ...current, details: event.target.value }))} placeholder="What work was done or observed?" /></label>
+            <button type="button" className="digital-farm-gps-button" onClick={stampActivityLocation}><span className="material-symbols-outlined">{gpsStamp ? 'location_on' : 'my_location'}</span>{gpsStamp ? `GPS ready · ±${Math.round(gpsStamp.accuracy)} m` : 'Add current GPS stamp'}</button>
+            {gpsMessage && <p className="digital-farm-gps-message" role="status">{gpsMessage}</p>}
+            <p className="digital-farm-dialog-note">GPS is optional. Your activity is saved on this device; a GPS stamp stores its coordinates with the record.</p>
+            <button className="farmer-workspace-submit" type="submit"><span className="material-symbols-outlined">save</span>Save activity</button>
+          </form>}
+        </section>
+      </div>}
     </main>
   );
 }

@@ -3,6 +3,34 @@ const { expect } = require('chai');
 const app = require('../../api/generated/server/nodejs-express/app');
 
 describe('Google OAuth callback', () => {
+  it('returns Google start configuration errors to the app instead of showing a raw API error', async () => {
+    const previousEnv = {
+      APP_BASE_URL: process.env.APP_BASE_URL,
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+      GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+    };
+    process.env.APP_BASE_URL = 'https://agrinest.example';
+    delete process.env.GOOGLE_CLIENT_ID;
+    delete process.env.GOOGLE_CLIENT_SECRET;
+    delete process.env.GOOGLE_REDIRECT_URI;
+
+    try {
+      const response = await request(app)
+        .get('/auth/google')
+        .expect(302);
+
+      expect(response.headers.location).to.equal(
+        'https://agrinest.example/?auth_error=google_oauth_not_configured'
+      );
+    } finally {
+      for (const [key, value] of Object.entries(previousEnv)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
   it('accepts Google callback query parameters and validates the state in the handler', async () => {
     const previousBaseUrl = process.env.APP_BASE_URL;
     process.env.APP_BASE_URL = 'https://agrinest.example';

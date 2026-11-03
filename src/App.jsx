@@ -29,11 +29,11 @@ function clearLegacyAuthTokens() {
   window.sessionStorage.removeItem('agrinest-auth-token');
 }
 
-function AdminDashboardWithSecurity({ user, onLogout }) {
+function AdminDashboardWithSecurity({ user, onLogout, onImpersonate }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
-      <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} />
+      <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} onImpersonate={onImpersonate} />
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
   );
@@ -56,10 +56,20 @@ function getPersonaDashboard(personaId) {
   })[persona.dashboard] || persona.id;
 }
 
-function DashboardWithSecurity({ user, onLogout, children }) {
+function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation }) {
   const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => {
+    if (!impersonationInfo) return undefined;
+    document.body.classList.add('admin-impersonation-active');
+    return () => document.body.classList.remove('admin-impersonation-active');
+  }, [impersonationInfo]);
+
   return (
     <>
+      {impersonationInfo && <div className="admin-impersonation-banner" role="status">
+        <div><strong><span className="material-symbols-outlined">switch_account</span>Acting as {user?.name || user?.email || 'user'}</strong><span>Changes affect this account · session ends {new Date(impersonationInfo.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>{impersonationError && <span className="admin-impersonation-error">{impersonationError}</span>}</div>
+        <button type="button" onClick={onEndImpersonation}><span className="material-symbols-outlined">undo</span>Return to super admin</button>
+      </div>}
       {children}
       {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
@@ -81,6 +91,16 @@ function getAuthErrorMessage(code) {
     invalid_pin_challenge: 'Your PIN check expired. Sign in again.',
     too_many_attempts: 'Too many attempts. Wait 15 minutes before trying again.',
     google_oauth_not_configured: 'Google sign-in is not configured for this deployment yet.',
+    google_oauth_unavailable: 'Google sign-in is temporarily unavailable. Please try again later.',
+    google_state_invalid: 'The secure Google sign-in session could not be verified. Enable cookies and start again from this page.',
+    google_signin_cancelled: 'Google sign-in was cancelled. You can try again whenever you are ready.',
+    google_signin_failed: 'Google could not complete sign-in. Please try again; if this keeps happening, contact support.',
+    google_authorization_failed: 'Google could not verify the sign-in. The OAuth callback URL may need to be checked by the site administrator.',
+    google_email_not_verified: 'Use a Google account with a verified email address.',
+    google_identity_invalid: 'Google did not return a valid account identity. Please try again.',
+    google_identity_mismatch: 'This Google account no longer matches the email linked to your AGRI-NEST account.',
+    google_identity_already_linked: 'This email is already linked to a different Google account. Contact support for help.',
+    invalid_or_expired_google_code: 'The Google sign-in link expired or was already used. Start again.',
     current_password_invalid: 'Your current password is incorrect.',
     recent_google_signin_required: 'Sign in again before changing your PIN.',
     admin_access_required: 'Administrator access is required for this action.',
@@ -88,6 +108,20 @@ function getAuthErrorMessage(code) {
     unknown_persona: 'Choose a valid persona and try again.',
   };
   return messages[code] || String(code || 'Authentication failed. Please try again.').replaceAll('_', ' ');
+}
+
+function GoogleSignInButton({ label }) {
+  return (
+    <button type="button" className="google-signin-button" onClick={() => { window.location.assign(api.googleAuthUrl()); }}>
+      <svg className="google-g-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.91 3.28-4.73 3.28-8.09Z" />
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84C3.96 20.48 7.7 23 12 23Z" />
+        <path fill="#FBBC05" d="M5.84 14.1A7.2 7.2 0 0 1 5.46 12c0-.73.13-1.43.38-2.1V7.06H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.94l3.69-2.84Z" />
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.96 3.52 2.15 7.06l3.69 2.84C6.71 7.31 9.14 5.38 12 5.38Z" />
+      </svg>
+      <span>{label}</span>
+    </button>
+  );
 }
 
 const initialFarmerProfile = {
@@ -413,6 +447,8 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeDashboard, setActiveDashboard] = useState('smallholder');
   const [authUser, setAuthUser] = useState(null);
+  const [impersonationInfo, setImpersonationInfo] = useState(null);
+  const [impersonationError, setImpersonationError] = useState('');
   const [authPinChallenge, setAuthPinChallenge] = useState(null);
   const [authBusy, setAuthBusy] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
@@ -441,18 +477,20 @@ function App() {
           setAuthUser(result.user);
           setSelectedRole(result.user.role);
           setActiveDashboard(getPersonaDashboard(result.user.role));
+          setImpersonationInfo(null);
           setLoggedIn(true);
         })
         .catch((error) => setAuthMessage(getAuthErrorMessage(error.message)))
         .finally(() => setAuthBusy(false));
       return;
     }
-    if (googleError) setAuthMessage('Google sign-in did not complete. Please try again.');
+    if (googleError) setAuthMessage(getAuthErrorMessage(googleError));
 
     api.getAuthUser()
-      .then(({ user }) => {
+      .then(({ user, impersonation }) => {
         setAuthUser(user);
         setActiveDashboard(getPersonaDashboard(user.role));
+        setImpersonationInfo(impersonation || null);
         setLoggedIn(true);
       })
       .catch(() => clearLegacyAuthTokens());
@@ -464,6 +502,8 @@ function App() {
     setAuthUser(user);
     setSelectedRole(user.role);
     setActiveDashboard(getPersonaDashboard(user.role));
+    setImpersonationInfo(null);
+    setImpersonationError('');
     setLoggedIn(true);
   };
 
@@ -523,7 +563,41 @@ function App() {
     }
   };
 
+  const handleEndImpersonation = async () => {
+    try {
+      const { user } = await api.endAdminImpersonation();
+      setAuthUser(user);
+      setSelectedRole(user.role);
+      setActiveDashboard(getPersonaDashboard(user.role));
+      setImpersonationInfo(null);
+      setImpersonationError('');
+    } catch (error) {
+      console.error('Could not end the admin impersonation session:', error.message);
+      setImpersonationError('Could not return to the admin session. Retry or reload the page.');
+    }
+  };
+
+  const handleStartImpersonation = async (account) => {
+    setImpersonationError('');
+    const result = await api.startAdminImpersonation(account.user_id);
+    setAuthUser(result.user);
+    setActiveDashboard(getPersonaDashboard(result.user.role));
+    setImpersonationInfo(result.impersonation);
+    setLoggedIn(true);
+  };
+
+  useEffect(() => {
+    if (!impersonationInfo?.expires_at) return undefined;
+    const delay = Math.max(0, new Date(impersonationInfo.expires_at).getTime() - Date.now());
+    const timeoutId = window.setTimeout(handleEndImpersonation, delay);
+    return () => window.clearTimeout(timeoutId);
+  }, [impersonationInfo]);
+
   const handleLogout = async () => {
+    if (impersonationInfo) {
+      await handleEndImpersonation();
+      return;
+    }
     try {
       await api.logoutUser();
     } catch (error) {
@@ -532,6 +606,8 @@ function App() {
     clearLegacyAuthTokens();
     setAuthUser(null);
     setAuthPinChallenge(null);
+    setImpersonationInfo(null);
+    setImpersonationError('');
     setLoggedIn(false);
     setActiveTab('signin');
     setAuthMessage('');
@@ -554,36 +630,36 @@ function App() {
   };
 
   if (loggedIn && activeDashboard === 'admin') {
-    return <AdminDashboardWithSecurity user={authUser} onLogout={handleLogout} />;
+    return <AdminDashboardWithSecurity user={authUser} onLogout={handleLogout} onImpersonate={handleStartImpersonation} />;
   }
 
   if (loggedIn && activeDashboard === 'buyer') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><BuyerDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><BuyerDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'transporter') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'bank') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><LenderDashboard user={authUser} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><LenderDashboard user={authUser} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && ['commercial', 'coop', 'expert'].includes(activeDashboard)) {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn) {
-    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   return (
@@ -712,15 +788,7 @@ function App() {
               <p className="signin-routing-note">Your workspace opens automatically based on your account.</p>
             </form>
             <div className="auth-divider" aria-hidden="true"><span>or continue with</span></div>
-            <button type="button" className="google-signin-button" onClick={() => { window.location.assign(api.googleAuthUrl()); }}>
-              <svg className="google-g-mark" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.91 3.28-4.73 3.28-8.09Z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84C3.96 20.48 7.7 23 12 23Z" />
-                <path fill="#FBBC05" d="M5.84 14.1A7.2 7.2 0 0 1 5.46 12c0-.73.13-1.43.38-2.1V7.06H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.94l3.69-2.84Z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.96 3.52 2.15 7.06l3.69 2.84C6.71 7.31 9.14 5.38 12 5.38Z" />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
+            <GoogleSignInButton label="Continue with Google" />
             </div>
           ) : (
             <div className="register-panel">
@@ -768,6 +836,9 @@ function App() {
                 <span className="arrow-forward">arrow_forward</span>
               </button>
             </form>
+            <div className="auth-divider" aria-hidden="true"><span>or create an account with</span></div>
+            <GoogleSignInButton label="Sign up with Google" />
+            <p className="google-registration-note">Google sign-up creates a farmer account. Other account types need the registration form above.</p>
             </div>
           )}
         </div>

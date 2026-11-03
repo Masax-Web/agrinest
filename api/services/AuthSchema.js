@@ -54,6 +54,18 @@ async function ensureAuthSchema(knex) {
     expires_at TIMESTAMPTZ NOT NULL,
     consumed_at TIMESTAMPTZ
   )`);
+  await knex.raw(`CREATE TABLE IF NOT EXISTS auth_admin_impersonation_sessions (
+    session_id UUID PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    actor_user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    actor_session_id UUID NOT NULL REFERENCES auth_sessions(session_id) ON DELETE CASCADE,
+    target_user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    ended_at TIMESTAMPTZ,
+    end_reason TEXT
+  )`);
+  await knex.raw('CREATE INDEX IF NOT EXISTS auth_admin_impersonation_actor_idx ON auth_admin_impersonation_sessions (actor_user_id, expires_at)');
   await knex.raw(`CREATE TABLE IF NOT EXISTS auth_login_limits (
     key_hash TEXT PRIMARY KEY,
     attempt_count INTEGER NOT NULL DEFAULT 0,

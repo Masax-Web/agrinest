@@ -16,6 +16,8 @@
 
 The first verified Google sign-in whose email matches `ADMIN_BOOTSTRAP_EMAIL` becomes the initial super administrator only when no super administrator exists. After that administrator is established, this setting cannot promote another account.
 
+Google sign-in also creates an AGRI-NEST account on first use. New Google accounts are assigned the smallholder-farmer persona; use the registration form for other account types, invitations, or administrator-review registrations. If a Google sign-in fails, the app returns a specific error message; state-verification errors can occur when browser cookies are blocked.
+
 ## Session and account behavior
 
 - Sessions use an HttpOnly, SameSite=Lax cookie; production cookies also require HTTPS.
@@ -23,6 +25,12 @@ The first verified Google sign-in whose email matches `ADMIN_BOOTSTRAP_EMAIL` be
 - Local passwords must be 12–128 characters. An optional sign-in PIN must be 6–12 digits.
 - Existing password hashes and user records are retained. The one-time auth schema migration revokes all pre-migration sessions.
 - Password-enabled accounts must confirm their current password to change a PIN. Google-only accounts may enroll or remove a PIN within five minutes of a successful sign-in; otherwise, sign in again first.
+
+## Administrator account preview
+
+- Active super administrators can switch into active, non-admin accounts from the administrator user list. Each switch requires confirmation and lasts at most 15 minutes.
+- This is real account access, not a read-only UI preview: changes made while acting as the selected user affect that account. Administrator-only APIs remain unavailable during the preview.
+- The administrator session is preserved separately so the administrator can return immediately. Starting and ending a preview are recorded in the authentication audit log; expiration is enforced on the next authenticated request and recorded then.
 
 ## Rollout
 

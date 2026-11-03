@@ -1156,6 +1156,14 @@ button {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.google-registration-note {
+  margin: 0.55rem 0 0;
+  color: var(--auth-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .google-signin-button:focus-visible,
 .tab-button:focus-visible,
 .staff-access-button:focus-visible {
@@ -1434,8 +1442,86 @@ button {
 }
 
 .admin-console-header button { background: #edf4ef; color: #145338; }
+.admin-console-row-actions .admin-impersonate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fff3dc;
+  color: #674510;
+}
+.admin-console-row-actions .admin-impersonate-button:hover {
+  background: #ffe8b7;
+}
+.admin-console-row-actions .admin-impersonate-button .material-symbols-outlined {
+  font-size: 1rem;
+}
 .admin-console button:disabled,
 .security-settings-card button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.admin-impersonation-banner {
+  position: fixed;
+  z-index: 5000;
+  inset: 0 0 auto;
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border-bottom: 1px solid #d88a26;
+  background: #fff2d6;
+  box-shadow: 0 2px 8px rgba(67, 45, 16, 0.14);
+  color: #422e12;
+  padding: 0.45rem clamp(0.65rem, 2vw, 1.4rem);
+  font-size: 0.72rem;
+}
+.admin-impersonation-banner > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+}
+.admin-impersonation-banner strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+}
+.admin-impersonation-banner strong .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+.admin-impersonation-banner > div > span:not(.admin-impersonation-error) {
+  color: #725322;
+}
+.admin-impersonation-banner .admin-impersonation-error {
+  color: #9a3126;
+  font-weight: 700;
+}
+.admin-impersonation-banner > button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.2rem;
+  border: 1px solid #815719;
+  border-radius: 0.45rem;
+  background: #49320f;
+  color: #fff;
+  padding: 0.4rem 0.65rem;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.admin-impersonation-banner > button:hover {
+  background: #674510;
+}
+.admin-impersonation-banner > button .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+body.admin-impersonation-active #root {
+  padding-top: 3.2rem;
+}
 
 .admin-console-layout {
   display: grid;
@@ -1576,6 +1662,19 @@ button {
   .admin-console-header { align-items: flex-start; }
   .admin-console-actions { gap: 0.35rem; }
   .admin-console-header button { padding: 0.4rem 0.55rem; }
+  .admin-impersonation-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.45rem 0.6rem;
+  }
+  .admin-impersonation-banner > button {
+    min-height: 1.8rem;
+    align-self: flex-end;
+  }
+  body.admin-impersonation-active #root {
+    padding-top: 5.2rem;
+  }
   .admin-console-toolbar { align-items: stretch; flex-wrap: wrap; }
   .admin-console-toolbar input { flex-basis: 100%; }
   .admin-invitation-form { align-items: stretch; }
@@ -1917,6 +2016,14 @@ button {
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   font-size: 0.75rem;
 }
+
+.ramani-page .ramani-boundary-handle {
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #d78a1f;
+  box-shadow: 0 1px 5px rgba(12, 37, 23, 0.45);
+}
+
 .ramani-3d-map {
   position: absolute;
   z-index: 1;
@@ -2002,6 +2109,8 @@ button {
   top: 1rem;
   left: 1rem;
   width: min(18rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
   border-left: 4px solid var(--ramani-green);
   padding: 0.9rem;
 }
@@ -2069,6 +2178,11 @@ button {
   cursor: not-allowed;
 }
 
+.ramani-training-start:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .ramani-layer-dot {
   width: 0.65rem;
   height: 0.65rem;
@@ -2080,12 +2194,90 @@ button {
 
 .ramani-layer-dot.profile-dot { background: #e1a83b; }
 .ramani-layer-dot.field-dot { background: #48ba7e; }
+.ramani-layer-dot.training-dot { background: #8d78ce; }
+.ramani-layer-dot.drawing-dot { background: #2372bf; }
+.ramani-layer-dot.landmark-dot { background: #aa712c; }
+.ramani-layer-dot.weather-dot { background: #158bb4; }
+.ramani-layer-dot.map-dot { background: #39739a; }
 
 .ramani-layer-note {
   margin: 0.6rem 0;
   color: #6c786f;
   font-size: 0.59rem;
   line-height: 1.45;
+}
+
+.ramani-offline-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+  border-radius: 0.4rem;
+  background: rgba(23, 108, 76, 0.08);
+  color: #53665b;
+  padding: 0.5rem;
+  font-size: 0.59rem;
+  line-height: 1.4;
+}
+
+.ramani-offline-note .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: var(--ramani-green);
+  font-size: 0.95rem;
+}
+
+.ramani-layer-action,
+.ramani-import-button {
+  display: flex;
+  width: 100%;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  border: 1px solid rgba(23, 108, 76, 0.4);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ramani-green);
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.63rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ramani-layer-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.ramani-import-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.ramani-import-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.ramani-consent-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+  color: #53665b;
+  font-size: 0.6rem;
+  line-height: 1.35;
+}
+
+.ramani-consent-option input {
+  flex: 0 0 auto;
+  margin: 0.1rem 0 0;
+  accent-color: var(--ramani-green);
 }
 
 .ramani-export-button {
@@ -2109,10 +2301,75 @@ button {
   font-size: 1rem;
 }
 
+.ramani-training-tools {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid rgba(65, 85, 71, 0.16);
+  padding-top: 0.65rem;
+}
+
+.ramani-training-tools > strong {
+  color: var(--ramani-forest);
+  font-size: 0.72rem;
+}
+
+.ramani-training-tools > p {
+  margin: 0;
+  color: #6c786f;
+  font-size: 0.59rem;
+  line-height: 1.45;
+}
+
+.ramani-training-tools > label {
+  color: #3d5144;
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+
+.ramani-training-tools > select {
+  width: 100%;
+  min-height: 2rem;
+  border: 1px solid rgba(65, 85, 71, 0.24);
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.78);
+  color: #24342a;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  font-size: 0.65rem;
+}
+
+.ramani-training-start,
+.ramani-training-export {
+  min-height: 2.2rem;
+  border: 1px solid var(--ramani-green);
+  border-radius: 0.4rem;
+  background: var(--ramani-green);
+  color: #fff;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ramani-training-export {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ramani-green);
+}
+
+.ramani-training-export:disabled {
+  border-color: rgba(65, 85, 71, 0.2);
+  color: #89918b;
+  cursor: not-allowed;
+}
+
 .ramani-insight-panel {
   top: 1rem;
   right: 1rem;
   width: min(20rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
   padding: 1rem;
 }
 
@@ -2188,6 +2445,230 @@ button {
   cursor: pointer;
 }
 
+.ramani-plot-form,
+.ramani-note-form {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.45rem;
+  min-width: 0;
+  border-top: 1px solid rgba(65, 85, 71, 0.15);
+  padding-top: 0.65rem;
+}
+
+.ramani-plot-form label,
+.ramani-note-form label {
+  display: grid;
+  gap: 0.2rem;
+  color: #53665b;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.ramani-plot-form input,
+.ramani-note-form input,
+.ramani-note-form select,
+.ramani-note-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 2rem;
+  border: 1px solid rgba(65, 85, 71, 0.24);
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #24342a;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  font-size: 0.65rem;
+}
+
+.ramani-note-form textarea {
+  resize: vertical;
+}
+
+.ramani-plot-form > button,
+.ramani-note-form > button,
+.ramani-field-delete,
+.ramani-note-entry > button {
+  min-height: 2rem;
+  border: 0;
+  border-radius: 0.38rem;
+  background: var(--ramani-forest);
+  color: #fff;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.63rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ramani-note-form > strong {
+  color: var(--ramani-forest);
+  font-size: 0.7rem;
+}
+
+.ramani-note-preview,
+.ramani-note-entry > img {
+  display: block;
+  width: 100%;
+  max-height: 8rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+}
+
+.ramani-note-entry {
+  display: grid;
+  gap: 0.3rem;
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 0.5rem;
+}
+
+.ramani-note-entry > strong {
+  color: var(--ramani-forest);
+  font-size: 0.62rem;
+}
+
+.ramani-note-entry > p {
+  margin: 0;
+  color: #53665b;
+  font-size: 0.62rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.ramani-note-entry > button {
+  justify-self: start;
+  background: transparent;
+  color: #8f3434;
+  padding: 0.2rem;
+}
+
+.ramani-reminder {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 3px solid #d59a2c;
+  border-radius: 0.25rem;
+  background: rgba(231, 194, 104, 0.16);
+  padding: 0.45rem;
+}
+
+.ramani-reminder strong {
+  color: #74500e;
+  font-size: 0.6rem;
+}
+
+.ramani-reminder span {
+  color: #5e563e;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.ramani-field-delete {
+  grid-column: 1 / -1;
+  border: 1px solid #a84242;
+  background: transparent;
+  color: #a84242;
+}
+
+.ramani-weather-card,
+.ramani-gps-card {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  border-top: 1px solid rgba(65, 85, 71, 0.15);
+  padding-top: 0.65rem;
+}
+
+.ramani-weather-heading,
+.ramani-weather-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.ramani-weather-heading strong,
+.ramani-gps-card strong {
+  color: var(--ramani-forest);
+  font-size: 0.68rem;
+}
+
+.ramani-weather-heading button {
+  border: 0;
+  background: transparent;
+  color: #6c786f;
+  padding: 0;
+  font: inherit;
+  font-size: 0.55rem;
+}
+
+.ramani-weather-current > strong {
+  color: var(--ramani-green);
+  font-size: 1rem;
+}
+
+.ramani-weather-current > span,
+.ramani-weather-card > p,
+.ramani-gps-card > span {
+  color: #63736a;
+  font-size: 0.58rem;
+}
+
+.ramani-weather-days {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.ramani-weather-days > span {
+  display: grid;
+  gap: 0.18rem;
+  border-radius: 0.3rem;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 0.35rem;
+  color: #63736a;
+  font-size: 0.5rem;
+}
+
+.ramani-weather-days strong {
+  color: #3d5144;
+  font-size: 0.58rem;
+}
+
+.ramani-weather-card > small {
+  color: #77827a;
+  font-size: 0.5rem;
+}
+
+.ramani-gps-card > span {
+  display: block;
+}
+
+.ramani-landmark-picker {
+  width: 8rem;
+}
+
+.ramani-landmark-picker label {
+  color: #53665b;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.ramani-landmark-picker select {
+  max-width: 8rem;
+  border: 1px solid rgba(65, 85, 71, 0.24);
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #24342a;
+  padding: 0.3rem;
+  font: inherit;
+  font-size: 0.6rem;
+}
+
+.ramani-print-summary {
+  display: none;
+}
+
 .ramani-no-data {
   display: grid;
   justify-items: center;
@@ -2252,9 +2733,19 @@ button {
   color: #145338;
 }
 
-.ramani-tool-group > button:nth-child(2):not(.active) {
+.ramani-drawing-tools {
+  display: grid;
+  grid-template-columns: repeat(2, 2.65rem);
+}
+
+.ramani-drawing-tools > button:last-of-type {
   background: var(--ramani-green);
   color: #fff;
+}
+
+.ramani-drawing-tools > button:last-of-type:hover {
+  background: #c4ecd2;
+  color: #145338;
 }
 
 .ramani-tool-group > button .material-symbols-outlined {
@@ -3773,6 +4264,527 @@ button {
   background: transparent;
   color: inherit;
   cursor: pointer;
+}
+
+.digital-farm-page {
+  --digital-farm-ink: #26170c;
+  --digital-farm-muted: #746b66;
+  --digital-farm-green: #176c5a;
+  --digital-farm-line: rgba(129, 117, 110, 0.13);
+  width: min(100%, 92rem);
+  gap: 1.65rem;
+  color: var(--digital-farm-ink);
+}
+.digital-farm-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.digital-farm-heading h1 {
+  margin: 0;
+  color: var(--digital-farm-ink);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+}
+.digital-farm-heading p {
+  margin: 0.45rem 0 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.85rem;
+}
+.digital-farm-local-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+  border: 1px solid #b9ddd2;
+  border-radius: 999px;
+  background: #e4f2ee;
+  color: #155347;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.digital-farm-local-badge .material-symbols-outlined {
+  font-size: 1rem;
+}
+.digital-farm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+.digital-farm-stat,
+.digital-farm-log-card,
+.digital-farm-map-card,
+.digital-farm-fields,
+.digital-farm-journal {
+  border: 1px solid var(--digital-farm-line);
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(61, 43, 31, 0.045);
+}
+.digital-farm-stat {
+  display: grid;
+  min-height: 7.7rem;
+  align-content: center;
+  gap: 0.2rem;
+  padding: 1rem 1.15rem;
+}
+.digital-farm-stat > .material-symbols-outlined {
+  color: var(--digital-farm-green);
+  font-size: 1.15rem;
+}
+.digital-farm-stat strong {
+  color: var(--digital-farm-ink);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  line-height: 1.05;
+}
+.digital-farm-stat small {
+  color: var(--digital-farm-muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.09em;
+}
+.digital-farm-log-card {
+  display: grid;
+  min-height: 7.7rem;
+  justify-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  background: #f7f2ef;
+  color: var(--digital-farm-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+}
+.digital-farm-log-card:hover,
+.digital-farm-log-card:focus-visible {
+  background: #f0e9e4;
+}
+.digital-farm-log-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--digital-farm-ink);
+  color: #fff;
+}
+.digital-farm-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(16rem, 0.9fr);
+  align-items: start;
+  gap: 1rem;
+}
+.digital-farm-map-card {
+  overflow: hidden;
+}
+.digital-farm-card-heading {
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+}
+.digital-farm-card-heading h2,
+.digital-farm-fields-heading h2,
+.digital-farm-journal-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--digital-farm-ink);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+}
+.digital-farm-card-heading h2 .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+.digital-farm-card-heading button,
+.digital-farm-fields-heading button,
+.digital-farm-journal-heading > button,
+.digital-farm-empty-field button,
+.digital-farm-journal-empty button {
+  display: inline-flex;
+  min-height: 2.1rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid #d5cbc5;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #2b211a;
+  padding: 0.4rem 0.65rem;
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.digital-farm-card-heading button .material-symbols-outlined,
+.digital-farm-journal-heading > button .material-symbols-outlined {
+  font-size: 1rem;
+}
+.digital-farm-card-heading button:hover,
+.digital-farm-fields-heading button:hover,
+.digital-farm-journal-heading > button:hover {
+  background: #f5f0ec;
+}
+.digital-farm-map {
+  height: 17.5rem;
+  overflow: hidden;
+  background: #e5e9dd;
+}
+.digital-farm-map .ramani-page.ramani-compact {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.digital-farm-map .ramani-compact .ramani-layer-panel,
+.digital-farm-map .ramani-compact .ramani-insight-panel,
+.digital-farm-map .ramani-compact .ramani-control-tools,
+.digital-farm-map .ramani-compact .ramani-map-footer,
+.digital-farm-map .ramani-compact .ramani-3d-controls,
+.digital-farm-map .ramani-compact .ramani-3d-badge {
+  display: none;
+}
+.digital-farm-map-note {
+  margin: 0;
+  border-top: 1px solid var(--digital-farm-line);
+  color: var(--digital-farm-muted);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.62rem;
+}
+.digital-farm-fields {
+  display: grid;
+  gap: 0.7rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.digital-farm-fields-heading {
+  display: flex;
+  min-height: 2.7rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.digital-farm-fields-heading button {
+  border-color: transparent;
+  background: transparent;
+  color: #a03f29;
+  padding-right: 0;
+}
+.digital-farm-field-card {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--digital-farm-line);
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(61, 43, 31, 0.045);
+  padding: 0.9rem;
+}
+.digital-farm-field-main {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+.digital-farm-crop-icon {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: #e3f0ec;
+  color: var(--digital-farm-green);
+}
+.digital-farm-field-main h3 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--digital-farm-ink);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.digital-farm-field-main p {
+  margin: 0.2rem 0 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.65rem;
+}
+.digital-farm-field-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  color: var(--digital-farm-muted);
+  font-size: 0.62rem;
+}
+.digital-farm-field-journal {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  color: #176c5a;
+  padding: 0;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.digital-farm-empty-field {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  border: 1px dashed #d7ccc4;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 1.2rem 0.8rem;
+  text-align: center;
+}
+.digital-farm-empty-field > .material-symbols-outlined,
+.digital-farm-journal-empty > .material-symbols-outlined {
+  color: var(--digital-farm-green);
+}
+.digital-farm-empty-field h3 {
+  margin: 0;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+}
+.digital-farm-empty-field p,
+.digital-farm-journal-empty p {
+  margin: 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+.digital-farm-empty-field button,
+.digital-farm-journal-empty button {
+  margin-top: 0.3rem;
+  border-color: var(--digital-farm-green);
+  background: var(--digital-farm-green);
+  color: #fff;
+}
+.digital-farm-journal {
+  overflow: hidden;
+}
+.digital-farm-journal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0.95rem;
+}
+.digital-farm-journal-heading h2 {
+  font-size: 1.35rem;
+}
+.digital-farm-journal-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.68rem;
+}
+.digital-farm-journal-heading > button {
+  background: #f2eeeb;
+}
+.digital-farm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  border-top: 1px solid var(--digital-farm-line);
+  padding: 0.8rem 0.95rem;
+}
+.digital-farm-filters label,
+.digital-farm-dialog form > label {
+  display: grid;
+  min-width: 8rem;
+  gap: 0.3rem;
+  color: #514842;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.digital-farm-filters select,
+.digital-farm-dialog input,
+.digital-farm-dialog select,
+.digital-farm-dialog textarea {
+  min-height: 2.35rem;
+  border: 1px solid #d8d0ca;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #26170c;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  font-size: 0.75rem;
+}
+.digital-farm-journal-table-wrap {
+  overflow-x: auto;
+}
+.digital-farm-journal-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.67rem;
+}
+.digital-farm-journal-table th {
+  background: #f7f2ef;
+  color: #6e625a;
+  font-size: 0.59rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.digital-farm-journal-table th,
+.digital-farm-journal-table td {
+  border-top: 1px solid var(--digital-farm-line);
+  padding: 0.7rem 0.75rem;
+  vertical-align: middle;
+}
+.digital-farm-journal-table td {
+  color: #42372f;
+}
+.digital-farm-journal-table td:first-child {
+  min-width: 6rem;
+  white-space: nowrap;
+}
+.digital-farm-journal-table td:first-child small {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.58rem;
+  font-weight: 400;
+}
+.digital-farm-activity-pill,
+.digital-farm-gps-stamp,
+.digital-farm-manual-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.35rem;
+  background: #e6f1ed;
+  color: #245548;
+  padding: 0.3rem 0.4rem;
+  white-space: nowrap;
+}
+.digital-farm-activity-pill .material-symbols-outlined,
+.digital-farm-gps-stamp .material-symbols-outlined,
+.digital-farm-manual-stamp .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+.digital-farm-gps-stamp,
+.digital-farm-manual-stamp {
+  background: transparent;
+  padding: 0;
+  font-size: 0.61rem;
+}
+.digital-farm-manual-stamp {
+  color: #867b73;
+}
+.digital-farm-notes-column {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.digital-farm-journal-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  border-top: 1px solid var(--digital-farm-line);
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+.digital-farm-journal-empty strong {
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.84rem;
+}
+.digital-farm-dialog-backdrop {
+  position: fixed;
+  z-index: 3000;
+  inset: 0;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  overflow-y: auto;
+  background: rgba(34, 25, 20, 0.46);
+  padding: 1rem;
+}
+.digital-farm-dialog {
+  width: min(100%, 34rem);
+  max-height: min(90vh, 48rem);
+  overflow-y: auto;
+  border: 1px solid rgba(129, 117, 110, 0.17);
+  border-radius: 0.9rem;
+  background: #fffaf7;
+  box-shadow: 0 1.5rem 4rem rgba(34, 25, 20, 0.25);
+  padding: 1.2rem;
+}
+.digital-farm-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.digital-farm-dialog-heading h2 {
+  margin: 0.2rem 0 0;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.35rem;
+}
+.digital-farm-dialog-heading > button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f0e9e4;
+  color: var(--digital-farm-ink);
+  cursor: pointer;
+}
+.digital-farm-dialog form {
+  display: grid;
+  gap: 0.8rem;
+}
+.digital-farm-dialog textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+.digital-farm-dialog .farmer-workspace-submit {
+  margin-top: 0;
+}
+.digital-farm-dialog-note {
+  margin: 0;
+  color: var(--digital-farm-muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+.digital-farm-gps-button {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  gap: 0.4rem;
+  border: 1px solid #b9ddd2;
+  border-radius: 0.45rem;
+  background: #e4f2ee;
+  color: #155347;
+  padding: 0.45rem 0.7rem;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.digital-farm-gps-button .material-symbols-outlined {
+  font-size: 1rem;
+}
+.digital-farm-gps-message {
+  margin: -0.45rem 0 0;
+  color: #155347;
+  font-size: 0.67rem;
+  line-height: 1.45;
 }
 
 .loan-planner {
@@ -9828,6 +10840,18 @@ button {
 }
 
 @media (max-width: 900px) {
+  .digital-farm-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .digital-farm-fields {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+
+  .digital-farm-fields-heading {
+    grid-column: 1 / -1;
+  }
+
   .ramani-page {
     height: calc(100vh - 4rem);
     min-height: 30rem;
@@ -9877,6 +10901,77 @@ button {
 }
 
 @media (max-width: 540px) {
+  .digital-farm-page {
+    gap: 1rem;
+    padding: 0.8rem;
+  }
+
+  .digital-farm-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .digital-farm-heading h1 {
+    font-size: 2rem;
+  }
+
+  .digital-farm-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .digital-farm-stat,
+  .digital-farm-log-card {
+    min-height: 6.8rem;
+    padding: 0.75rem;
+  }
+
+  .digital-farm-map {
+    height: 15rem;
+  }
+
+  .digital-farm-card-heading {
+    padding: 0.6rem;
+  }
+
+  .digital-farm-card-heading h2 {
+    font-size: 0.9rem;
+  }
+
+  .digital-farm-card-heading button {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .digital-farm-fields {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
+  }
+
+  .digital-farm-fields-heading {
+    grid-column: auto;
+  }
+
+  .digital-farm-journal-heading {
+    padding: 0.75rem;
+  }
+
+  .digital-farm-journal-heading h2 {
+    font-size: 1.15rem;
+  }
+
+  .digital-farm-journal-table {
+    min-width: 38rem;
+  }
+
+  .digital-farm-notes-column {
+    display: none;
+  }
+
+  .digital-farm-dialog {
+    padding: 0.9rem;
+  }
+
   .ramani-page {
     height: calc(100dvh - 4rem);
     min-height: 28rem;
@@ -9886,6 +10981,7 @@ button {
     top: 0.45rem;
     left: 0.45rem;
     width: calc(100% - 0.9rem);
+    max-height: 47vh;
     padding: 0.55rem 0.65rem;
   }
 
@@ -9952,11 +11048,14 @@ button {
     display: none;
   }
 
+  .ramani-privacy-note {
+    display: block;
+    font-size: 0.53rem;
+  }
+
   .ramani-export-button {
-    position: absolute;
-    top: 0.55rem;
-    right: 2.8rem;
-    width: auto;
+    position: static;
+    width: 100%;
     min-height: 2rem;
     padding: 0.25rem 0.45rem;
     font-size: 0.56rem;
@@ -10005,6 +11104,10 @@ button {
     height: 2.3rem;
   }
 
+  .ramani-drawing-tools {
+    grid-template-columns: repeat(2, 2.3rem);
+  }
+
   .ramani-tool-group > button .material-symbols-outlined {
     font-size: 1.15rem;
   }
@@ -10024,5 +11127,40 @@ button {
   .ramani-status {
     top: 0.5rem;
     font-size: 0.58rem;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .ramani-print-summary,
+  .ramani-print-summary * {
+    visibility: visible !important;
+  }
+
+  .ramani-print-summary {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: #17231b;
+    font: 11pt/1.45 Arial, sans-serif;
+  }
+
+  .ramani-print-summary h1 {
+    font-size: 22pt;
+  }
+
+  .ramani-print-summary h2 {
+    margin-top: 1.5rem;
+    border-bottom: 1px solid #9aa59d;
+    padding-bottom: 0.3rem;
+  }
+
+  .ramani-print-summary article {
+    break-inside: avoid;
+    border-bottom: 1px solid #d5dad6;
+    padding: 0.6rem 0;
   }
 }

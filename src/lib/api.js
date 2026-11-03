@@ -45,6 +45,17 @@ export const api = {
     return apiRequest('/auth/me');
   },
 
+  async startAdminImpersonation(userId) {
+    return apiRequest('/auth/admin/impersonate', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
+    });
+  },
+
+  async endAdminImpersonation() {
+    return apiRequest('/auth/admin/impersonate/end', { method: 'POST' });
+  },
+
   async logoutUser() {
     return apiRequest('/auth/logout', { method: 'POST' });
   },

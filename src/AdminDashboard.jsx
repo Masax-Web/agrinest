@@ -5,7 +5,7 @@ import { personas } from '../shared/personas.json';
 const adminPersonas = personas.filter((persona) => persona.id !== 'super_admin');
 const invitationalPersonas = personas.filter((persona) => persona.registration === 'invite' && persona.id !== 'super_admin');
 
-export default function AdminDashboard({ user, onLogout, onOpenSecurity }) {
+export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImpersonate }) {
   const [section, setSection] = useState('users');
   const [users, setUsers] = useState([]);
   const [audit, setAudit] = useState([]);
@@ -58,6 +58,22 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity }) {
       const result = await api.createAdminInvitation(invitePersona);
       setInvitation(result.token);
     });
+  };
+
+  const handleImpersonate = async (account) => {
+    const accountLabel = account.name || account.email || account.phone || 'this account';
+    const confirmed = window.confirm(
+      `Temporarily access ${accountLabel} as ${account.role} for up to 15 minutes? Actions will apply to this account and the session will be recorded in the audit log.`,
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    setError('');
+    try {
+      await onImpersonate(account);
+    } catch (actionError) {
+      setError(actionError.message || 'Could not start the impersonation session.');
+      setBusy(false);
+    }
   };
 
   const sections = [
@@ -119,6 +135,7 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity }) {
                       <td className="admin-console-row-actions">
                         {account.role_status === 'pending' && <button type="button" disabled={busy} onClick={() => runAction(() => api.approveAdminUser(account.user_id))}>Approve</button>}
                         {!account.is_admin && account.role_status !== 'pending' && <button type="button" className="admin-secondary-button" disabled={busy} onClick={() => runAction(() => api.setAdminUserStatus(account.user_id, account.role_status === 'suspended' ? 'active' : 'suspended'))}>{account.role_status === 'suspended' ? 'Reactivate' : 'Suspend'}</button>}
+                        {!account.is_admin && account.role_status === 'active' && <button type="button" className="admin-impersonate-button" disabled={busy} aria-label={`Switch to ${account.name || account.email || 'user'} account`} onClick={() => handleImpersonate(account)}><span className="material-symbols-outlined">switch_account</span>Switch to account</button>}
                       </td>
                     </tr>
                   ))}</tbody>

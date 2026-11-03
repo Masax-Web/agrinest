@@ -145,6 +145,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthResult'
 
+  /auth/admin/impersonate:
+    post:
+      summary: Start a short-lived super-admin impersonation session
+      description: Impersonates one active non-admin account for up to 15 minutes. The admin session remains available to end impersonation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminImpersonationRequest'
+      responses:
+        '200':
+          description: Impersonation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminImpersonationResult'
+        '403':
+          description: Super administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account is not available for impersonation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: A valid administrator session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/admin/impersonate/end:
+    post:
+      summary: End the current super-admin impersonation session
+      description: Uses the preserved administrator session, even while the impersonated account is active.
+      responses:
+        '200':
+          description: Impersonation ended
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: Administrator session is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/password:
     put:
       summary: Change the current account password and revoke sessions
@@ -351,6 +415,16 @@ paths:
                     items: { $ref: '#/components/schemas/AuthUser' }
         '403':
           description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: A valid session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/admin/audit:
     get:
@@ -1010,11 +1084,39 @@ components:
         pin_enabled: { type: boolean }
         password_enabled: { type: boolean }
         is_admin: { type: boolean }
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              message: { type: string }
     GoogleExchangeRequest:
       type: object
       required: [code]
       properties:
         code: { type: string, minLength: 1, maxLength: 256 }
+    AdminImpersonationRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id: { type: string, format: uuid }
+    AdminImpersonationResult:
+      type: object
+      required: [user, impersonation]
+      properties:
+        user: { $ref: '#/components/schemas/AuthUser' }
+        impersonation:
+          type: object
+          required: [admin, expires_at]
+          properties:
+            admin: { $ref: '#/components/schemas/AuthUser' }
+            expires_at: { type: string, format: date-time }
     PinChallengeRequest:
       type: object
       required: [challenge_token, pin]
