@@ -63,6 +63,7 @@ describe('Authenticated farmer profile API', () => {
       income: [],
       expenses: [],
       crowdfunding: [{ id: 'campaign-1', title: 'Community grain store', goal: 1200000, pledges: [] }],
+      carbon: [{ id: 'carbon-activity-1', module: 'carbon-activity', title: 'Planted trees', date: '2026-11-03' }],
       livestock: [],
       groups: [],
       activities: [],

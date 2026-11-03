@@ -7,6 +7,7 @@ import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
 import FinanceHub from './FinanceHub';
 import CrowdfundingWorkspace from './CrowdfundingWorkspace';
+import CarbonCreditsWorkspace from './CarbonCreditsWorkspace';
 import GroupsDashboard from './GroupsDashboard';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
@@ -1658,6 +1659,7 @@ function normalizeFarmerRecords(records = {}) {
     income: collection(records.income),
     expenses: collection(records.expenses),
     crowdfunding: collection(records.crowdfunding).length ? collection(records.crowdfunding) : legacyCampaigns,
+    carbon: collection(records.carbon),
     livestock: collection(records.livestock),
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
@@ -2565,6 +2567,14 @@ function SmallholderDashboard({ user, onLogout }) {
             campaigns={farmerRecords.crowdfunding}
             onCampaignsChange={(campaigns) => updateFarmerRecords('crowdfunding', campaigns)}
             search={marketplaceSearch}
+          />
+        ) : activeView === 'carbon' ? (
+          <CarbonCreditsWorkspace
+            profile={farmerProfile}
+            records={farmerRecords.carbon}
+            fields={farmerRecords.fields}
+            onRecordsChange={(carbonRecords) => updateFarmerRecords('carbon', carbonRecords)}
+            onNavigate={setActiveView}
           />
         ) : activeView === 'groups' ? (
           <GroupsDashboard
