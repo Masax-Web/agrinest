@@ -4,8 +4,11 @@ import './LenderDashboard.css';
 const navigation = [
   { id: 'overview', label: 'Dashboard', icon: 'dashboard' },
   { id: 'applications', label: 'Applications', icon: 'assignment' },
-  { id: 'portfolio', label: 'Portfolio', icon: 'account_balance' },
-  { id: 'repayments', label: 'Repayments', icon: 'payments' },
+  { id: 'portfolio', label: 'Capital Overview', icon: 'account_balance' },
+  { id: 'disbursements', label: 'Disbursement Queue', icon: 'outbox' },
+  { id: 'vendors', label: 'Vendor Records', icon: 'storefront' },
+  { id: 'repayments', label: 'Payout History', icon: 'payments' },
+  { id: 'audit', label: 'Audit Log', icon: 'history' },
   { id: 'risk', label: 'Risk Reviews', icon: 'verified_user' },
   { id: 'transactions', label: 'Transactions', icon: 'receipt_long' },
   { id: 'soil', label: 'Soil Analytics', icon: 'bar_chart' },
@@ -159,9 +162,6 @@ export default function LenderDashboard({ user, persona, onLogout }) {
   }), [applications, query, statusFilter]);
   const activeApplications = applications.filter((application) => !['Closed', 'Decision recorded'].includes(application.status));
   const activeCapital = activeApplications.reduce((total, application) => total + application.amount, 0);
-  const portfolioRepaymentRate = applications.length
-    ? Math.round((applications.filter((application) => application.status === 'Decision recorded').length / applications.length) * 1000) / 10
-    : 0;
   const applicationCounts = applicationStatuses.reduce((counts, status) => {
     counts[status] = applications.filter((application) => application.status === status).length;
     return counts;
@@ -170,16 +170,36 @@ export default function LenderDashboard({ user, persona, onLogout }) {
     counts[application.region] = (counts[application.region] || 0) + 1;
     return counts;
   }, {});
+  const auditEntries = applications.flatMap((application) => [
+    {
+      id: `${application.id}-created`,
+      applicationId: application.id,
+      date: application.date,
+      action: 'Local workflow record created',
+      detail: `${application.farmerRef} · ${application.crop}`,
+      demo: application.demo,
+    },
+    ...application.updates.map((update) => ({
+      ...update,
+      applicationId: application.id,
+      action: `Review status updated to ${update.status}`,
+      detail: update.note,
+      demo: application.demo,
+    })),
+  ]).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50);
   const todayLabel = new Intl.DateTimeFormat('en-TZ', { dateStyle: 'medium' }).format(new Date());
   const userName = user?.name || 'Lender team';
   const institution = user?.institution_name || user?.organization || user?.company || 'Financial Institution';
   const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'FI';
   const isDemo = applications.some((application) => application.demo);
   const pageTitles = {
-    overview: ['Portfolio Overview', 'Review lender-workspace records and follow-ups.'],
+    overview: ['Lender Hub', 'Review local application workflows. Escrow, vendor verification, and payment services are not connected.'],
     applications: ['Loan Applications', 'Review incoming application records and document human follow-ups.'],
-    portfolio: ['Portfolio Overview', 'Review aggregate workflow records in this local lender workspace.'],
-    repayments: ['Repayments', 'Review illustrative repayment records. No payment system or bank ledger is connected.'],
+    portfolio: ['Capital Overview', 'Review requested amounts in local workflow records, not escrow balances.'],
+    disbursements: ['Disbursement Queue', 'Track application hand-offs locally. Nothing on this page authorizes or sends a payment.'],
+    vendors: ['Vendor Records', 'Vendor onboarding and verification are not connected to this workspace.'],
+    repayments: ['Payout History', 'Illustrative payout examples only. No payment system or bank ledger is connected.'],
+    audit: ['Local Audit Log', 'Browser-local workflow activity. This is not an immutable or institution-synced audit trail.'],
     risk: ['Risk Reviews', 'Record human follow-ups without automated borrower risk scores or credit decisions.'],
     transactions: ['Transactions', 'Review transaction records and reconciliation notes.'],
     soil: ['Soil Analytics', 'Explore illustrative field indicators attached to the demo portfolio.'],
@@ -241,7 +261,7 @@ export default function LenderDashboard({ user, persona, onLogout }) {
     setWorkspace((current) => ({ ...current, applications: [application, ...current.applications] }));
     setShowNewTrade(false);
     setNewTrade({ farmerRef: '', crop: 'Maize', amount: '', term: '6', region: '', purpose: '' });
-    setActivePage('applications');
+    setActivePage('disbursements');
     setStatusFilter('All statuses');
     setSearch('');
     setNotice('Local workflow record created. No loan was approved or funds transferred.');
@@ -287,12 +307,12 @@ export default function LenderDashboard({ user, persona, onLogout }) {
   return (
     <div className="lender-dashboard">
       <aside className={menuOpen ? 'lender-sidebar open' : 'lender-sidebar'}>
-        <div className="lender-brand"><span className="lender-brand-mark">AO</span><span><strong>AgriOS Escrow</strong><small>Lender Portal</small></span></div>
+        <div className="lender-brand"><span className="lender-brand-mark">AN</span><span><strong>Agri-NEST</strong><small>Lender Workspace</small></span></div>
         <div className="lender-profile">
           <span className="lender-avatar">{initials}</span>
           <span><strong>{userName}</strong><small>{institution}{persona?.label ? ` · ${persona.label}` : ''}</small></span>
         </div>
-        <button type="button" className="lender-new-trade" onClick={() => { setShowNewTrade(true); setMenuOpen(false); }}><span className="material-symbols-outlined">add</span>Secure New Trade</button>
+        <button type="button" className="lender-new-trade" onClick={() => { setShowNewTrade(true); setMenuOpen(false); }}><span className="material-symbols-outlined">add</span>New Request Record</button>
         <nav className="lender-navigation" aria-label="Lender workspace">
           {navigation.map((item) => (
             <button type="button" key={item.id} className={activePage === item.id ? 'active' : ''} aria-current={activePage === item.id ? 'page' : undefined} onClick={() => openPage(item.id)}>
@@ -310,7 +330,7 @@ export default function LenderDashboard({ user, persona, onLogout }) {
       <div className="lender-main-shell">
         <header className="lender-topbar">
           <button type="button" className="lender-menu-toggle" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><span className="material-symbols-outlined">menu</span></button>
-          <div className="lender-topbar-brand"><strong>AgriOS Escrow</strong><span>Lender Portal</span></div>
+          <div className="lender-topbar-brand"><strong>Agri-NEST</strong><span>Lender Workspace</span></div>
           <label className="lender-search"><span className="material-symbols-outlined">search</span><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setActivePage('applications'); }} placeholder="Search applications" aria-label="Search lender applications" /></label>
           <button type="button" className="lender-icon-button" aria-label="Notifications" onClick={() => openPage('applications')}><span className="material-symbols-outlined">notifications</span>{applicationCounts.Submitted > 0 && <span className="lender-notification-dot" />}</button>
           <button type="button" className="lender-topbar-avatar" aria-label={`Signed in as ${userName}`}>{initials}</button>
@@ -331,27 +351,54 @@ export default function LenderDashboard({ user, persona, onLogout }) {
           {activePage === 'overview' && (
             <>
               <section className="lender-metrics" aria-label="Portfolio metrics">
-                <MetricCard icon="account_balance" label="Capital in active reviews" value={formatTzs(activeCapital)} detail={`${activeApplications.length} open records`} tone="warm" />
-                <MetricCard icon="task_alt" label="Decision-record rate" value={`${portfolioRepaymentRate.toFixed(1)}%`} detail="Workflow records only" tone="mint" />
-                <MetricCard icon="group" label="Active loan applications" value={activeApplications.length.toLocaleString()} detail="Not funded loans" tone="neutral" />
-                <MetricCard icon="warning" label="Open follow-ups" value={applicationCounts['Info requested'] || 0} detail="Manual follow-up queue" tone="risk" />
+                <MetricCard icon="account_balance" label="Requested in open reviews" value={formatTzs(activeCapital)} detail="Not escrowed" tone="warm" />
+                <MetricCard icon="payments" label="Funds disbursed" value="Not connected" detail="No payment integration" tone="risk" />
+                <MetricCard icon="assignment" label="Open workflow records" value={activeApplications.length.toLocaleString()} detail="Not funded loans" tone="neutral" />
+                <MetricCard icon="verified_user" label="Verified vendors" value="Unavailable" detail="No verification service" tone="mint" />
               </section>
 
               <section className="lender-overview-grid">
                 <article className="lender-card lender-application-preview">
-                  <div className="lender-section-heading"><div><span className="lender-eyebrow">WORK QUEUE</span><h2>Recent applications</h2></div><button type="button" onClick={() => openPage('applications')}>View all<span className="material-symbols-outlined">arrow_forward</span></button></div>
+                  <div className="lender-section-heading"><div><span className="lender-eyebrow">LOCAL WORKFLOW QUEUE</span><h2>Recent disbursement requests</h2><p>Requested amounts only; no release or transfer action is available.</p></div><button type="button" onClick={() => openPage('disbursements')}>View queue<span className="material-symbols-outlined">arrow_forward</span></button></div>
                   {applications.length ? (
-                    <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Reference</th><th>Enterprise</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+                    <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Reference</th><th>Enterprise</th><th>Requested amount</th><th>Workflow status</th></tr></thead><tbody>
                       {applications.slice(0, 5).map((application) => <tr key={application.id} onClick={() => setSelectedId(application.id)}><td><strong>{application.id}</strong><small>{application.farmerRef}</small></td><td>{application.crop}<small>{application.region}</small></td><td>{formatTzs(application.amount)}</td><td><StatusBadge status={application.status} /></td></tr>)}
                     </tbody></table></div>
-                  ) : <div className="lender-empty"><span className="material-symbols-outlined">inbox</span><strong>No application records yet</strong><p>Use Secure New Trade to create a local workflow record.</p><button type="button" onClick={() => setShowNewTrade(true)}>Create a record</button></div>}
+                  ) : <div className="lender-empty"><span className="material-symbols-outlined">inbox</span><strong>No request records yet</strong><p>Create a local workflow record for human review.</p><button type="button" onClick={() => setShowNewTrade(true)}>Create a record</button></div>}
                 </article>
                 <aside className="lender-overview-side">
                   <article className="lender-card lender-queue-card"><div className="lender-section-heading"><div><span className="lender-eyebrow">APPLICATION PIPELINE</span><h2>Review queue</h2></div></div>{applicationStatuses.slice(0, 4).map((status) => <button type="button" key={status} onClick={() => { setStatusFilter(status); openPage('applications'); }}><span><i className={`lender-queue-dot ${status.toLowerCase().replaceAll(' ', '-')}`} />{status}</span><strong>{applicationCounts[status] || 0}</strong></button>)}</article>
-                  <article className="lender-card lender-activity-card"><span className="lender-eyebrow">WORKSPACE ACTIVITY</span><h2>Keep reviews consistent</h2><p>Record a status and note when a human reviewer completes a follow-up.</p><button type="button" onClick={() => openPage('applications')}>Open review queue<span className="material-symbols-outlined">arrow_forward</span></button></article>
+                  <article className="lender-card lender-activity-card"><span className="lender-eyebrow">VENDOR STATUS</span><h2>Verification unavailable</h2><p>This workspace has no vendor directory or connected verification provider. No vendor is marked verified.</p><button type="button" onClick={() => openPage('vendors')}>View vendor records<span className="material-symbols-outlined">arrow_forward</span></button></article>
                 </aside>
               </section>
+              <section className="lender-card lender-audit-preview">
+                <div className="lender-section-heading"><div><span className="lender-eyebrow">RECENT ACTIVITY · LOCAL ONLY</span><h2>Workspace activity</h2></div><button type="button" onClick={() => openPage('audit')}>Open audit log<span className="material-symbols-outlined">arrow_forward</span></button></div>
+                {auditEntries.length ? <div className="lender-activity-list">{auditEntries.slice(0, 3).map((entry) => <div key={entry.id}><span className="material-symbols-outlined">history</span><div><strong>{entry.action}</strong><p>{entry.applicationId} · {entry.detail}</p></div><time>{entry.date}</time></div>)}</div> : <p className="lender-empty-copy">No local activity has been recorded.</p>}
+                <p className="lender-activity-disclaimer">Entries can be edited or cleared in this browser; this is not an immutable or synced audit system.</p>
+              </section>
             </>
+          )}
+
+          {activePage === 'disbursements' && (
+            <section className="lender-card lender-full-card">
+              <div className="lender-section-heading lender-list-heading"><div><span className="lender-eyebrow">APPLICATION HAND-OFF QUEUE</span><h2>Disbursement request records</h2><p>These are application workflow records, not approved disbursements. No escrow account, payment rail, or funds-release service is connected.</p></div><button type="button" className="lender-outline-button" onClick={() => setShowNewTrade(true)}><span className="material-symbols-outlined">add</span>New request record</button></div>
+              {applications.length ? <div className="lender-table-scroll"><table className="lender-table lender-applications-table"><thead><tr><th>Request ref.</th><th>Borrower ref.</th><th>Purpose</th><th>Requested amount</th><th>Workflow status</th><th>Received</th><th>Record type</th><th /></tr></thead><tbody>{applications.map((application) => <tr key={application.id}><td><strong>{application.id}</strong></td><td>{application.farmerRef}</td><td>{application.purpose}</td><td>{formatTzs(application.amount)}</td><td><StatusBadge status={application.status} /></td><td>{application.date}</td><td>{application.demo ? 'Illustrative' : 'Local'}</td><td><button type="button" className="lender-row-action" onClick={() => setSelectedId(application.id)}>Open record</button></td></tr>)}</tbody></table></div> : <div className="lender-empty"><span className="material-symbols-outlined">outbox</span><strong>No request records yet</strong><p>New records remain in this browser and do not initiate a payment.</p><button type="button" onClick={() => setShowNewTrade(true)}>Create a request record</button></div>}
+              <div className="lender-model-note"><span className="material-symbols-outlined">info</span><p>A recorded workflow status is not a credit decision or authorization to release funds. Confirm all decisions and payments through your institution's verified systems.</p></div>
+            </section>
+          )}
+
+          {activePage === 'vendors' && (
+            <section className="lender-card lender-full-card">
+              <div className="lender-section-heading"><div><span className="lender-eyebrow">VENDOR DIRECTORY</span><h2>Vendor records</h2><p>No vendor records are currently available in this lender workspace.</p></div></div>
+              <div className="lender-integration-state"><span className="material-symbols-outlined">storefront</span><div><strong>Vendor onboarding and verification are not connected</strong><p>There is no vendor directory, verification provider, or evidence source configured here. Vendor status cannot be verified or represented as approved.</p></div></div>
+            </section>
+          )}
+
+          {activePage === 'audit' && (
+            <section className="lender-card lender-full-card">
+              <div className="lender-section-heading"><div><span className="lender-eyebrow">BROWSER-LOCAL ACTIVITY</span><h2>Workflow audit log</h2><p>Activity is reconstructed from records stored in this browser. It is not immutable, institution-synced, or a compliance audit trail.</p></div></div>
+              {auditEntries.length ? <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Date</th><th>Record</th><th>Activity</th><th>Details</th><th>Type</th></tr></thead><tbody>{auditEntries.map((entry) => <tr key={entry.id}><td>{entry.date}</td><td><strong>{entry.applicationId}</strong></td><td>{entry.action}</td><td>{entry.detail}</td><td>{entry.demo ? 'Illustrative' : 'Local'}</td></tr>)}</tbody></table></div> : <div className="lender-empty"><span className="material-symbols-outlined">history</span><strong>No activity records yet</strong><p>Local application records and review notes will appear here.</p></div>}
+            </section>
           )}
 
           {activePage === 'applications' && (
@@ -364,7 +411,7 @@ export default function LenderDashboard({ user, persona, onLogout }) {
 
           {activePage === 'portfolio' && (
             <section className="lender-card lender-full-card">
-              <div className="lender-section-heading"><div><span className="lender-eyebrow">AGGREGATE WORKFLOW VIEW</span><h2>Portfolio composition</h2><p>Summaries use only records currently displayed in this local workspace; they are not funded balances.</p></div></div>
+              <div className="lender-section-heading"><div><span className="lender-eyebrow">LOCAL WORKFLOW SUMMARY</span><h2>Capital overview</h2><p>Summaries reflect application records only. They are not escrow balances, approved capital, or funds disbursed.</p></div></div>
               <div className="lender-soil-grid">{[
                 ['Open application value', formatTzs(activeCapital), `${activeApplications.length} open workflow records`, 'account_balance'],
                 ['Submitted', String(applicationCounts.Submitted || 0), 'Awaiting initial human review', 'assignment'],
@@ -377,10 +424,10 @@ export default function LenderDashboard({ user, persona, onLogout }) {
 
           {activePage === 'repayments' && (
             <section className="lender-card lender-full-card">
-              <div className="lender-section-heading"><div><span className="lender-eyebrow">REPAYMENT REGISTER · DEMO</span><h2>Repayment records</h2><p>Illustrative entries only; reconcile against a verified lender ledger before operational use.</p></div><button type="button" className="lender-outline-button" onClick={() => { try { downloadCsv('agrinest-lender-repayments.csv', [['transaction_id', 'application_id', 'date', 'amount_tzs', 'status'], ...demoRepayments.map((entry) => [entry.id, entry.applicationId, entry.date, entry.amount, entry.status])]); setNotice('Illustrative repayment register exported.'); } catch (error) { console.error('Repayment export failed:', error); setNotice('Could not export the repayment register.'); } }}><span className="material-symbols-outlined">download</span>Export CSV</button></div>
-              <div className="lender-demo-inline">The sample repayment entries below are fictional and do not reflect actual transactions.</div>
-              <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Repayment ref.</th><th>Application ref.</th><th>Date</th><th>Recorded amount</th><th>Reconciliation</th></tr></thead><tbody>{demoRepayments.map((entry) => <tr key={entry.id}><td><strong>{entry.id}</strong></td><td>{entry.applicationId}</td><td>{entry.date}</td><td>{formatTzs(entry.amount)}</td><td><StatusBadge status={entry.status === 'Recorded' ? 'Decision recorded' : 'Info requested'} /></td></tr>)}</tbody></table></div>
-              <div className="lender-model-note"><span className="material-symbols-outlined">account_balance</span><p>Recording or exporting this demo register will not contact a bank, debit or credit an account, or reconcile a real borrower balance.</p></div>
+              <div className="lender-section-heading"><div><span className="lender-eyebrow">PAYOUT HISTORY · ILLUSTRATIVE</span><h2>Example payout records</h2><p>No live payout history is available because a payment system and bank ledger are not connected.</p></div><button type="button" className="lender-outline-button" onClick={() => { try { downloadCsv('agrinest-lender-payout-examples.csv', [['example_id', 'application_id', 'example_date', 'example_amount_tzs', 'example_status'], ...demoRepayments.map((entry) => [entry.id, entry.applicationId, entry.date, entry.amount, entry.status])]); setNotice('Illustrative payout examples exported.'); } catch (error) { console.error('Payout example export failed:', error); setNotice('Could not export payout examples.'); } }}><span className="material-symbols-outlined">download</span>Export examples</button></div>
+              <div className="lender-demo-inline">These fictional rows are for interface demonstration only. They are not real payouts, payment instructions, or reconciled transactions.</div>
+              <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Example ref.</th><th>Application ref.</th><th>Example date</th><th>Example amount</th><th>Example status</th></tr></thead><tbody>{demoRepayments.map((entry) => <tr key={entry.id}><td><strong>{entry.id}</strong></td><td>{entry.applicationId}</td><td>{entry.date}</td><td>{formatTzs(entry.amount)}</td><td><StatusBadge status={entry.status === 'Recorded' ? 'Decision recorded' : 'Info requested'} /></td></tr>)}</tbody></table></div>
+              <div className="lender-model-note"><span className="material-symbols-outlined">account_balance</span><p>Exporting these examples does not contact a bank, debit or credit an account, or reconcile a real borrower balance.</p></div>
             </section>
           )}
 
@@ -439,8 +486,8 @@ export default function LenderDashboard({ user, persona, onLogout }) {
       {showNewTrade && (
         <div className="lender-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowNewTrade(false); }}>
           <section className="lender-modal lender-new-trade-modal" role="dialog" aria-modal="true" aria-labelledby="lender-new-trade-title">
-            <div className="lender-modal-header"><div><span className="lender-eyebrow">LOCAL WORKFLOW ONLY</span><h2 id="lender-new-trade-title">Secure New Trade</h2></div><button type="button" className="lender-icon-button" aria-label="Close new trade form" onClick={() => setShowNewTrade(false)}><span className="material-symbols-outlined">close</span></button></div>
-            <p className="lender-demo-inline">Create a local review record. This does not constitute a credit decision or move money.</p>
+            <div className="lender-modal-header"><div><span className="lender-eyebrow">LOCAL WORKFLOW ONLY</span><h2 id="lender-new-trade-title">New request record</h2></div><button type="button" className="lender-icon-button" aria-label="Close new request form" onClick={() => setShowNewTrade(false)}><span className="material-symbols-outlined">close</span></button></div>
+            <p className="lender-demo-inline">Create an application record for human review. This does not approve a loan, create an escrow balance, or move money.</p>
             <form className="lender-new-trade-form" onSubmit={createTrade}>
               <label>Borrower reference<input required maxLength={60} value={newTrade.farmerRef} onChange={(event) => setNewTrade((current) => ({ ...current, farmerRef: event.target.value }))} placeholder="Use a permitted internal reference" /></label>
               <label>Crop / enterprise<select value={newTrade.crop} onChange={(event) => setNewTrade((current) => ({ ...current, crop: event.target.value }))}>{['Maize', 'Beans', 'Sunflower', 'Poultry', 'Other'].map((crop) => <option key={crop}>{crop}</option>)}</select></label>

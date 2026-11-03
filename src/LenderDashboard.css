@@ -1,13 +1,13 @@
 .lender-dashboard {
-  --lender-primary: #26170c;
-  --lender-primary-soft: #3d2b1f;
-  --lender-secondary: #a03f29;
+  --lender-primary: #17473d;
+  --lender-primary-soft: #255c4f;
+  --lender-secondary: #a84c32;
   --lender-tertiary: #173c36;
-  --lender-ink: #1d1b1a;
-  --lender-muted: #716761;
-  --lender-outline: #d2c4bc;
-  --lender-surface: #fff8f5;
-  --lender-low: #f9f2f0;
+  --lender-ink: #202b27;
+  --lender-muted: #6d7974;
+  --lender-outline: #d8e0db;
+  --lender-surface: #f5f7f5;
+  --lender-low: #edf2ef;
   display: flex;
   min-height: 100vh;
   background: var(--lender-surface);
@@ -32,11 +32,11 @@
   z-index: 50;
   inset: 0 auto 0 0;
   display: flex;
-  width: 12rem;
+  width: 14rem;
   flex-direction: column;
   padding: 1.15rem 0.8rem 0.8rem;
   border-right: 1px solid rgba(129, 117, 110, 0.13);
-  background: #f9f2f0;
+  background: #fff;
 }
 
 .lender-brand {
@@ -144,6 +144,7 @@
   display: grid;
   align-content: start;
   gap: 0.22rem;
+  overflow-y: auto;
   margin-top: 1.2rem;
 }
 
@@ -167,13 +168,13 @@
 
 .lender-navigation button:hover,
 .lender-sidebar-footer button:hover {
-  background: #eee7e4;
+  background: #edf2ef;
 }
 
 .lender-navigation button.active {
-  background: #665348;
-  color: #fff8f5;
-  box-shadow: 0 3px 8px rgba(38, 23, 12, 0.11);
+  background: #e6f0eb;
+  color: var(--lender-primary);
+  box-shadow: inset 3px 0 #34735f;
 }
 
 .lender-navigation button .material-symbols-outlined,
@@ -191,9 +192,9 @@
 
 .lender-main-shell {
   min-width: 0;
-  width: calc(100% - 12rem);
+  width: calc(100% - 14rem);
   min-height: 100vh;
-  margin-left: 12rem;
+  margin-left: 14rem;
 }
 
 .lender-topbar {
@@ -206,7 +207,7 @@
   gap: 0.75rem;
   padding: 0 1.5rem;
   border-bottom: 1px solid rgba(129, 117, 110, 0.13);
-  background: rgba(255, 248, 245, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
 }
 
@@ -422,10 +423,10 @@
 
 .lender-metric-card,
 .lender-card {
-  border: 1px solid rgba(129, 117, 110, 0.1);
-  border-radius: 0.7rem;
+  border: 1px solid rgba(78, 105, 92, 0.12);
+  border-radius: 0.8rem;
   background: #fff;
-  box-shadow: 0 4px 16px rgba(61, 43, 31, 0.06);
+  box-shadow: 0 4px 16px rgba(37, 68, 54, 0.055);
 }
 
 .lender-metric-card {
@@ -712,7 +713,7 @@
 }
 
 .lender-activity-card {
-  background: linear-gradient(145deg, #f7f1ed, #fff);
+  background: linear-gradient(145deg, #eef5f1, #fff);
 }
 
 .lender-activity-card h2 {
@@ -744,6 +745,84 @@
 
 .lender-activity-card button .material-symbols-outlined {
   font-size: 0.85rem;
+}
+
+.lender-audit-preview {
+  margin-top: 0.85rem;
+}
+
+.lender-activity-list {
+  display: grid;
+}
+
+.lender-activity-list > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.lender-activity-list > div:last-child {
+  border-bottom: 0;
+}
+
+.lender-activity-list > div > .material-symbols-outlined {
+  color: #527b6b;
+  font-size: 1rem;
+}
+
+.lender-activity-list strong {
+  color: #35433c;
+  font-size: 0.64rem;
+}
+
+.lender-activity-list p,
+.lender-empty-copy,
+.lender-activity-disclaimer {
+  margin: 0.2rem 0 0;
+  color: var(--lender-muted);
+  font-size: 0.58rem;
+  line-height: 1.45;
+}
+
+.lender-activity-list time {
+  color: #7c8982;
+  font-size: 0.56rem;
+}
+
+.lender-activity-disclaimer {
+  margin-top: 0.55rem;
+}
+
+.lender-integration-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  max-width: 46rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #dce8e1;
+  border-radius: 0.65rem;
+  background: #f3f8f5;
+}
+
+.lender-integration-state > .material-symbols-outlined {
+  color: #46735f;
+  font-size: 1.4rem;
+}
+
+.lender-integration-state strong {
+  color: #294438;
+  font-size: 0.76rem;
+}
+
+.lender-integration-state p {
+  margin: 0.3rem 0 0;
+  color: #65756c;
+  font-size: 0.65rem;
+  line-height: 1.55;
 }
 
 .lender-empty {
