@@ -119,6 +119,7 @@ async function consumeAuthorizationCode(code, registrationIntent = null) {
     sub: profile.sub,
     email: profile.email,
     name: profile.name,
+    picture: profile.picture,
     registration: registrationIntent,
   });
   return AuthService.createGoogleExchangeCode(user.user_id);

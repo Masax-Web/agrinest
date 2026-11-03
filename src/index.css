@@ -3678,6 +3678,33 @@ body.admin-impersonation-active #root {
   display: block;
 }
 
+.profile-photo-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #e8eee8;
+  color: #365646;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.user-avatar-wrap .profile-photo-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-sync-status {
+  margin-top: 0.2rem;
+  color: #68736d;
+  font-size: 0.65rem;
+}
+
+.profile-sync-synced { color: #26734d; }
+.profile-sync-local { color: #9a5a18; }
+
 .profile-menu {
   position: absolute;
   top: calc(100% + 0.7rem);
@@ -3790,6 +3817,56 @@ body.admin-impersonation-active #root {
   box-shadow: 0 6px 18px rgba(61, 43, 31, 0.08);
 }
 
+.welcome-panel::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 48%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+.welcome-panel[data-time-of-day="dawn"] {
+  background: linear-gradient(110deg, #302a37 0%, #85533d 55%, #c27946 100%);
+}
+
+.welcome-panel[data-time-of-day="morning"] {
+  background: linear-gradient(110deg, #183d35 0%, #426b46 58%, #b17a37 100%);
+}
+
+.welcome-panel[data-time-of-day="noon"] {
+  background: linear-gradient(110deg, #16515b 0%, #327f75 58%, #a88b4a 100%);
+}
+
+.welcome-panel[data-time-of-day="evening"] {
+  background: linear-gradient(110deg, #29273e 0%, #634653 58%, #a66643 100%);
+}
+
+.welcome-panel[data-time-of-day="night"] {
+  background: linear-gradient(110deg, #101c31 0%, #26354d 58%, #35434b 100%);
+}
+
+.welcome-panel[data-weather="rain"]::after,
+.welcome-panel[data-weather="storm"]::after {
+  background: linear-gradient(115deg, rgba(28, 44, 58, 0.12), rgba(38, 65, 87, 0.62));
+}
+
+.welcome-panel[data-weather="cloud"]::after {
+  background: linear-gradient(110deg, rgba(110, 125, 130, 0.08), rgba(185, 193, 184, 0.22));
+}
+
+.welcome-weather-overlay {
+  position: absolute;
+  z-index: 0;
+  right: 2rem;
+  bottom: -3rem;
+  opacity: 0.2;
+  font-size: clamp(6rem, 14vw, 11rem);
+  line-height: 1;
+  pointer-events: none;
+  filter: saturate(0.7);
+}
+
 .welcome-inner {
   position: relative;
   z-index: 1;
@@ -3808,6 +3885,24 @@ body.admin-impersonation-active #root {
   margin: 0.6rem 0 0;
   color: rgba(230, 223, 214, 0.82);
   font-size: 1.1rem;
+}
+
+.welcome-live-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.welcome-live-context span {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(14, 20, 23, 0.2);
+  backdrop-filter: blur(8px);
 }
 
 .welcome-glow {
@@ -6318,6 +6413,31 @@ body.admin-impersonation-active #root {
   text-transform: none !important;
 }
 
+.weather-location-status {
+  margin-top: 0.3rem !important;
+  font-size: 0.62rem !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  opacity: 0.72;
+}
+
+.weather-loading {
+  min-height: 12rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  color: #fff;
+  text-align: center;
+}
+
+.weather-loading > span:last-child {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.72rem;
+}
+
 .weather-symbol {
   font-size: 2.2rem;
 }
@@ -6577,7 +6697,8 @@ body.admin-impersonation-active #root {
   background: #fff;
 }
 
-.profile-photo-control > img {
+.profile-photo-control > img,
+.profile-photo-control > .profile-edit-avatar {
   width: 4rem;
   height: 4rem;
   flex: 0 0 auto;

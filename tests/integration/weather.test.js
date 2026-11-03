@@ -32,4 +32,51 @@ describe('weather snapshot builder', () => {
     expect(weather.forecast[0].temp).to.equal('28°');
     expect(weather.forecast[0].icon).to.equal('🌤️');
   });
+
+  it('uses complete saved farm coordinates, including valid zero coordinates', async () => {
+    const { getSavedWeatherLocation } = await import('../../src/lib/weather.js');
+    expect(getSavedWeatherLocation({ latitude: '0', longitude: '0', city: 'Accra' })).to.deep.equal({
+      latitude: 0,
+      longitude: 0,
+      location: 'Accra',
+      source: 'saved',
+    });
+    expect(getSavedWeatherLocation({ latitude: '', longitude: '35.69' })).to.equal(null);
+    expect(getSavedWeatherLocation({ latitude: '91', longitude: '35.69' })).to.equal(null);
+  });
+
+  it('geocodes a saved farm address and returns source metadata', async () => {
+    const { geocodeSavedWeatherLocation } = await import('../../src/lib/weather.js');
+    const originalFetch = global.fetch;
+    global.fetch = async (url) => {
+      expect(String(url)).to.include('name=Iringa');
+      return {
+        ok: true,
+        json: async () => ({
+          results: [{ name: 'Iringa', admin1: 'Iringa', country: 'Tanzania', latitude: -7.77, longitude: 35.69 }],
+        }),
+      };
+    };
+
+    try {
+      expect(await geocodeSavedWeatherLocation({ city: 'Iringa' })).to.deep.equal({
+        latitude: -7.77,
+        longitude: 35.69,
+        location: 'Iringa, Tanzania',
+        source: 'saved',
+      });
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('preserves the requested weather location and source in the snapshot', async () => {
+    const { buildWeatherSnapshot } = await import('../../src/lib/weather.js');
+    const weather = buildWeatherSnapshot({ current: { temperature_2m: 21, weather_code: 3 } }, {
+      location: 'Current GPS location',
+      source: 'gps',
+    });
+    expect(weather.location).to.equal('Current GPS location');
+    expect(weather.source).to.equal('gps');
+  });
 });

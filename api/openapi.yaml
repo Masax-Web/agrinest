@@ -181,6 +181,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthResult'
 
+  /auth/profile:
+    get:
+      summary: Get the authenticated user's farmer profile
+      responses:
+        '200':
+          description: Saved profile, including the account photo fallback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmerProfileResult'
+        '401':
+          description: A valid session is required
+    put:
+      summary: Save the authenticated user's farmer profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profile]
+              properties:
+                profile:
+                  $ref: '#/components/schemas/FarmerProfile'
+      responses:
+        '200':
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmerProfileResult'
+        '400':
+          description: Invalid profile or image
+        '401':
+          description: A valid session is required
+        '413':
+          description: Profile exceeds the allowed size
+
   /auth/admin/impersonate:
     post:
       summary: Start a short-lived super-admin impersonation session
@@ -1132,6 +1170,21 @@ components:
             properties:
               path: { type: string }
               message: { type: string }
+    FarmerProfile:
+      type: object
+      additionalProperties: true
+    FarmerProfileResult:
+      type: object
+      required: [profile, has_saved_profile]
+      properties:
+        profile:
+          $ref: '#/components/schemas/FarmerProfile'
+        has_saved_profile:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
     GoogleExchangeRequest:
       type: object
       required: [code]

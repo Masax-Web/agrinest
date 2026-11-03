@@ -1,4 +1,51 @@
 export const WEATHER_LOCATION = { label: 'Iringa, Tanzania', latitude: -7.77, longitude: 35.69 };
+const GEOCODING_API_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+
+function isValidCoordinate(latitude, longitude) {
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+}
+
+function formatGeocodedLocation(result) {
+  return [result.name, result.admin1, result.country]
+    .filter((part, index, parts) => part && parts.indexOf(part) === index)
+    .join(', ');
+}
+
+export function getSavedWeatherLocation(profile = {}) {
+  const latitude = Number(profile.latitude);
+  const longitude = Number(profile.longitude);
+  const hasLatitude = profile.latitude !== '' && profile.latitude !== null && profile.latitude !== undefined;
+  const hasLongitude = profile.longitude !== '' && profile.longitude !== null && profile.longitude !== undefined;
+  if (hasLatitude && hasLongitude && isValidCoordinate(latitude, longitude)) {
+    return {
+      latitude,
+      longitude,
+      location: [profile.city, profile.region, profile.country].filter(Boolean).join(', ') || profile.location || 'Saved farm location',
+      source: 'saved',
+    };
+  }
+  return null;
+}
+
+export async function geocodeSavedWeatherLocation(profile = {}) {
+  const query = profile.city || profile.district || profile.region || profile.location;
+  if (!query) return null;
+  const params = new URLSearchParams({ name: query, count: '1', language: 'en', format: 'json' });
+  const response = await fetch(`${GEOCODING_API_URL}?${params}`);
+  if (!response.ok) throw new Error(`Location lookup failed with status ${response.status}`);
+  const results = await response.json();
+  const [result] = results.results || [];
+  const latitude = Number(result?.latitude);
+  const longitude = Number(result?.longitude);
+  if (!result || !isValidCoordinate(latitude, longitude)) return null;
+  return {
+    latitude,
+    longitude,
+    location: formatGeocodedLocation(result) || query,
+    source: 'saved',
+  };
+}
 
 const WEATHER_CODE_MAP = {
   0: { label: 'Clear sky', icon: '☀️' },
@@ -42,10 +89,10 @@ function getDayLabel(dateString) {
   return date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
 }
 
-export function buildWeatherSnapshot(data) {
+export function buildWeatherSnapshot(data, { location = WEATHER_LOCATION.label, source = 'default' } = {}) {
   const current = data?.current || {};
   const daily = data?.daily || {};
-  const defaultCode = Number(daily.weather_code?.[0] ?? current.weather_code ?? 0);
+  const defaultCode = Number(current.weather_code ?? daily.weather_code?.[0] ?? 0);
   const weatherMeta = getWeatherMeta(defaultCode);
 
   const currentTemperature = Number(current.temperature_2m ?? 0);
@@ -69,7 +116,9 @@ export function buildWeatherSnapshot(data) {
   });
 
   return {
-    location: WEATHER_LOCATION.label,
+    location,
+    source,
+    updatedAt: current.time || new Date().toISOString(),
     current: {
       temperature: Math.round(currentTemperature),
       humidity: Math.round(currentHumidity),
@@ -83,7 +132,15 @@ export function buildWeatherSnapshot(data) {
   };
 }
 
-export async function fetchWeatherData({ latitude = WEATHER_LOCATION.latitude, longitude = WEATHER_LOCATION.longitude } = {}) {
+export async function fetchWeatherData({
+  latitude = WEATHER_LOCATION.latitude,
+  longitude = WEATHER_LOCATION.longitude,
+  location = WEATHER_LOCATION.label,
+  source = 'default',
+} = {}) {
+  if (!isValidCoordinate(Number(latitude), Number(longitude))) {
+    throw new Error('Weather coordinates are invalid.');
+  }
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max&timezone=auto&forecast_days=7`;
 
   const response = await fetch(weatherUrl);
@@ -92,5 +149,5 @@ export async function fetchWeatherData({ latitude = WEATHER_LOCATION.latitude, l
   }
 
   const data = await response.json();
-  return buildWeatherSnapshot(data);
+  return buildWeatherSnapshot(data, { location, source });
 }

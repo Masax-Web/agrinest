@@ -45,6 +45,17 @@ export const api = {
     return apiRequest('/auth/me');
   },
 
+  async getFarmerProfile() {
+    return apiRequest('/auth/profile');
+  },
+
+  async saveFarmerProfile(profile) {
+    return apiRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ profile }),
+    });
+  },
+
   async startAdminImpersonation(userId) {
     return apiRequest('/auth/admin/impersonate', {
       method: 'POST',

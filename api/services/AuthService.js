@@ -8,6 +8,12 @@ const passwordKeyLength = 64;
 const sessionLifetimeMs = 12 * 60 * 60 * 1000;
 const recentAuthenticationWindowMs = 5 * 60 * 1000;
 const adminImpersonationLifetimeMs = 15 * 60 * 1000;
+const farmerProfileFields = new Set([
+  'name', 'phone', 'phoneNumbers', 'primaryPhoneId', 'email', 'location', 'country', 'region',
+  'city', 'district', 'ward', 'street', 'nidaLast4', 'farm', 'farmSize', 'crops', 'livestock',
+  'landTenure', 'yearsFarming', 'cooperative', 'irrigation', 'certifications', 'latitude',
+  'longitude', 'bankAccounts', 'avatar', 'coverPhoto',
+]);
 const personasById = new Map(personas.map((persona) => [persona.id, persona]));
 const legacyPersonaIds = {
   smallholder: 'smallholder_farmer', farmer: 'smallholder_farmer', commercial: 'commercial_farmer',
@@ -51,6 +57,7 @@ function publicUser(user) {
     name: user.name,
     email: user.email || null,
     phone: user.phone || null,
+    avatar_url: user.avatar_url || null,
     role: normalizePersonaId(user.role),
     role_status: user.role_status || 'active',
     region: user.region || null,
@@ -287,7 +294,7 @@ async function completePinChallenge({ challenge_token: challengeToken, pin } = {
   return result;
 }
 
-async function findOrCreateGoogleUser({ sub, email, name, registration } = {}) {
+async function findOrCreateGoogleUser({ sub, email, name, picture, registration } = {}) {
   const verifiedEmail = normalizeEmail(email);
   if (!sub || !verifiedEmail) fail('google_identity_invalid', 401);
   const bootstrapEmail = normalizeEmail(process.env.ADMIN_BOOTSTRAP_EMAIL);
@@ -334,6 +341,7 @@ async function findOrCreateGoogleUser({ sub, email, name, registration } = {}) {
         const [created] = await transaction('users').insert({
           email: verifiedEmail,
           google_subject: sub,
+          avatar_url: picture || null,
           name: String(name || verifiedEmail).slice(0, 120),
           phone: requestedPhone,
           role,
@@ -350,10 +358,12 @@ async function findOrCreateGoogleUser({ sub, email, name, registration } = {}) {
       } else {
         await transaction('users').where({ user_id: user.user_id }).update({
           google_subject: sub,
+          avatar_url: user.avatar_url || picture || null,
           name: user.name || String(name || verifiedEmail).slice(0, 120),
           updated_at: new Date(),
         });
         user.google_subject = sub;
+        user.avatar_url = user.avatar_url || picture || null;
         if (!user.name) user.name = String(name || verifiedEmail).slice(0, 120);
       }
     }
@@ -452,10 +462,58 @@ async function getSessionUser(token) {
     .where('sessions.token_hash', hashToken(token))
     .whereNull('sessions.revoked_at')
     .andWhere('sessions.expires_at', '>', new Date())
-    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.session_id', 'sessions.created_at as session_created_at')
+    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.avatar_url', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.session_id', 'sessions.created_at as session_created_at')
     .first();
   if (!row || (row.role_status && row.role_status !== 'active')) return null;
   return { user: publicUser(row), sessionCreatedAt: row.session_created_at, sessionId: row.session_id };
+}
+
+function sanitizeFarmerProfile(profile) {
+  if (!profile || typeof profile !== 'object' || Array.isArray(profile)) fail('invalid_profile', 400);
+  const sanitized = Object.fromEntries(
+    Object.entries(profile).filter(([key]) => farmerProfileFields.has(key)),
+  );
+  delete sanitized.nidaNumber;
+  for (const field of ['avatar', 'coverPhoto']) {
+    const image = sanitized[field];
+    if (image && (typeof image !== 'string'
+      || image.length > 5_000_000
+      || !/^(https:\/\/|data:image\/(?:jpeg|png|webp);base64,)/i.test(image))) {
+      fail('invalid_profile_image', 400);
+    }
+  }
+  if (Buffer.byteLength(JSON.stringify(sanitized), 'utf8') > 8_000_000) fail('profile_too_large', 413);
+  return sanitized;
+}
+
+async function getFarmerProfile(userId) {
+  const [user, profileRow] = await Promise.all([
+    knex('users').select('avatar_url').where({ user_id: userId }).first(),
+    knex('farmer_profiles').select('profile', 'updated_at').where({ user_id: userId }).first(),
+  ]);
+  if (!user) fail('account_not_found', 404);
+  const profile = profileRow?.profile || {};
+  return {
+    profile: { ...profile, avatar: profile.avatar || user.avatar_url || '' },
+    has_saved_profile: Boolean(profileRow),
+    updated_at: profileRow?.updated_at || null,
+  };
+}
+
+async function saveFarmerProfile(userId, profile) {
+  const sanitized = sanitizeFarmerProfile(profile);
+  await knex.transaction(async (transaction) => {
+    await transaction('farmer_profiles')
+      .insert({ user_id: userId, profile: sanitized, updated_at: new Date() })
+      .onConflict('user_id')
+      .merge({ profile: sanitized, updated_at: new Date() });
+    const userUpdates = { updated_at: new Date() };
+    if (typeof sanitized.name === 'string') userUpdates.name = sanitized.name.trim().slice(0, 120);
+    if (typeof sanitized.region === 'string') userUpdates.region = sanitized.region.trim().slice(0, 120);
+    if (Object.hasOwn(sanitized, 'avatar')) userUpdates.avatar_url = sanitized.avatar || null;
+    await transaction('users').where({ user_id: userId }).update(userUpdates);
+  });
+  return getFarmerProfile(userId);
 }
 
 async function startAdminImpersonation({ actorId, actorSessionId, targetId } = {}) {
@@ -740,6 +798,7 @@ module.exports = {
   exchangeGoogleCode,
   endAdminImpersonation,
   findOrCreateGoogleUser,
+  getFarmerProfile,
   getAdminImpersonation,
   getSessionUser,
   hashPassword,
@@ -754,6 +813,7 @@ module.exports = {
   registerUser,
   removePin,
   revokeSession,
+  saveFarmerProfile,
   setPin,
   startAdminImpersonation,
   setUserPersona,

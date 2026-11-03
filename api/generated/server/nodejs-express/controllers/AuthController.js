@@ -165,6 +165,22 @@ router.get('/me', authenticate, (req, res) => {
   });
 });
 
+router.get('/profile', authenticate, async (req, res) => {
+  try {
+    return res.json(await AuthService.getFarmerProfile(req.authUser.user_id));
+  } catch (err) {
+    return sendAuthError(res, err, 'getFarmerProfile');
+  }
+});
+
+router.put('/profile', authenticate, async (req, res) => {
+  try {
+    return res.json(await AuthService.saveFarmerProfile(req.authUser.user_id, req.body.profile));
+  } catch (err) {
+    return sendAuthError(res, err, 'saveFarmerProfile');
+  }
+});
+
 router.post('/admin/impersonate', authenticate, requireAdmin, async (req, res) => {
   try {
     const result = await AuthService.startAdminImpersonation({

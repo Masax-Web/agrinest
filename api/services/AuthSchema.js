@@ -14,12 +14,18 @@ async function ensureAuthSchema(knex) {
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT');
   await knex.raw('ALTER TABLE users ALTER COLUMN phone DROP NOT NULL');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_subject TEXT');
+  await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT');
   await knex.raw("ALTER TABLE users ADD COLUMN IF NOT EXISTS role_status TEXT NOT NULL DEFAULT 'active'");
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ');
   await knex.raw('CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (LOWER(email)) WHERE email IS NOT NULL');
   await knex.raw('CREATE UNIQUE INDEX IF NOT EXISTS users_google_subject_idx ON users (google_subject) WHERE google_subject IS NOT NULL');
+  await knex.raw(`CREATE TABLE IF NOT EXISTS farmer_profiles (
+    user_id UUID PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+    profile JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
   await knex.raw(`CREATE TABLE IF NOT EXISTS auth_sessions (
     session_id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,

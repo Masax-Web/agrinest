@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import api from './lib/api';
 import { calculateFarmerTrust } from './lib/farmer-trust';
-import { buildWeatherSnapshot, fetchWeatherData } from './lib/weather';
+import { fetchWeatherData, geocodeSavedWeatherLocation, getSavedWeatherLocation } from './lib/weather';
 import MarketplacePage from './MarketplacePage';
 import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
@@ -125,6 +125,35 @@ function GoogleSignInButton({ label, onClick, disabled }) {
   );
 }
 
+function ProfileAvatar({ src, name, className = '' }) {
+  const [imageUnavailable, setImageUnavailable] = useState(false);
+  useEffect(() => setImageUnavailable(false), [src]);
+  if (src && !imageUnavailable) {
+    return <img className={className} src={src} alt="" onError={() => setImageUnavailable(true)} />;
+  }
+  const initials = String(name || '?').trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  return <span className={`profile-photo-placeholder ${className}`} aria-hidden="true">{initials || '?'}</span>;
+}
+
+function getFarmerTimeOfDay(date) {
+  const hour = date.getHours();
+  if (hour < 5 || hour >= 20) return 'night';
+  if (hour < 7) return 'dawn';
+  if (hour < 11) return 'morning';
+  if (hour < 16) return 'noon';
+  return 'evening';
+}
+
+function getFarmerGreeting(timeOfDay) {
+  return ({
+    dawn: ['Habari za alfajiri', '🌅'],
+    morning: ['Habari za asubuhi', '☀️'],
+    noon: ['Habari za mchana', '🌤️'],
+    evening: ['Habari za jioni', '🌇'],
+    night: ['Habari za usiku', '🌙'],
+  })[timeOfDay];
+}
+
 const initialFarmerProfile = {
   name: 'Neema Mwangi',
   phone: '+255 712 345 678',
@@ -151,9 +180,30 @@ const initialFarmerProfile = {
   latitude: '',
   longitude: '',
   bankAccounts: [],
-  avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCbh0wAQt-YRtxj9FHtuLBvxNFRWm4P9Vu4Q4ysUZw-HAgJOzD31JDgH2HqnBO4xVPNzXQBJjh37ENyrfconVwGonhIu28jT26ToeH0UtJdYMzvf0_AMFdEiWyqC4GbaYcObHV4hFRobSwNEXFZ7j1jg9umCgptD5q-WSTIDQ2WCeqWVihSNcEw0UaVcv8V0K_Gvdi8zj722bH9TL-KoGjbc2r9p0PuJw9yzgbNWYWQjvbuFel3td6FoqgFswpxHpBxxuNoB1QcBFE',
+  avatar: '',
   coverPhoto: '',
 };
+
+function getFarmerProfileStorageKey(userId) {
+  return userId ? `agrinest-farmer-profile:${userId}` : 'agrinest-farmer-profile';
+}
+
+function getDefaultFarmerProfile(user = {}) {
+  const region = user.region || '';
+  return {
+    ...initialFarmerProfile,
+    name: user.name || initialFarmerProfile.name,
+    email: user.email || '',
+    phone: user.phone || '',
+    phoneNumbers: user.phone ? [{ id: 'auth-primary-phone', number: user.phone }] : [],
+    primaryPhoneId: user.phone ? 'auth-primary-phone' : '',
+    region,
+    location: region ? `${region}, Tanzania` : initialFarmerProfile.location,
+    avatar: user.avatar_url || '',
+  };
+}
+
+const LEGACY_FARMER_AVATAR_PREFIX = 'https://lh3.googleusercontent.com/aida-public/';
 
 const tanzaniaRegions = [
   'Arusha', 'Dar es Salaam', 'Dodoma', 'Geita', 'Iringa', 'Kagera', 'Katavi', 'Kigoma',
@@ -327,12 +377,19 @@ const defaultChatViewer = {
   location: initialFarmerProfile.location,
 };
 
-function readStoredFarmerProfile() {
+function readStoredFarmerProfile(userId, user = {}) {
   try {
-    const saved = window.localStorage.getItem('agrinest-farmer-profile');
-    return saved ? { ...initialFarmerProfile, ...JSON.parse(saved) } : initialFarmerProfile;
+    let saved = window.localStorage.getItem(getFarmerProfileStorageKey(userId));
+    if (!saved && userId) {
+      const ownerId = window.localStorage.getItem('agrinest-farmer-profile-owner');
+      if (!ownerId || ownerId === userId) saved = window.localStorage.getItem('agrinest-farmer-profile');
+    }
+    if (!saved) return getDefaultFarmerProfile(user);
+    const profile = { ...getDefaultFarmerProfile(user), ...JSON.parse(saved) };
+    if (profile.avatar?.startsWith(LEGACY_FARMER_AVATAR_PREFIX)) profile.avatar = user.avatar_url || '';
+    return profile;
   } catch {
-    return initialFarmerProfile;
+    return getDefaultFarmerProfile(user);
   }
 }
 
@@ -1243,7 +1300,7 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
                 <legend>Profile photos</legend>
                 <div className="profile-photo-fields">
                   <div className="profile-photo-control">
-                    <img src={draft.avatar} alt="Profile preview" />
+                    <ProfileAvatar src={draft.avatar} name={draft.name} className="profile-edit-avatar" />
                     <div>
                       <strong>Profile photo</strong>
                       <label className="profile-upload-btn">
@@ -1576,31 +1633,29 @@ function SmallholderDashboard({ user, onLogout }) {
   const [marketplaceSearch, setMarketplaceSearch] = useState('');
   const [isProfileEditing, setIsProfileEditing] = useState(false);
   const [farmerProfile, setFarmerProfile] = useState(() => {
-    try {
-      const savedProfile = window.localStorage.getItem('agrinest-farmer-profile');
-      if (!savedProfile) return initialFarmerProfile;
-      const saved = JSON.parse(savedProfile);
-      const legacyNida = String(saved.nidaNumber || '').replace(/\D/g, '');
-      const profile = {
-        ...initialFarmerProfile,
-        ...saved,
-        nidaLast4: legacyNida ? legacyNida.slice(-4) : saved.nidaLast4 || '',
-        bankAccounts: Array.isArray(saved.bankAccounts)
-          ? saved.bankAccounts.map((account, index) => ({
-            id: account.id || `saved-bank-${index}`,
-            bank: account.bank || '',
-            holder: account.holder || '',
-            last4: String(account.last4 || '').replace(/\D/g, '').slice(-4),
-          }))
-          : [],
-        ...normalizePhoneNumbers({ ...saved, phone: saved.phone || initialFarmerProfile.phone }),
-      };
-      delete profile.nidaNumber;
-      return profile;
-    } catch {
-      return initialFarmerProfile;
-    }
+    const saved = readStoredFarmerProfile(user?.user_id, user);
+    const legacyNida = String(saved.nidaNumber || '').replace(/\D/g, '');
+    const profile = {
+      ...getDefaultFarmerProfile(user),
+      ...saved,
+      avatar: saved.avatar?.startsWith(LEGACY_FARMER_AVATAR_PREFIX) ? user?.avatar_url || '' : saved.avatar,
+      nidaLast4: legacyNida ? legacyNida.slice(-4) : saved.nidaLast4 || '',
+      bankAccounts: Array.isArray(saved.bankAccounts)
+        ? saved.bankAccounts.map((account, index) => ({
+          id: account.id || `saved-bank-${index}`,
+          bank: account.bank || '',
+          holder: account.holder || '',
+          last4: String(account.last4 || '').replace(/\D/g, '').slice(-4),
+        }))
+        : [],
+      ...normalizePhoneNumbers({ ...saved, phone: saved.phone || '' }),
+    };
+    delete profile.nidaNumber;
+    return profile;
   });
+  const [profileSyncStatus, setProfileSyncStatus] = useState('loading');
+  const profileRevisionRef = useRef(0);
+  const profileSaveQueueRef = useRef(Promise.resolve());
   const [farmerRecords, setFarmerRecords] = useState(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem('agrinest-farmer-dashboard-records') || '{}');
@@ -1619,56 +1674,165 @@ function SmallholderDashboard({ user, onLogout }) {
   });
   const [liveListingCount, setLiveListingCount] = useState(0);
   const [notifications, setNotifications] = useState(initialNotifications);
-  const [weatherData, setWeatherData] = useState(() => buildWeatherSnapshot({
-    current: {
-      temperature_2m: 25,
-      relative_humidity_2m: 65,
-      precipitation: 0,
-      wind_speed_10m: 12,
-      uv_index: 4,
-      weather_code: 1,
-    },
-    daily: {
-      time: ['2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', '2026-01-05', '2026-01-06', '2026-01-07'],
-      weather_code: [1, 2, 3, 1, 2, 3, 1],
-      temperature_2m_max: [25, 24, 26, 27, 25, 24, 26],
-    },
-  }));
+  const [weatherData, setWeatherData] = useState(null);
+  const [weatherLocationStatus, setWeatherLocationStatus] = useState('Finding your farm location…');
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useNavScrollLock(isSidebarOpen);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadWeather = async () => {
+    let active = true;
+    let activeLocation = null;
+    let gpsLocationFound = false;
+    let latestRequest = 0;
+    const loadWeather = async (location) => {
+      const requestId = ++latestRequest;
       try {
-        const liveWeather = await fetchWeatherData({ latitude: -7.77, longitude: 35.69 });
-        if (!cancelled) {
+        const liveWeather = await fetchWeatherData(location);
+        if (active && requestId === latestRequest) {
           setWeatherData(liveWeather);
+          setWeatherLocationStatus(location.source === 'gps'
+            ? `GPS location${location.accuracy ? ` · accuracy ±${location.accuracy} m` : ''}`
+            : 'Using saved farm location');
         }
       } catch (error) {
-        console.warn('Weather fetch failed, keeping the fallback snapshot:', error);
+        console.warn('Weather request failed:', error);
+        if (active && requestId === latestRequest) {
+          setWeatherLocationStatus(weatherData ? 'Showing last available forecast' : 'Weather is temporarily unavailable');
+        }
       }
     };
 
-    loadWeather();
-    const intervalId = window.setInterval(loadWeather, 5 * 60 * 1000);
+    const useSavedLocation = async () => {
+      let location = getSavedWeatherLocation(farmerProfile);
+      if (!location) {
+        try {
+          location = await geocodeSavedWeatherLocation(farmerProfile);
+        } catch (error) {
+          console.warn('Saved farm location lookup failed:', error);
+        }
+      }
+      if (active && !gpsLocationFound) {
+        if (location) {
+          activeLocation = location;
+          await loadWeather(location);
+        } else {
+          activeLocation = {
+            latitude: -7.77,
+            longitude: 35.69,
+            location: 'Iringa, Tanzania (default)',
+            source: 'default',
+          };
+          setWeatherLocationStatus('Saved location unavailable; using Iringa fallback');
+          await loadWeather(activeLocation);
+        }
+      }
+    };
+
+    useSavedLocation();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(({ coords }) => {
+        gpsLocationFound = true;
+        activeLocation = {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          location: 'Current GPS location',
+          source: 'gps',
+          accuracy: Number.isFinite(coords.accuracy) ? Math.round(coords.accuracy) : null,
+        };
+        if (active) loadWeather(activeLocation);
+      }, () => {
+        if (active && !activeLocation) useSavedLocation();
+      }, { enableHighAccuracy: true, maximumAge: 15 * 60 * 1000, timeout: 12000 });
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (activeLocation) loadWeather(activeLocation);
+    }, 5 * 60 * 1000);
 
     return () => {
-      cancelled = true;
+      active = false;
       window.clearInterval(intervalId);
     };
+  }, [farmerProfile.latitude, farmerProfile.longitude, farmerProfile.city, farmerProfile.district, farmerProfile.region, farmerProfile.location]);
+
+  useEffect(() => {
+    let active = true;
+    const initialRevision = profileRevisionRef.current;
+    setProfileSyncStatus('loading');
+    api.getFarmerProfile().then(async ({ profile: remoteProfile, has_saved_profile: hasSavedProfile }) => {
+      if (!active || profileRevisionRef.current !== initialRevision) return;
+      const storageKey = getFarmerProfileStorageKey(user.user_id);
+      let localProfile = window.localStorage.getItem(storageKey);
+      let isLegacyProfile = false;
+      if (!localProfile) {
+        const ownerId = window.localStorage.getItem('agrinest-farmer-profile-owner');
+        if (!ownerId || ownerId === user.user_id) {
+          localProfile = window.localStorage.getItem('agrinest-farmer-profile');
+          isLegacyProfile = Boolean(localProfile);
+          if (localProfile) window.localStorage.setItem('agrinest-farmer-profile-owner', user.user_id);
+        }
+      }
+      let nextProfile = hasSavedProfile
+        ? { ...getDefaultFarmerProfile(user), ...remoteProfile }
+        : localProfile
+          ? { ...getDefaultFarmerProfile(user), ...JSON.parse(localProfile) }
+          : { ...getDefaultFarmerProfile(user), ...remoteProfile };
+      if (nextProfile.avatar?.startsWith(LEGACY_FARMER_AVATAR_PREFIX)) nextProfile.avatar = user.avatar_url || '';
+      nextProfile = { ...nextProfile, ...normalizePhoneNumbers({ ...nextProfile, phone: nextProfile.phone || '' }) };
+      delete nextProfile.nidaNumber;
+      if (active) {
+        setFarmerProfile(nextProfile);
+        window.localStorage.setItem(storageKey, JSON.stringify(nextProfile));
+        setProfileSyncStatus(hasSavedProfile ? 'synced' : localProfile ? 'syncing' : 'ready');
+      }
+      if (!hasSavedProfile && localProfile) {
+        try {
+          await api.saveFarmerProfile(nextProfile);
+          if (active) setProfileSyncStatus('synced');
+        } catch (error) {
+          console.error('Could not sync the saved farmer profile:', error.message);
+          if (active) setProfileSyncStatus('local');
+        }
+      } else if (isLegacyProfile && active) {
+        window.localStorage.setItem('agrinest-farmer-profile-owner', user.user_id);
+      }
+    }).catch((error) => {
+      console.error('Could not load the farmer profile from the account:', error.message);
+      if (active) setProfileSyncStatus('local');
+    });
+    return () => { active = false; };
+  }, [user.user_id, user.name, user.email, user.phone, user.avatar_url, user.region]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setCurrentTime(new Date()), 60 * 1000);
+    return () => window.clearInterval(intervalId);
   }, []);
 
   const saveFarmerProfile = (nextProfile) => {
     const profileToSave = { ...nextProfile };
     delete profileToSave.nidaNumber;
     try {
-      window.localStorage.setItem('agrinest-farmer-profile', JSON.stringify(profileToSave));
+      const serialized = JSON.stringify(profileToSave);
+      window.localStorage.setItem(getFarmerProfileStorageKey(user.user_id), serialized);
+      const ownerId = window.localStorage.getItem('agrinest-farmer-profile-owner');
+      if (!ownerId || ownerId === user.user_id) {
+        window.localStorage.setItem('agrinest-farmer-profile-owner', user.user_id);
+        window.localStorage.setItem('agrinest-farmer-profile', serialized);
+      }
     } catch {
       return false;
     }
     setFarmerProfile(profileToSave);
+    const revision = ++profileRevisionRef.current;
+    setProfileSyncStatus('syncing');
+    profileSaveQueueRef.current = profileSaveQueueRef.current.catch(() => {}).then(async () => {
+      await api.saveFarmerProfile(profileToSave);
+      if (profileRevisionRef.current === revision) setProfileSyncStatus('synced');
+    }).catch((error) => {
+      console.error('Could not sync the farmer profile to the account:', error.message);
+      if (profileRevisionRef.current === revision) setProfileSyncStatus('local');
+    });
     return true;
   };
 
@@ -1785,6 +1949,18 @@ function SmallholderDashboard({ user, onLogout }) {
     },
   ];
 
+  const timeOfDay = getFarmerTimeOfDay(currentTime);
+  const [greeting, greetingSymbol] = getFarmerGreeting(timeOfDay);
+  const weatherCondition = weatherData?.current.conditions.toLowerCase() || '';
+  const weatherEffect = weatherCondition.includes('thunder')
+    ? 'storm'
+    : weatherCondition.includes('rain') || weatherCondition.includes('drizzle')
+      ? 'rain'
+      : weatherCondition.includes('cloud') || weatherCondition.includes('fog')
+        ? 'cloud'
+        : 'clear';
+  const localClock = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   return (
     <div className="smallholder-shell">
       <button
@@ -1878,10 +2054,7 @@ function SmallholderDashboard({ user, onLogout }) {
               aria-expanded={isProfileMenuOpen}
               onClick={() => setIsProfileMenuOpen((open) => !open)}
             >
-              <img
-                alt={`${farmerProfile.name} profile`}
-                src={farmerProfile.avatar}
-              />
+              <ProfileAvatar src={farmerProfile.avatar} name={farmerProfile.name} className="topbar-profile-avatar" />
             </button>
 
             {isProfileMenuOpen && (
@@ -1891,14 +2064,18 @@ function SmallholderDashboard({ user, onLogout }) {
               }}>
                 <div className="profile-menu-header">
                   <div className="user-avatar-wrap large">
-                    <img
-                      alt={`${farmerProfile.name} profile`}
-                      src={farmerProfile.avatar}
-                    />
+                    <ProfileAvatar src={farmerProfile.avatar} name={farmerProfile.name} className="topbar-profile-avatar" />
                   </div>
                   <div>
                     <div className="profile-menu-name">{farmerProfile.name}</div>
                     <div className="profile-menu-role">Smallholder Farmer</div>
+                    <div className={`profile-sync-status profile-sync-${profileSyncStatus}`} role="status" aria-live="polite">
+                      {profileSyncStatus === 'synced' ? 'Profile synced'
+                        : profileSyncStatus === 'syncing' ? 'Syncing profile…'
+                          : profileSyncStatus === 'loading' ? 'Loading profile…'
+                            : profileSyncStatus === 'ready' ? 'Profile ready to sync'
+                              : 'Saved on this device; sync unavailable'}
+                    </div>
                   </div>
                 </div>
 
@@ -1989,12 +2166,23 @@ function SmallholderDashboard({ user, onLogout }) {
         ) : activeView === 'dashboard' ? (
         <main className="content-area">
           <section className="welcome-block">
-            <div className="welcome-panel">
+            <div className="welcome-panel" data-time-of-day={timeOfDay} data-weather={weatherEffect}>
               <div className="welcome-glow glow-one" />
               <div className="welcome-glow glow-two" />
+              <div className="welcome-weather-overlay" aria-hidden="true">{weatherData?.current.symbol || greetingSymbol}</div>
               <div className="welcome-inner">
-                <h2>Habari za jioni, Neema! 🌙</h2>
-                <p>Evening summary ready. Log today&apos;s activities before signing off.</p>
+                <h2>{greeting}, {farmerProfile.name || 'Mkulima'}! {greetingSymbol}</h2>
+                <p>{timeOfDay === 'night'
+                  ? 'Usiku mwema. Review your farm updates and plan for tomorrow.'
+                  : timeOfDay === 'evening'
+                    ? "Your evening farm summary is ready. Review today's activities."
+                    : timeOfDay === 'noon'
+                      ? 'Your midday farm update is ready. Check local weather before field work.'
+                      : 'Your farm is ready for the day. Check the latest weather and field updates.'}</p>
+                <div className="welcome-live-context">
+                  <span>{weatherData ? `${weatherData.current.symbol} ${weatherData.current.temperature}°C · ${weatherData.current.conditions}` : 'Loading local weather…'}</span>
+                  <span>{localClock} · {weatherLocationStatus}</span>
+                </div>
               </div>
             </div>
 
@@ -2165,30 +2353,41 @@ function SmallholderDashboard({ user, onLogout }) {
 
             <div className="right-column">
               <div className="weather-panel">
-                <div className="weather-top">
-                  <div>
-                    <p>📍 {weatherData.location}</p>
-                    <div className="weather-temp"><span>{weatherData.current.temperature}°</span><span className="temp-unit">C</span></div>
-                    <p className="weather-clear">{weatherData.current.conditions}</p>
-                  </div>
-                  <span className="weather-symbol">{weatherData.current.symbol}</span>
-                </div>
-                <div className="weather-grid">
-                  <div><p>Humidity</p><strong>{weatherData.current.humidity}%</strong></div>
-                  <div><p>Wind</p><strong>{weatherData.current.wind}</strong></div>
-                  <div><p>UV</p><strong>{weatherData.current.uv}</strong></div>
-                  <div><p>Rain</p><strong>{weatherData.current.rain}</strong></div>
-                </div>
-                <div className="weather-footer">🌾 Good field conditions today</div>
-                <div className="forecast-row">
-                  {weatherData.forecast.slice(0, 7).map((day) => (
-                    <div className="forecast-day" key={`${day.day}-${day.temp}`}>
-                      <p>{day.day}</p>
-                      <div>{day.icon}</div>
-                      <strong>{day.temp}</strong>
+                {weatherData ? (
+                  <>
+                    <div className="weather-top">
+                      <div>
+                        <p>📍 {weatherData.location}</p>
+                        <div className="weather-temp"><span>{weatherData.current.temperature}°</span><span className="temp-unit">C</span></div>
+                        <p className="weather-clear">{weatherData.current.conditions}</p>
+                        <p className="weather-location-status">{weatherLocationStatus}</p>
+                      </div>
+                      <span className="weather-symbol">{weatherData.current.symbol}</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="weather-grid">
+                      <div><p>Humidity</p><strong>{weatherData.current.humidity}%</strong></div>
+                      <div><p>Wind</p><strong>{weatherData.current.wind}</strong></div>
+                      <div><p>UV</p><strong>{weatherData.current.uv}</strong></div>
+                      <div><p>Rain</p><strong>{weatherData.current.rain}</strong></div>
+                    </div>
+                    <div className="weather-footer"><span>🌾 Good field conditions today</span><span>{localClock} · updated {weatherData.updatedAt ? new Date(weatherData.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'just now'}</span></div>
+                    <div className="forecast-row">
+                      {weatherData.forecast.slice(0, 7).map((day) => (
+                        <div className="forecast-day" key={`${day.day}-${day.temp}`}>
+                          <p>{day.day}</p>
+                          <div>{day.icon}</div>
+                          <strong>{day.temp}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="weather-loading" role="status">
+                    <span className="weather-symbol">🌦️</span>
+                    <strong>{weatherLocationStatus.startsWith('Weather is temporarily') ? 'Weather unavailable' : 'Finding your farm weather'}</strong>
+                    <span>{weatherLocationStatus}</span>
+                  </div>
+                )}
               </div>
 
               <div className="market-card">
@@ -2523,7 +2722,7 @@ function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, f
               id: `registered-user-${user.user_id}`,
               name: user.name,
               role: isFarmer ? 'Smallholder Farmer' : role.replace(/[_-]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
-              avatar: isFarmer ? farmerProfile.avatar : null,
+              avatar: user.avatar_url || null,
               icon: isFarmer ? 'agriculture' : 'person',
               location: user.region || 'Tanzania',
               summary: isFarmer ? 'Smallholder farmer on AGRI-NEST.' : `${role} account on AGRI-NEST.`,

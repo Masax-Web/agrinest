@@ -7,7 +7,7 @@ async function createUser(phone, name) {
 
 async function listPublicUsers() {
   return knex('users')
-    .select('user_id', 'name', 'role', 'region', 'trust_score')
+    .select('user_id', 'name', 'role', 'region', 'trust_score', 'avatar_url')
     .whereNotNull('name')
     .orderBy('name')
     .limit(200);
