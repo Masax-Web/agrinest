@@ -40,7 +40,7 @@ function clearLegacyAuthTokens() {
 function AdminDashboardWithSecurity({ user, onLogout, onImpersonate }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <DashboardWithSecurity user={user} onLogout={onLogout} journeyRole="admin">
+    <DashboardWithSecurity user={user} onLogout={onLogout}>
       <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} onImpersonate={onImpersonate} />
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </DashboardWithSecurity>
@@ -64,13 +64,8 @@ function getPersonaDashboard(personaId) {
   })[persona.dashboard] || persona.id;
 }
 
-function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation, onFarmerPersonaChange, journeyRole }) {
+function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [personaError, setPersonaError] = useState('');
-  const [isChangingPersona, setIsChangingPersona] = useState(false);
-  const [isJourneyOpen, setIsJourneyOpen] = useState(false);
-  const [activeJourneyModule, setActiveJourneyModule] = useState('');
-  const journey = roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.journey || [];
   useEffect(() => {
     if (!impersonationInfo) return undefined;
     document.body.classList.add('admin-impersonation-active');
@@ -83,72 +78,7 @@ function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, im
         <div><strong><span className="material-symbols-outlined">switch_account</span>Acting as {user?.name || user?.email || 'user'}</strong><span>Changes affect this account · session ends {new Date(impersonationInfo.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>{impersonationError && <span className="admin-impersonation-error">{impersonationError}</span>}</div>
         <button type="button" onClick={onEndImpersonation}><span className="material-symbols-outlined">undo</span>Return to super admin</button>
       </div>}
-      {activeJourneyModule ? (
-        <section className="role-journey-active">
-          <button type="button" className="role-journey-return" onClick={() => setActiveJourneyModule('')}>
-            <span className="material-symbols-outlined">arrow_back</span>Return to dashboard
-          </button>
-          <RoleDashboard
-            key={`${user?.user_id}-${user?.persona_id}-${activeJourneyModule}`}
-            role={journeyRole}
-            persona={personaById.get(user?.persona_id)}
-            user={user}
-            initialView={activeJourneyModule}
-            onLogout={onLogout}
-          />
-        </section>
-      ) : children}
-      {journey.length > 0 && !impersonationInfo && <button
-        type="button"
-        className="role-journey-launch"
-        onClick={() => setIsJourneyOpen(true)}
-      >
-        <span className="material-symbols-outlined">route</span>My journey
-      </button>}
-      {isJourneyOpen && <div className="role-journey-overlay" role="presentation" onMouseDown={(event) => {
-        if (event.target === event.currentTarget) setIsJourneyOpen(false);
-      }}>
-        <section className="role-journey-dialog" role="dialog" aria-modal="true" aria-labelledby="role-journey-title">
-          <header><div><span>AGRI-NEST</span><h2 id="role-journey-title">{roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.label} journey</h2><p>Choose a step to open its workspace. Saved forms are local records, not connected transactions.</p></div><button type="button" aria-label="Close journey" onClick={() => setIsJourneyOpen(false)}><span className="material-symbols-outlined">close</span></button></header>
-          <div className="role-journey-steps">{journey.map((step, index) => <button key={`${step.module}-${index}`} type="button" onClick={() => {
-            setActiveJourneyModule(step.module);
-            setIsJourneyOpen(false);
-          }}>
-            <span className="material-symbols-outlined">{step.icon}</span>
-            <span><strong>{step.label}</strong><small>{step.description}</small></span>
-            <span className="material-symbols-outlined">arrow_forward</span>
-          </button>)}</div>
-        </section>
-      </div>}
-      {user?.role === 'farmer' && !impersonationInfo && <label className="farmer-persona-switcher">
-        <span>Farmer account type</span>
-        <select
-          aria-label="Farmer account type"
-          value={user.persona_id}
-          disabled={isChangingPersona}
-          onChange={async (event) => {
-            setIsChangingPersona(true);
-            setPersonaError('');
-            try {
-              await onFarmerPersonaChange(event.target.value);
-            } catch (error) {
-              setPersonaError(error.message || 'Could not change your account type.');
-            } finally {
-              setIsChangingPersona(false);
-            }
-          }}
-        >
-          {!roleModel.coreRoles.find((coreRole) => coreRole.id === 'farmer').personas
-            .some((personaId) => personaId === user.persona_id && personaById.get(personaId)?.registration === 'self')
-            && <option value={user.persona_id} disabled>Current: {personaById.get(user.persona_id)?.label || user.persona_id}</option>}
-          {roleModel.coreRoles.find((coreRole) => coreRole.id === 'farmer').personas
-            .filter((personaId) => personaById.get(personaId)?.registration === 'self')
-            .map((personaId) => (
-            <option key={personaId} value={personaId}>{personaById.get(personaId)?.label || personaId}</option>
-          ))}
-        </select>
-        {personaError && <small role="alert">{personaError}</small>}
-      </label>}
+      {children}
       {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
@@ -761,14 +691,6 @@ function App() {
     }
   };
 
-  const handleFarmerPersonaChange = async (personaId) => {
-    const { user } = await api.setFarmerPersona(personaId);
-    setAuthUser(user);
-    setSelectedCoreRole(user.role);
-    setSelectedRole(user.persona_id);
-    setActiveDashboard(getPersonaDashboard(user.persona_id));
-  };
-
   const handleStartImpersonation = async (account) => {
     setImpersonationError('');
     const result = await api.startAdminImpersonation(account.user_id);
@@ -826,32 +748,32 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'buyer') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><BuyerDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><BuyerDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'transporter') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'bank') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><LenderDashboard user={authUser} persona={personaById.get(authUser?.persona_id)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><LenderDashboard user={authUser} persona={personaById.get(authUser?.persona_id)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && ['commercial', 'coop', 'expert'].includes(activeDashboard)) {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn) {
-    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   return (
