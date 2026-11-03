@@ -1891,7 +1891,7 @@ function SmallholderDashboard({ user, onLogout }) {
   };
 
   const farmerNavigationViews = {
-    Dashboard: 'dashboard', 'Digital Farm': 'fields', 'Jicho AI': 'jicho', Livestock: 'livestock',
+    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Jicho AI': 'jicho', Livestock: 'livestock',
     'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
@@ -1980,6 +1980,7 @@ function SmallholderDashboard({ user, onLogout }) {
     {
       items: [
         { label: 'Dashboard', icon: 'dashboard', active: true },
+        { label: 'Farm Profile', icon: 'eco' },
         { label: 'Digital Farm', icon: 'agriculture' },
         { label: 'Jicho AI', icon: 'psychology' },
         { label: 'Livestock', icon: 'pets' },
@@ -2081,6 +2082,7 @@ function SmallholderDashboard({ user, onLogout }) {
                   onClick={(event) => {
                     event.preventDefault();
                     setActiveView(destination);
+                    if (window.innerWidth <= 980) setIsSidebarOpen(false);
                   }}
                 >
                   <span className={isActive ? 'material-symbols-outlined fill-icon' : 'material-symbols-outlined'}>{item.icon}</span>

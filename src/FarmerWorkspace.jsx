@@ -8,6 +8,7 @@ import {
   squareMetersPerAcre,
 } from './lib/farm-geometry';
 import LabourWorkspace from './LabourWorkspace';
+import ProductionProfileWorkspace from './ProductionProfileWorkspace';
 import RamaniMapPage from './RamaniMapPage';
 
 const workspaceDetails = {
@@ -439,6 +440,10 @@ export default function FarmerWorkspace({ page, profile, records, farmRecordsSyn
         ? records.livestock
         : records[details.recordType].filter((record) => details.recordType !== 'requests' || record.module === page);
   const seasonIncome = records.income.reduce((total, entry) => total + Number(entry.amount || 0), 0);
+
+  if (page === 'production') {
+    return <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={onBack} />;
+  }
 
   const saveRecord = (event) => {
     event.preventDefault();
