@@ -17,6 +17,37 @@ function hashState(state) {
   return crypto.createHash('sha256').update(state).digest('hex');
 }
 
+function normalizeRegistrationIntent(registration) {
+  if (!registration) return null;
+  const personaId = AuthService.normalizePersonaId(registration.persona_id);
+  const persona = AuthService.personas.find((entry) => entry.id === personaId);
+  if (!persona || persona.id === 'super_admin') {
+    const error = new Error('unknown_persona');
+    error.status = 400;
+    error.code = 'unknown_persona';
+    throw error;
+  }
+  const phone = String(registration.phone || '').trim().replace(/[^\d+]/g, '');
+  if (!/^\+?[0-9]{9,15}$/.test(phone)) {
+    const error = new Error('valid_phone_required');
+    error.status = 400;
+    error.code = 'valid_phone_required';
+    throw error;
+  }
+  const invitationToken = String(registration.invitation_token || '').trim();
+  if (persona.registration === 'invite' && !invitationToken) {
+    const error = new Error('invitation_required_for_persona');
+    error.status = 403;
+    error.code = 'invitation_required_for_persona';
+    throw error;
+  }
+  return {
+    persona_id: persona.id,
+    phone,
+    invitation_token_hash: invitationToken ? hashState(invitationToken) : null,
+  };
+}
+
 function createAuthorizationRequest() {
   const config = getOAuthConfig();
   const state = crypto.randomBytes(32).toString('base64url');
@@ -32,7 +63,7 @@ function createAuthorizationRequest() {
   return { state, stateHash: hashState(state), authorizationUrl: authorizationUrl.toString() };
 }
 
-async function consumeAuthorizationCode(code) {
+async function consumeAuthorizationCode(code, registrationIntent = null) {
   if (!code || typeof fetch !== 'function') {
     const error = new Error('google_oauth_unavailable');
     error.status = 503;
@@ -88,13 +119,15 @@ async function consumeAuthorizationCode(code) {
     sub: profile.sub,
     email: profile.email,
     name: profile.name,
+    registration: registrationIntent,
   });
   return AuthService.createGoogleExchangeCode(user.user_id);
 }
 
-async function saveState(stateHash) {
+async function saveState(stateHash, registrationIntent = null) {
   await knex('auth_oauth_states').insert({
     state_hash: stateHash,
+    registration_intent: registrationIntent || {},
     expires_at: new Date(Date.now() + 10 * 60 * 1000),
   });
 }
@@ -106,9 +139,9 @@ async function consumeState(stateHash) {
       .andWhere('expires_at', '>', new Date())
       .forUpdate()
       .first();
-    if (!row) return false;
+    if (!row) return null;
     await transaction('auth_oauth_states').where({ state_hash: stateHash }).del();
-    return true;
+    return row.registration_intent || null;
   });
 }
 
@@ -117,5 +150,6 @@ module.exports = {
   consumeState,
   createAuthorizationRequest,
   hashState,
+  normalizeRegistrationIntent,
   saveState,
 };

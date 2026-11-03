@@ -16,7 +16,7 @@
 
 The first verified Google sign-in whose email matches `ADMIN_BOOTSTRAP_EMAIL` becomes the initial super administrator only when no super administrator exists. After that administrator is established, this setting cannot promote another account.
 
-Google sign-in also creates an AGRI-NEST account on first use. New Google accounts are assigned the smallholder-farmer persona; use the registration form for other account types, invitations, or administrator-review registrations. If a Google sign-in fails, the app returns a specific error message; state-verification errors can occur when browser cookies are blocked.
+Google sign-in creates a smallholder-farmer account when no account matches the verified email. From the registration screen, Google sign-up uses the selected persona and phone number; personas that require review remain pending until approved, and invitation-only personas require a valid invitation token. If the Google email already belongs to an AGRI-NEST account, Google is linked to that account and its existing role is preserved. If a Google sign-in fails, the app returns a specific error message; state-verification errors can occur when browser cookies are blocked.
 
 ## Session and account behavior
 

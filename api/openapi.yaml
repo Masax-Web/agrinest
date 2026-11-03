@@ -85,6 +85,42 @@ paths:
         '503':
           description: Google OAuth is not configured
 
+  /auth/google/start:
+    post:
+      summary: Start Google sign-in or role-specific account registration
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleOAuthStartRequest'
+      responses:
+        '200':
+          description: Google authorization URL and secure state cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleOAuthStartResult'
+        '400':
+          description: Invalid persona or phone number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Invitation required for this persona
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Google OAuth is not configured or available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/google/callback:
     get:
       summary: Complete Google OAuth and return a one-time exchange code
@@ -1101,6 +1137,21 @@ components:
       required: [code]
       properties:
         code: { type: string, minLength: 1, maxLength: 256 }
+    GoogleOAuthStartRequest:
+      type: object
+      properties:
+        registration:
+          type: object
+          required: [persona_id, phone]
+          properties:
+            persona_id: { type: string, minLength: 1 }
+            phone: { type: string, minLength: 9, maxLength: 20 }
+            invitation_token: { type: string, maxLength: 256 }
+    GoogleOAuthStartResult:
+      type: object
+      required: [authorization_url]
+      properties:
+        authorization_url: { type: string, format: uri }
     AdminImpersonationRequest:
       type: object
       required: [user_id]

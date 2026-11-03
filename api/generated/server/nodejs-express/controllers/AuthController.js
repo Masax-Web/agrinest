@@ -6,7 +6,10 @@ const PlatformSettingsService = require('../../../../services/PlatformSettingsSe
 const { authenticate, authenticateAdminSession, readBearerToken, readCookie, requireAdmin } = require('../../../../middleware/auth');
 
 const publicGoogleErrorCodes = new Set([
+  'account_already_exists',
   'account_pending_approval',
+  'invalid_or_expired_invitation',
+  'invitation_required_for_persona',
   'google_authorization_failed',
   'google_email_not_verified',
   'google_identity_already_linked',
@@ -14,6 +17,8 @@ const publicGoogleErrorCodes = new Set([
   'google_identity_mismatch',
   'google_oauth_not_configured',
   'google_oauth_unavailable',
+  'unknown_persona',
+  'valid_phone_required',
 ]);
 
 function publicGoogleErrorCode(error, fallback = 'google_signin_failed') {
@@ -101,6 +106,19 @@ router.get('/google', async (req, res) => {
   }
 });
 
+router.post('/google/start', async (req, res) => {
+  try {
+    const registration = GoogleOAuthService.normalizeRegistrationIntent(req.body.registration);
+    const { state, stateHash, authorizationUrl } = GoogleOAuthService.createAuthorizationRequest();
+    await GoogleOAuthService.saveState(stateHash, registration);
+    const secure = process.env.NODE_ENV === 'production' || req.secure;
+    res.setHeader('Set-Cookie', `agrinest_oauth_state=${state}; ${cookieOptions(600, secure).replace('Path=/', 'Path=/auth/google')}`);
+    return res.status(200).json({ authorization_url: authorizationUrl });
+  } catch (err) {
+    return sendAuthError(res, err, 'googleStart');
+  }
+});
+
 router.get('/google/callback', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Referrer-Policy', 'no-referrer');
@@ -111,14 +129,17 @@ router.get('/google/callback', async (req, res) => {
   try {
     const state = String(req.query.state || '');
     const cookieState = readCookie(req, 'agrinest_oauth_state');
-    if (!state || !cookieState || state !== cookieState
-      || !await GoogleOAuthService.consumeState(GoogleOAuthService.hashState(state))) {
+    const registrationIntent = state && cookieState && state === cookieState
+      ? await GoogleOAuthService.consumeState(GoogleOAuthService.hashState(state))
+      : null;
+    if (!registrationIntent) {
       return res.redirect(`${appUrl}/?auth_error=google_state_invalid`);
     }
     if (req.query.error || !req.query.code) {
       return res.redirect(`${appUrl}/?auth_error=google_signin_cancelled`);
     }
-    const exchangeCode = await GoogleOAuthService.consumeAuthorizationCode(String(req.query.code));
+    const registration = Object.keys(registrationIntent).length ? registrationIntent : null;
+    const exchangeCode = await GoogleOAuthService.consumeAuthorizationCode(String(req.query.code), registration);
     return res.redirect(`${appUrl}/?google_code=${encodeURIComponent(exchangeCode)}`);
   } catch (err) {
     if (!Number(err.status) || Number(err.status) >= 500) console.error('AuthController.googleCallback', err.message);

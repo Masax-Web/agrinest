@@ -64,8 +64,11 @@ export const api = {
     return apiRequest('/auth/google/exchange', { method: 'POST', body: JSON.stringify({ code }) });
   },
 
-  googleAuthUrl() {
-    return `${API_BASE_URL}/auth/google`;
+  async startGoogleAuth(registration) {
+    return apiRequest('/auth/google/start', {
+      method: 'POST',
+      body: JSON.stringify(registration ? { registration } : {}),
+    });
   },
 
   async verifyPin(challengeToken, pin) {

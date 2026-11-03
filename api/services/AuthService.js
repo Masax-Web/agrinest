@@ -287,34 +287,66 @@ async function completePinChallenge({ challenge_token: challengeToken, pin } = {
   return result;
 }
 
-async function findOrCreateGoogleUser({ sub, email, name }) {
+async function findOrCreateGoogleUser({ sub, email, name, registration } = {}) {
   const verifiedEmail = normalizeEmail(email);
   if (!sub || !verifiedEmail) fail('google_identity_invalid', 401);
   const bootstrapEmail = normalizeEmail(process.env.ADMIN_BOOTSTRAP_EMAIL);
+  const requestedPersonaId = normalizePersonaId(registration?.persona_id || 'smallholder_farmer');
+  const requestedPersona = personasById.get(requestedPersonaId);
+  if (!requestedPersona || requestedPersona.id === 'super_admin') fail('unknown_persona', 400);
+  const requestedPhone = registration ? normalizePhone(registration.phone) : null;
+  if (registration && !/^\+?[0-9]{9,15}$/.test(requestedPhone || '')) fail('valid_phone_required', 400);
 
   return knex.transaction(async (transaction) => {
     let user = await transaction('users').where({ google_subject: sub }).first();
+    let createdForGoogleRegistration = false;
     if (user && normalizeEmail(user.email) !== verifiedEmail) fail('google_identity_mismatch', 403);
     if (!user) {
       user = await transaction('users').whereRaw('LOWER(email) = ?', [verifiedEmail]).forUpdate().first();
       if (user?.google_subject && user.google_subject !== sub) fail('google_identity_already_linked', 409);
 
       if (!user) {
-        let role = 'smallholder_farmer';
+        let role = requestedPersona.id;
+        let roleStatus = requestedPersona.registration === 'review' ? 'pending' : 'active';
+        let invitation = null;
+        if (requestedPersona.registration === 'invite') {
+          if (!registration?.invitation_token_hash) fail('invitation_required_for_persona', 403);
+          invitation = await transaction('auth_invitations')
+            .where({ token_hash: registration.invitation_token_hash, persona_id: requestedPersona.id })
+            .whereNull('consumed_at')
+            .andWhere('expires_at', '>', new Date())
+            .forUpdate()
+            .first();
+          if (!invitation) fail('invalid_or_expired_invitation', 403);
+        }
         if (bootstrapEmail === verifiedEmail) {
           const admin = await transaction('users').where({ role: 'super_admin' }).first();
-          if (!admin) role = 'super_admin';
+          if (!admin) {
+            role = 'super_admin';
+            roleStatus = 'active';
+            invitation = null;
+          }
+        }
+        if (requestedPhone) {
+          const existingPhone = await transaction('users').where({ phone: requestedPhone }).first();
+          if (existingPhone) fail('account_already_exists', 409);
         }
         const [created] = await transaction('users').insert({
           email: verifiedEmail,
           google_subject: sub,
           name: String(name || verifiedEmail).slice(0, 120),
-          phone: null,
+          phone: requestedPhone,
           role,
-          role_status: 'active',
+          role_status: roleStatus,
           trust_score: 0,
         }).returning('*');
         user = created;
+        createdForGoogleRegistration = true;
+        if (invitation) {
+          await transaction('auth_invitations')
+            .where({ invitation_id: invitation.invitation_id })
+            .update({ consumed_at: new Date() });
+        }
       } else {
         await transaction('users').where({ user_id: user.user_id }).update({
           google_subject: sub,
@@ -326,7 +358,11 @@ async function findOrCreateGoogleUser({ sub, email, name }) {
       }
     }
 
-    if (user.role_status !== 'active') fail('account_pending_approval', 403);
+    if (user.role_status !== 'active'
+      && !(createdForGoogleRegistration && user.role_status === 'pending')) {
+      fail('account_pending_approval', 403);
+    }
+
     if (bootstrapEmail === verifiedEmail && user.role !== 'super_admin') {
       const admin = await transaction('users').where({ role: 'super_admin' }).forUpdate().first();
       if (!admin) {
@@ -364,7 +400,10 @@ async function exchangeGoogleCode(code) {
     if (!row) fail('invalid_or_expired_google_code', 401);
     await transaction('auth_exchange_codes').where({ code_hash: codeHash }).update({ consumed_at: new Date() });
     const user = await transaction('users').where({ user_id: row.user_id }).first();
-    if (!user || user.role_status !== 'active') fail('account_pending_approval', 403);
+    if (!user) fail('account_pending_approval', 403);
+    if (user.role_status !== 'active') {
+      return { user: publicUser(user), status: 'pending_approval' };
+    }
     if (user.pin_hash) return makePinChallenge(user, transaction);
     return createSession(user.user_id, transaction).then((session) => ({ user: publicUser(user), ...session }));
   });

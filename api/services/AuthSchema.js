@@ -45,8 +45,10 @@ async function ensureAuthSchema(knex) {
   await knex.raw(`CREATE TABLE IF NOT EXISTS auth_oauth_states (
     state_hash TEXT PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    expires_at TIMESTAMPTZ NOT NULL
+    expires_at TIMESTAMPTZ NOT NULL,
+    registration_intent JSONB NOT NULL DEFAULT '{}'::jsonb
   )`);
+  await knex.raw("ALTER TABLE auth_oauth_states ADD COLUMN IF NOT EXISTS registration_intent JSONB NOT NULL DEFAULT '{}'::jsonb");
   await knex.raw(`CREATE TABLE IF NOT EXISTS auth_exchange_codes (
     code_hash TEXT PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,

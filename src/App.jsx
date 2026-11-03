@@ -106,13 +106,14 @@ function getAuthErrorMessage(code) {
     admin_access_required: 'Administrator access is required for this action.',
     valid_phone_required: 'Enter a valid phone number with country code.',
     unknown_persona: 'Choose a valid persona and try again.',
+    persona_not_available_for_registration: 'Choose a different account type to register.',
   };
   return messages[code] || String(code || 'Authentication failed. Please try again.').replaceAll('_', ' ');
 }
 
-function GoogleSignInButton({ label }) {
+function GoogleSignInButton({ label, onClick, disabled }) {
   return (
-    <button type="button" className="google-signin-button" onClick={() => { window.location.assign(api.googleAuthUrl()); }}>
+    <button type="button" className="google-signin-button" onClick={onClick} disabled={disabled}>
       <svg className="google-g-mark" viewBox="0 0 24 24" aria-hidden="true">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.91 3.28-4.73 3.28-8.09Z" />
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84C3.96 20.48 7.7 23 12 23Z" />
@@ -455,6 +456,7 @@ function App() {
   const [staffAccessMode, setStaffAccessMode] = useState(false);
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showRegistrationPasswords, setShowRegistrationPasswords] = useState(false);
+  const registrationFormRef = useRef(null);
 
   useEffect(() => {
     clearLegacyAuthTokens();
@@ -469,6 +471,11 @@ function App() {
       setAuthBusy(true);
       api.exchangeGoogleCode(googleCode)
         .then((result) => {
+          if (result.status === 'pending_approval') {
+            setAuthMessage('Your Google account registration is awaiting administrator approval. You can sign in after it is approved.');
+            setActiveTab('signin');
+            return;
+          }
           if (result.pin_required) {
             setAuthPinChallenge({ token: result.challenge_token, user: result.user });
             return;
@@ -561,6 +568,29 @@ function App() {
     } finally {
       setAuthBusy(false);
     }
+  };
+
+  const handleGoogleSignIn = async (registration) => {
+    setAuthBusy(true);
+    setAuthMessage('');
+    try {
+      const { authorization_url: authorizationUrl } = await api.startGoogleAuth(registration);
+      window.location.assign(authorizationUrl);
+    } catch (error) {
+      setAuthMessage(getAuthErrorMessage(error.message));
+      setAuthBusy(false);
+    }
+  };
+
+  const handleGoogleRegistration = () => {
+    const form = registrationFormRef.current;
+    if (!form) return;
+    const values = new FormData(form);
+    handleGoogleSignIn({
+      persona_id: selectedRole,
+      phone: values.get('phone'),
+      invitation_token: values.get('invitation_token') || undefined,
+    });
   };
 
   const handleEndImpersonation = async () => {
@@ -788,7 +818,7 @@ function App() {
               <p className="signin-routing-note">Your workspace opens automatically based on your account.</p>
             </form>
             <div className="auth-divider" aria-hidden="true"><span>or continue with</span></div>
-            <GoogleSignInButton label="Continue with Google" />
+            <GoogleSignInButton label="Continue with Google" onClick={() => handleGoogleSignIn()} disabled={authBusy} />
             </div>
           ) : (
             <div className="register-panel">
@@ -797,7 +827,7 @@ function App() {
               <p>Create your AGRI-NEST account.</p>
             </div>
 
-            <form className="register-box" onSubmit={handleRegister}>
+            <form ref={registrationFormRef} className="register-box" onSubmit={handleRegister}>
               <label className="persona-select-label">
                 <span>Account type</span>
                 <select value={selectedRole} onChange={(event) => { setSelectedRole(event.target.value); setAuthMessage(''); }}>
@@ -837,8 +867,8 @@ function App() {
               </button>
             </form>
             <div className="auth-divider" aria-hidden="true"><span>or create an account with</span></div>
-            <GoogleSignInButton label="Sign up with Google" />
-            <p className="google-registration-note">Google sign-up creates a farmer account. Other account types need the registration form above.</p>
+            <GoogleSignInButton label="Sign up with Google" onClick={handleGoogleRegistration} disabled={authBusy} />
+            <p className="google-registration-note">Google sign-up uses the selected account type. Some types require administrator approval or an invitation.</p>
             </div>
           )}
         </div>
