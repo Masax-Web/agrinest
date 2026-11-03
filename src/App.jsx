@@ -15,6 +15,7 @@ import AdminDashboard from './AdminDashboard';
 import SecuritySettings from './SecuritySettings';
 import JichoGrowingGuide from './JichoGrowingGuide';
 import JichoPestKnowledge from './JichoPestKnowledge';
+import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import { personas } from '../shared/personas.json';
 
@@ -2127,7 +2128,7 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2241,6 +2242,8 @@ function SmallholderDashboard({ user, onLogout }) {
         ) : activeView === 'jicho' ? (
           <JichoDiagnostic
             onBackToDashboard={() => setActiveView('dashboard')}
+            profile={farmerProfile}
+            records={farmerRecords}
             search={marketplaceSearch}
             onSearch={setMarketplaceSearch}
             onMap={() => {
@@ -2556,7 +2559,7 @@ function SmallholderDashboard({ user, onLogout }) {
   );
 }
 
-function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, onSearch, onMap }) {
+function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, onSearch, onMap, profile, records }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [scans, setScans] = useState(initialJichoScans);
@@ -2645,7 +2648,14 @@ function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, o
           onScan={() => setActiveTab('scan')}
           onMap={onMap}
         />
-      ) : activeTab === 'soils' ? <JichoKnowledge title="Soils" icon="layers" copy="Explore soil profiles, nutrient signals, and practical field preparation guidance." /> : activeTab === 'ndvi' ? <JichoKnowledge title="NDVI Monitor" icon="sensors" copy="Monitor crop vigor from satellite vegetation signals and field observations." /> : (
+      ) : activeTab === 'soils' ? <JichoSoilKnowledge
+        profile={profile}
+        records={records}
+        search={search}
+        onSearch={onSearch}
+        onMap={onMap}
+        onExpert={onExpert}
+      /> : activeTab === 'ndvi' ? <JichoKnowledge title="NDVI Monitor" icon="sensors" copy="Monitor crop vigor from satellite vegetation signals and field observations." /> : (
       <div className="jicho-layout">
         <section className="jicho-main-column">
           <button type="button" className="jicho-back-button" onClick={onBackToDashboard}><span className="material-symbols-outlined">arrow_back</span> Dashboard</button>
