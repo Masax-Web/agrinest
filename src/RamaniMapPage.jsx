@@ -360,9 +360,9 @@ function trainingSamplesToGeoJson(samples) {
   };
 }
 
-export default function RamaniMapPage({ profile, search = '', onSearch = () => {}, compact = false }) {
+export default function RamaniMapPage({ profile, search = '', onSearch = () => {}, compact = false, focusPlotName = '', initialLayer = 'satellite' }) {
   const profileLocation = useMemo(() => toValidCoordinates(profile.latitude, profile.longitude), [profile.latitude, profile.longitude]);
-  const [selectedLayer, setSelectedLayer] = useState('satellite');
+  const [selectedLayer, setSelectedLayer] = useState(initialLayer);
   const [isThreeDimensional, setIsThreeDimensional] = useState(false);
   const [showFarmLocation, setShowFarmLocation] = useState(true);
   const [showFieldBoundaries, setShowFieldBoundaries] = useState(true);
@@ -434,11 +434,19 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
     return Array.isArray(saved) ? saved.filter((note) => note && typeof note.text === 'string') : [];
   });
   const [nearbyFeatures, setNearbyFeatures] = useState([]);
-  const [selectedFieldIndex, setSelectedFieldIndex] = useState(null);
+  const [selectedFieldIndex, setSelectedFieldIndex] = useState(() => {
+    const index = drawnFields.findIndex((field) => field.saved && field.name?.trim().toLowerCase() === focusPlotName.trim().toLowerCase());
+    return index < 0 ? null : index;
+  });
   const [selectedTrainingIndex, setSelectedTrainingIndex] = useState(null);
   const [selectedDrawingIndex, setSelectedDrawingIndex] = useState(null);
   const [status, setStatus] = useState('');
-  const [mapView, setMapView] = useState(() => ({ center: profileLocation || tanzaniaCenter, zoom: profileLocation ? 14 : 11 }));
+  const [mapView, setMapView] = useState(() => {
+    const focusedField = drawnFields.find((field) => field.saved && field.name?.trim().toLowerCase() === focusPlotName.trim().toLowerCase());
+    return focusedField
+      ? { center: polygonCenter(focusedField.points), zoom: 16 }
+      : { center: profileLocation || tanzaniaCenter, zoom: profileLocation ? 14 : 11 };
+  });
   const mapCommandsRef = useRef(null);
   const gpsTraceWatchRef = useRef(null);
   const selectedField = selectedFieldIndex === null ? null : drawnFields[selectedFieldIndex];
@@ -461,6 +469,10 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
     : null;
 
   const handleMapViewChange = (nextView) => setMapView(nextView);
+
+  useEffect(() => {
+    setSelectedLayer(initialLayer);
+  }, [initialLayer]);
 
   const selectMapLayer = (layer) => {
     setSelectedLayer(layer);

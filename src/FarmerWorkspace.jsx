@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
+import {
+  calculateFieldAreaSquareMeters,
+  calculateFieldPerimeterMeters,
+  createFieldGeoJson,
+  formatFarmCoordinate,
+  squareMetersPerAcre,
+} from './lib/farm-geometry';
 import RamaniMapPage from './RamaniMapPage';
 
 const workspaceDetails = {
@@ -36,6 +43,266 @@ const formatTzs = (amount) => `TZS ${Number(amount || 0).toLocaleString('en-TZ')
 
 function createRecordId() {
   return globalThis.crypto?.randomUUID?.() || `record-${Date.now()}`;
+}
+
+const savedMapFieldsKey = 'agrinest-ramani-drawn-fields';
+const savedMapNotesKey = 'agrinest-ramani-field-notes';
+
+function readSavedBoundary(field) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(savedMapFieldsKey) || '[]');
+    if (!Array.isArray(saved)) return null;
+    const fieldName = String(field.name || '').trim().toLowerCase();
+    return saved.find((plot) => plot?.saved
+      && String(plot.name || '').trim().toLowerCase() === fieldName
+      && Array.isArray(plot.points)
+      && plot.points.length >= 3
+      && plot.points.every((point) => Array.isArray(point)
+        && Number.isFinite(Number(point[0]))
+        && Number.isFinite(Number(point[1]))
+        && Math.abs(Number(point[0])) <= 90
+        && Math.abs(Number(point[1])) <= 180)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function readFieldMapNotes(field, boundary) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(savedMapNotesKey) || '[]');
+    if (!Array.isArray(saved)) return [];
+    const plotId = boundary?.id || boundary?.name;
+    return saved.filter((note) => note && (note.plotId === plotId
+      || String(note.plotName || '').trim().toLowerCase() === String(field.name || '').trim().toLowerCase()));
+  } catch {
+    return [];
+  }
+}
+
+function downloadJsonFile(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function FieldDataProfile({ field, profile, activities, onBack, onNavigate }) {
+  const boundary = useMemo(() => readSavedBoundary(field), [field.id, field.name]);
+  const notes = useMemo(() => readFieldMapNotes(field, boundary), [field.id, field.name, boundary]);
+  const [mapLayer, setMapLayer] = useState('satellite');
+  const [showGeoJson, setShowGeoJson] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareAudience, setShareAudience] = useState('extension officer');
+  const [includeBoundary, setIncludeBoundary] = useState(false);
+  const [includeNotes, setIncludeNotes] = useState(false);
+  const [includeLocation, setIncludeLocation] = useState(false);
+  const [shareConsent, setShareConsent] = useState(false);
+  const [notice, setNotice] = useState('');
+  const geoJson = useMemo(() => createFieldGeoJson(field, boundary), [field, boundary]);
+  const areaSquareMeters = boundary ? calculateFieldAreaSquareMeters(boundary.points) : null;
+  const perimeterMeters = boundary ? calculateFieldPerimeterMeters(boundary.points) : null;
+  const boundaryAreaAcres = boundary ? areaSquareMeters / squareMetersPerAcre : null;
+  const recordedAreaAcres = Number(field.area || 0);
+  const gpsAccuracy = Number(boundary?.gpsAccuracy);
+  const gpsPrecision = Number.isFinite(gpsAccuracy) && gpsAccuracy > 0
+    ? `${gpsAccuracy < 10 ? gpsAccuracy.toFixed(1) : Math.round(gpsAccuracy)} m`
+    : '';
+  const areaMismatch = boundary && recordedAreaAcres > 0
+    && Math.abs(boundaryAreaAcres - recordedAreaAcres) > Math.max(0.1, recordedAreaAcres * 0.1);
+  const auditEntries = [
+    ...(field.createdAt ? [{ activity: 'Field record created', recordedBy: profile.name, date: field.createdAt, status: 'Local record', icon: 'edit_note' }] : []),
+    ...(boundary ? [{
+      activity: boundary.boundarySource === 'gps' ? 'GPS boundary captured' : 'Field boundary saved',
+      recordedBy: profile.name,
+      date: boundary.updatedAt || boundary.createdAt,
+      status: 'Saved on device',
+      icon: 'polyline',
+    }] : []),
+    ...activities.map((activity) => ({
+      activity: activity.category || activity.title || 'Farm activity',
+      recordedBy: activity.gpsStamp ? 'GPS field log' : profile.name,
+      date: activity.date || activity.createdAt,
+      status: activity.gpsStamp ? 'GPS recorded' : 'Recorded',
+      icon: activity.gpsStamp ? 'sensors' : 'edit_note',
+    })),
+    ...notes.map((note) => ({
+      activity: `${note.category || 'Field'} note`,
+      recordedBy: profile.name,
+      date: note.date,
+      status: 'Local note',
+      icon: 'sticky_note_2',
+    })),
+  ].filter((entry) => entry.date).sort((left, right) => new Date(right.date) - new Date(left.date));
+  const batchCount = activities.filter((activity) => /harvest|batch/i.test(`${activity.category || ''} ${activity.title || ''}`)).length;
+  const trustScore = calculateFarmerTrust(profile).score;
+  const filenameBase = String(field.name || 'field').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'field';
+
+  const prepareShareFile = () => {
+    if (!shareConsent) {
+      setNotice('Confirm that you have permission to share this field data before preparing the file.');
+      return;
+    }
+    const summary = {
+      title: 'AGRI-NEST field data summary',
+      audience: shareAudience,
+      createdAt: new Date().toISOString(),
+      notice: 'This file does not grant account access. Review its contents before sharing.',
+      field: {
+        name: field.name,
+        crop: field.crop,
+        areaAcres: Number(field.area || 0),
+        areaHectares: Number(field.area || 0) * 0.40468564224,
+        plantingDate: field.plantedOn || '',
+        season: field.season || '',
+        ...(includeLocation && profile.location ? { farmLocation: profile.location } : {}),
+        ...(includeBoundary && boundary ? { boundaryGeoJson: geoJson.features[0] } : {}),
+        ...(includeNotes ? { notes: notes.map(({ category, text, date }) => ({ category, text, date })) } : {}),
+      },
+    };
+    downloadJsonFile(`agrinest-field-share-${filenameBase}.json`, summary);
+    setShareOpen(false);
+    setShareConsent(false);
+    setNotice('A private field summary was prepared for review. No account access was granted.');
+  };
+
+  const exportFieldCertificate = () => {
+    downloadJsonFile(`agrinest-field-record-${filenameBase}.json`, {
+      documentType: 'AGRI-NEST field data record',
+      generatedAt: new Date().toISOString(),
+      verification: boundary ? 'Boundary saved locally; not independently verified by an authority.' : 'No saved boundary is attached to this field record.',
+      disclaimer: 'This is a farmer-provided digital field record, not a land title, government certificate, or proof of ownership.',
+      field: {
+        name: field.name,
+        crop: field.crop,
+        areaAcres: Number(field.area || 0),
+        areaHectares: Number(field.area || 0) * 0.40468564224,
+        plantingDate: field.plantedOn || '',
+        season: field.season || '',
+        ...(boundary ? { geometry: geoJson.features[0].geometry } : {}),
+      },
+    });
+    setNotice('Field record exported. It is not an official land certificate or proof of ownership.');
+  };
+
+  return (
+    <main className="farmer-workspace field-profile-page" aria-label={`Field profile for ${field.name}`}>
+      {notice && <div className="farmer-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
+      <header className="field-profile-heading">
+        <div>
+          <button type="button" className="field-profile-back" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Back to Digital Farm</button>
+          <div className="field-profile-breadcrumb"><span>REGISTRY</span><span className="material-symbols-outlined">chevron_right</span><span>FIELDS</span></div>
+          <h1>Field Data Profile — {field.name} <span>({field.crop || 'Crop not set'})</span></h1>
+          <span className={boundary ? 'field-profile-badge is-saved' : 'field-profile-badge'}>
+            <span className="material-symbols-outlined">{boundary ? 'check_circle' : 'pending'}</span>
+            {boundary ? 'Boundary saved on device' : 'Field record · boundary not linked'}
+          </span>
+        </div>
+        <div className="field-profile-actions">
+          <button type="button" className="field-profile-secondary" onClick={() => { setShareOpen(true); setNotice(''); }}><span className="material-symbols-outlined">share</span>Share Access</button>
+          <button type="button" className="field-profile-primary" onClick={exportFieldCertificate}><span className="material-symbols-outlined">download</span>Export Certificate</button>
+        </div>
+      </header>
+
+      <section className="field-profile-layout">
+        <article className="field-profile-geometry">
+          <div className="field-profile-card-heading">
+            <div>
+              <h2>Live Field Geometry</h2>
+              <p><span className="material-symbols-outlined">sync</span>{boundary
+                ? `Saved ${new Date(boundary.updatedAt || boundary.createdAt || field.createdAt).toLocaleString()}${gpsPrecision ? ` · GPS precision ±${gpsPrecision}` : ' · precision not recorded'}`
+                : 'No saved boundary found for this field.'}</p>
+            </div>
+            {boundary && <div className="field-profile-layer-switch" aria-label="Basemap">
+              <button type="button" className={mapLayer === 'satellite' ? 'active' : ''} onClick={() => setMapLayer('satellite')}>Satellite</button>
+              <button type="button" className={mapLayer === 'terrain' ? 'active' : ''} onClick={() => setMapLayer('terrain')}>Topography</button>
+            </div>}
+          </div>
+          {boundary ? (
+            <>
+              <div className="field-profile-map">
+                <RamaniMapPage profile={profile} search="" onSearch={() => {}} compact focusPlotName={field.name} initialLayer={mapLayer} />
+                <div className="field-profile-measures">
+                  <div><small>AREA MEASUREMENT</small><strong>{boundaryAreaAcres.toFixed(2)} Acres <span>/ {(areaSquareMeters / 10000).toFixed(2)} Ha</span></strong></div>
+                  <div><small>PERIMETER</small><strong>{perimeterMeters >= 1000 ? `${(perimeterMeters / 1000).toFixed(2)} km` : `${Math.round(perimeterMeters)} m`}</strong></div>
+                </div>
+              </div>
+              {areaMismatch && <p className="field-profile-area-warning" role="status">GIS boundary measures {boundaryAreaAcres.toFixed(2)} acres; the field record lists {recordedAreaAcres.toLocaleString(undefined, { maximumFractionDigits: 2 })} acres. Review the boundary before sharing.</p>}
+            </>
+          ) : (
+            <div className="field-profile-map-empty">
+              <span className="material-symbols-outlined">polyline</span>
+              <strong>Draw or save this field&apos;s boundary in Ramani GIS</strong>
+              <p>Your field record is saved. Open the map to capture a GPS boundary, then save it with the same field name.</p>
+              <button type="button" onClick={() => onNavigate('ramani')}>Open GIS tools</button>
+            </div>
+          )}
+        </article>
+
+        <aside className="field-profile-vertices">
+          <div className="field-profile-card-heading"><h2>Vertex Data</h2><span className="material-symbols-outlined">location_on</span></div>
+          {boundary ? (
+            <>
+              <div className="field-profile-vertex-list">{boundary.points.map(([latitude, longitude], index) => (
+                <div className="field-profile-vertex" key={`${latitude}-${longitude}-${index}`}>
+                  <div><strong>P{index + 1}{index === 0 ? ' (Origin)' : ''}</strong><code>{formatFarmCoordinate(latitude, true)}, {formatFarmCoordinate(longitude, false)}</code></div>
+                  <span className="material-symbols-outlined">location_on</span>
+                </div>
+              ))}</div>
+              <button type="button" className="field-profile-geojson-toggle" aria-expanded={showGeoJson} onClick={() => setShowGeoJson((open) => !open)}>{showGeoJson ? 'Hide GeoJSON' : 'View Full GeoJSON'}</button>
+              {showGeoJson && <pre className="field-profile-geojson">{JSON.stringify(geoJson, null, 2)}</pre>}
+            </>
+          ) : <p className="field-profile-no-vertices">Vertex coordinates appear here after you save this field&apos;s boundary in GIS.</p>}
+        </aside>
+      </section>
+
+      <section className="field-profile-integrations">
+        <div className="field-profile-section-title"><h2>Ecosystem Integration</h2><span /></div>
+        <div className="field-profile-integration-grid">
+          <button type="button" className="field-profile-integration" onClick={() => onNavigate('trust')}>
+            <span className="field-profile-integration-top"><span className="material-symbols-outlined">payments</span><small>{trustScore} / 1000</small></span><strong>Finance (Benki)</strong><p>Profile completeness score. Lender eligibility is assessed separately.</p>
+          </button>
+          <button type="button" className="field-profile-integration" onClick={() => onNavigate('compliance')}>
+            <span className="field-profile-integration-top"><span className="material-symbols-outlined">gavel</span><small>REVIEW NEEDED</small></span><strong>Compliance</strong><p>No official certification or export compliance is recorded for this field.</p>
+          </button>
+          <button type="button" className="field-profile-integration" onClick={() => onNavigate('jicho')}>
+            <span className="field-profile-integration-top"><span className="material-symbols-outlined">visibility</span><small>AVAILABLE</small></span><strong>Jicho AI</strong><p>Open crop diagnosis to review evidence from this field.</p>
+          </button>
+          <button type="button" className="field-profile-integration" onClick={() => onNavigate('traceability')}>
+            <span className="field-profile-integration-top"><span className="material-symbols-outlined">qr_code_2</span><small>{batchCount ? `${batchCount} RECORDS` : 'NO BATCHES'}</small></span><strong>Traceability</strong><p>{batchCount ? 'Harvest or batch activity is recorded for this field.' : 'Record harvest and batch activity to build field traceability.'}</p>
+          </button>
+        </div>
+      </section>
+
+      <section className="field-profile-audit">
+        <div className="field-profile-audit-heading"><h2>Field Lifecycle &amp; Audit Log</h2><span><span className="material-symbols-outlined">history</span>{auditEntries.length} records</span></div>
+        {auditEntries.length ? <div className="field-profile-table-wrap"><table>
+          <thead><tr><th>Activity</th><th>Recorded by</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>{auditEntries.map((entry, index) => <tr key={`${entry.activity}-${entry.date}-${index}`}>
+            <td><span className="field-profile-audit-activity"><span className="material-symbols-outlined">{entry.icon}</span>{entry.activity}</span></td>
+            <td>{entry.recordedBy || 'Farmer record'}</td>
+            <td>{new Date(entry.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</td>
+            <td><span className="field-profile-audit-status">{entry.status}</span></td>
+          </tr>)}</tbody>
+        </table></div> : <p className="field-profile-empty-audit">Field and boundary actions will appear here as you save records.</p>}
+      </section>
+
+      {shareOpen && <div className="field-profile-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShareOpen(false); }}>
+        <section className="field-profile-share-modal" role="dialog" aria-modal="true" aria-labelledby="field-profile-share-title">
+          <div className="field-profile-modal-heading"><div><span className="farmer-workspace-eyebrow">PRIVATE FIELD DATA</span><h2 id="field-profile-share-title">Prepare a share file</h2></div><button type="button" aria-label="Close share options" onClick={() => setShareOpen(false)}><span className="material-symbols-outlined">close</span></button></div>
+          <p>Choose what to include. This prepares a file for you to review and share; it does not grant anyone account access.</p>
+          <label>Intended recipient<select value={shareAudience} onChange={(event) => setShareAudience(event.target.value)}><option>extension officer</option><option>co-operative</option><option>lender</option></select></label>
+          {boundary && <label className="field-profile-share-check"><input type="checkbox" checked={includeBoundary} onChange={(event) => setIncludeBoundary(event.target.checked)} />Include precise field boundary</label>}
+          <label className="field-profile-share-check"><input type="checkbox" checked={includeNotes} onChange={(event) => setIncludeNotes(event.target.checked)} />Include field notes ({notes.length})</label>
+          <label className="field-profile-share-check"><input type="checkbox" checked={includeLocation} onChange={(event) => setIncludeLocation(event.target.checked)} />Include farm location</label>
+          <label className="field-profile-share-check field-profile-share-consent"><input type="checkbox" checked={shareConsent} onChange={(event) => setShareConsent(event.target.checked)} />I have permission to share this data and understand that precise farm locations are sensitive.</label>
+          <div className="field-profile-modal-actions"><button type="button" className="field-profile-secondary" onClick={() => setShareOpen(false)}>Cancel</button><button type="button" className="field-profile-primary" onClick={prepareShareFile}><span className="material-symbols-outlined">download</span>Prepare file</button></div>
+        </section>
+      </div>}
+    </main>
+  );
 }
 
 export default function FarmerWorkspace({ page, profile, records, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
@@ -180,6 +447,7 @@ function formatFarmDate(value, options = { month: 'short', day: 'numeric', year:
 
 function DigitalFarmPage({ profile, records, onRecordsChange, onNavigate }) {
   const [dialog, setDialog] = useState('');
+  const [selectedFieldId, setSelectedFieldId] = useState('');
   const [fieldDraft, setFieldDraft] = useState({ name: '', crop: '', area: '', plantedOn: '', season: '' });
   const [activityDraft, setActivityDraft] = useState({ category: farmActivityTypes[0][0], fieldId: '', date: localDateTimeValue(), details: '' });
   const [gpsStamp, setGpsStamp] = useState(null);
@@ -276,6 +544,19 @@ function DigitalFarmPage({ profile, records, onRecordsChange, onNavigate }) {
     setNotice('Activity saved on this device.');
   };
 
+  const selectedField = fields.find((field) => field.id === selectedFieldId);
+  if (selectedField) {
+    const fieldActivities = farmActivities.filter((activity) => activity.fieldId === selectedField.id
+      || String(activity.fieldName || '').trim().toLowerCase() === String(selectedField.name || '').trim().toLowerCase());
+    return <FieldDataProfile
+      field={selectedField}
+      profile={profile}
+      activities={fieldActivities}
+      onBack={() => setSelectedFieldId('')}
+      onNavigate={onNavigate}
+    />;
+  }
+
   return (
     <main className="farmer-workspace digital-farm-page" aria-label="Digital Farm">
       {notice && <div className="farmer-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
@@ -339,7 +620,10 @@ function DigitalFarmPage({ profile, records, onRecordsChange, onNavigate }) {
                   <span>{field.season || 'Season not set'}</span>
                   <span>{fieldActivities.length} logged {fieldActivities.length === 1 ? 'activity' : 'activities'}</span>
                 </div>
-                <button type="button" className="digital-farm-field-journal" onClick={() => { setFieldFilter(field.id); setFilterOpen(true); document.querySelector('.digital-farm-journal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>View field journal</button>
+                <div className="digital-farm-field-actions">
+                  <button type="button" className="digital-farm-field-profile-link" onClick={() => setSelectedFieldId(field.id)}>View field profile <span className="material-symbols-outlined">arrow_forward</span></button>
+                  <button type="button" className="digital-farm-field-journal" onClick={() => { setFieldFilter(field.id); setFilterOpen(true); document.querySelector('.digital-farm-journal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>View field journal</button>
+                </div>
               </article>
             );
           }) : (
