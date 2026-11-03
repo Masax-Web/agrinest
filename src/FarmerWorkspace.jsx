@@ -10,6 +10,7 @@ import {
 import LabourWorkspace from './LabourWorkspace';
 import ProductionProfileWorkspace from './ProductionProfileWorkspace';
 import RamaniMapPage from './RamaniMapPage';
+import SpaceRentalWorkspace from './SpaceRentalWorkspace';
 
 const workspaceDetails = {
   fields: { title: 'Digital Farm', icon: 'agriculture', description: 'Register fields and keep their crop and area records together.', recordType: 'fields', submitLabel: 'Add field', fields: [['name', 'Field name', 'text'], ['crop', 'Crop', 'text'], ['area', 'Area (acres)', 'number']] },
@@ -427,7 +428,7 @@ function FieldDataProfile({ field, profile, activities, onBack, onNavigate, onUp
   );
 }
 
-export default function FarmerWorkspace({ page, profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
+export default function FarmerWorkspace({ page, user, search = '', profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
   const details = workspaceDetails[page] || { title: page.replaceAll('-', ' '), icon: 'dashboard', description: 'Record and manage this part of your farm account.', recordType: 'requests', submitLabel: 'Save record', fields: [['title', 'Name', 'text'], ['details', 'Details', 'textarea']] };
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
@@ -443,6 +444,10 @@ export default function FarmerWorkspace({ page, profile, records, farmRecordsSyn
 
   if (page === 'production') {
     return <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={onBack} />;
+  }
+
+  if (page === 'rent-space') {
+    return <SpaceRentalWorkspace user={user} profile={profile} search={search} />;
   }
 
   const saveRecord = (event) => {

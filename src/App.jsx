@@ -1896,7 +1896,7 @@ function SmallholderDashboard({ user, onLogout }) {
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
-    'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
+    'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
     'Rent Equipment': 'agrishop', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Crowdfunding: 'crowdfunding',
     'AGRI-NEST Foundation': 'foundation',
   };
@@ -2025,7 +2025,7 @@ function SmallholderDashboard({ user, onLogout }) {
       heading: 'Community',
       items: [
         { label: 'Rentals & Labour', icon: 'construction' },
-        { label: 'Rent Space / Land', icon: 'landscape' },
+        { label: 'Kupanga Nafasi', icon: 'landscape' },
         { label: 'Hire / Find Work', icon: 'work' },
         { label: 'Rent Equipment', icon: 'agriculture' },
         { label: 'Waste Exchange', icon: 'recycling' },
@@ -2124,9 +2124,10 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'ramani' && <h2 className="topbar-page-title">Ramani GIS</h2>}
             {activeView === 'groups' && <h2 className="topbar-page-title">Vikundi — Farmer Groups</h2>}
             {activeView === 'smart-loan' && <h2 className="topbar-page-title">Smart Loan Application</h2>}
+            {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search pests, diseases, or symptoms' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2534,6 +2535,8 @@ function SmallholderDashboard({ user, onLogout }) {
         ) : (
           <FarmerWorkspace
             page={activeView}
+            user={user}
+            search={marketplaceSearch}
             profile={farmerProfile}
             records={farmerRecords}
             farmRecordsSyncStatus={farmRecordsSyncStatus}

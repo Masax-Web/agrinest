@@ -5,6 +5,7 @@ const AuthService = require('../../api/services/AuthService');
 const FarmService = require('../../api/generated/server/nodejs-express/services/FarmService');
 const ListingService = require('../../api/generated/server/nodejs-express/services/ListingService');
 const ProcurementService = require('../../api/services/ProcurementService');
+const SpaceRentalService = require('../../api/services/SpaceRentalService');
 
 describe('AGRI-NEST API integration', () => {
   const methods = [
@@ -17,6 +18,13 @@ describe('AGRI-NEST API integration', () => {
     [ListingService, 'recentActivity'],
     [ProcurementService, 'listRfqs'],
     [ProcurementService, 'createRfq'],
+    [SpaceRentalService, 'listSpaces'],
+    [SpaceRentalService, 'listOwnedSpaces'],
+    [SpaceRentalService, 'createSpace'],
+    [SpaceRentalService, 'setSpaceStatus'],
+    [SpaceRentalService, 'listSpaceRequests'],
+    [SpaceRentalService, 'createSpaceRequest'],
+    [SpaceRentalService, 'updateSpaceRequest'],
   ];
   const originalMethods = new Map();
   const user = {
@@ -51,6 +59,13 @@ describe('AGRI-NEST API integration', () => {
       feed_type: data.feedType,
       quantity_bags: data.quantityBags,
     });
+    SpaceRentalService.listSpaces = async () => [{ space_id: '00000000-0000-4000-8000-000000000201', title: 'North plot', space_type: 'farmland' }];
+    SpaceRentalService.listOwnedSpaces = async () => [{ space_id: '00000000-0000-4000-8000-000000000201', owner_id: user.user_id, title: 'North plot' }];
+    SpaceRentalService.createSpace = async (data) => ({ space_id: '00000000-0000-4000-8000-000000000201', owner_id: data.ownerId, title: data.title, space_type: data.type });
+    SpaceRentalService.setSpaceStatus = async (data) => ({ space_id: data.spaceId, status: data.status });
+    SpaceRentalService.listSpaceRequests = async () => [{ request_id: '00000000-0000-4000-8000-000000000202', owner_id: user.user_id, status: 'pending' }];
+    SpaceRentalService.createSpaceRequest = async (data) => ({ request_id: '00000000-0000-4000-8000-000000000202', space_id: data.spaceId, requester_id: data.requesterId, status: 'pending' });
+    SpaceRentalService.updateSpaceRequest = async (data) => ({ request_id: data.requestId, status: data.status });
   });
 
   afterEach(() => {
@@ -126,6 +141,43 @@ describe('AGRI-NEST API integration', () => {
       })
       .expect(201);
     expect(response.body).to.include({ rfq_id: 'rfq-test-id', feed_type: 'Layer Mash', quantity_bags: 25 });
+  });
+
+  it('publishes rental spaces and handles non-binding rental inquiries', async () => {
+    const listed = await request(app).get('/soko/spaces').expect(200);
+    expect(listed.body.items[0]).to.include({ space_id: '00000000-0000-4000-8000-000000000201', space_type: 'farmland' });
+
+    await request(app).get('/soko/spaces/mine').expect(401);
+    const mine = await authenticatedRequest('get', '/soko/spaces/mine').expect(200);
+    expect(mine.body.items[0].owner_id).to.equal(user.user_id);
+    const created = await authenticatedRequest('post', '/soko/spaces')
+      .send({
+        title: 'North plot',
+        space_type: 'farmland',
+        region: 'Iringa',
+        quantity: 2,
+        unit: 'acres',
+        price: 120000,
+        price_period: 'season',
+      })
+      .expect(201);
+    expect(created.body).to.include({ owner_id: user.user_id, title: 'North plot' });
+    const paused = await authenticatedRequest('patch', '/soko/spaces/00000000-0000-4000-8000-000000000201/status')
+      .send({ status: 'inactive' })
+      .expect(200);
+    expect(paused.body.status).to.equal('inactive');
+
+    const inquiry = await authenticatedRequest('post', '/soko/spaces/00000000-0000-4000-8000-000000000201/requests')
+      .send({ requested_from: '2027-01-01', message: 'Is irrigation available?' })
+      .expect(201);
+    expect(inquiry.body).to.include({ space_id: '00000000-0000-4000-8000-000000000201', requester_id: user.user_id, status: 'pending' });
+
+    const requests = await authenticatedRequest('get', '/soko/space-requests').expect(200);
+    expect(requests.body.items[0].status).to.equal('pending');
+    const updated = await authenticatedRequest('patch', '/soko/space-requests/00000000-0000-4000-8000-000000000202')
+      .send({ status: 'accepted' })
+      .expect(200);
+    expect(updated.body.status).to.equal('accepted');
   });
 
   it('blocks non-admin accounts from the admin-only user directory', async () => {

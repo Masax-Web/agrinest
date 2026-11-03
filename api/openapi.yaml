@@ -1006,6 +1006,133 @@ paths:
                     items:
                       $ref: '#/components/schemas/Listing'
 
+  /soko/spaces:
+    get:
+      summary: List active land and storage rental spaces
+      security: []
+      responses:
+        '200':
+          description: Active rental spaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+    post:
+      summary: Publish a rental space listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SpaceRentalCreate' }
+      responses:
+        '201':
+          description: Rental space published
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /soko/spaces/mine:
+    get:
+      summary: List all rental spaces owned by the current user
+      responses:
+        '200':
+          description: The current user's rental spaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+
+  /soko/spaces/{spaceId}/status:
+    parameters:
+      - in: path
+        name: spaceId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Activate or deactivate a rental listing owned by the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, inactive] }
+      responses:
+        '200':
+          description: Rental listing status updated
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /soko/space-requests:
+    get:
+      summary: List rental inquiries sent or received by the current user
+      responses:
+        '200':
+          description: Rental inquiries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+
+  /soko/spaces/{spaceId}/requests:
+    parameters:
+      - in: path
+        name: spaceId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Send a non-binding rental inquiry to a space owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SpaceRentalRequestCreate' }
+      responses:
+        '201':
+          description: Inquiry sent
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /soko/space-requests/{requestId}:
+    parameters:
+      - in: path
+        name: requestId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Accept or decline a pending inquiry for a space owned by the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [accepted, declined] }
+      responses:
+        '200':
+          description: Inquiry updated
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
   /soko/rfqs:
     get:
       summary: List open feed RFQs and the authenticated user's RFQs
@@ -1494,6 +1621,29 @@ components:
         seller_name: { type: string, nullable: true }
         region: { type: string, nullable: true }
         unit: { type: string, nullable: true }
+
+    SpaceRentalCreate:
+      type: object
+      required: [title, space_type, region, quantity, unit, price, price_period]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        space_type: { type: string, enum: [farmland, dry_storage, cold_storage, processing] }
+        description: { type: string, maxLength: 2000 }
+        region: { type: string, minLength: 1, maxLength: 120 }
+        quantity: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+        unit: { type: string, minLength: 1, maxLength: 40 }
+        price: { type: number, minimum: 0, maximum: 1000000000000 }
+        price_period: { type: string, enum: [day, month, season, year, ton, acre] }
+        available_from: { type: string, format: date, nullable: true }
+        image_url: { type: string, maxLength: 2048 }
+
+    SpaceRentalRequestCreate:
+      type: object
+      required: [requested_from]
+      properties:
+        requested_from: { type: string, format: date }
+        requested_to: { type: string, format: date, nullable: true }
+        message: { type: string, maxLength: 2000 }
 
     FeedRfqCreate:
       type: object

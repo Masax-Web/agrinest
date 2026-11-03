@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ListingService = require('../services/ListingService');
 const ProcurementService = require('../../../../services/ProcurementService');
+const SpaceRentalService = require('../../../../services/SpaceRentalService');
 const { authenticate } = require('../../../../middleware/auth');
 
 function handleProcurementError(response, error, action) {
@@ -9,6 +10,98 @@ function handleProcurementError(response, error, action) {
   console.error(`SokoController.${action}`, error);
   return response.status(500).json({ error: 'db_error' });
 }
+
+function handleSpaceRentalError(response, error, action) {
+  if (error.status) return response.status(error.status).json({ error: error.message });
+  console.error(`SokoController.${action}`, error);
+  return response.status(500).json({ error: 'db_error' });
+}
+
+router.get('/spaces', async (_req, res) => {
+  try {
+    return res.json({ items: await SpaceRentalService.listSpaces() });
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'listSpaces');
+  }
+});
+
+router.get('/spaces/mine', authenticate, async (req, res) => {
+  try {
+    return res.json({ items: await SpaceRentalService.listOwnedSpaces(req.authUser.user_id) });
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'listOwnedSpaces');
+  }
+});
+
+router.post('/spaces', authenticate, async (req, res) => {
+  try {
+    const space = await SpaceRentalService.createSpace({
+      ownerId: req.authUser.user_id,
+      title: req.body.title,
+      type: req.body.space_type,
+      description: req.body.description,
+      region: req.body.region,
+      quantity: req.body.quantity,
+      unit: req.body.unit,
+      price: req.body.price,
+      pricePeriod: req.body.price_period,
+      availableFrom: req.body.available_from,
+      imageUrl: req.body.image_url,
+    });
+    return res.status(201).json(space);
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'createSpace');
+  }
+});
+
+router.patch('/spaces/:spaceId/status', authenticate, async (req, res) => {
+  try {
+    const space = await SpaceRentalService.setSpaceStatus({
+      spaceId: req.params.spaceId,
+      ownerId: req.authUser.user_id,
+      status: req.body.status,
+    });
+    return res.json(space);
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'setSpaceStatus');
+  }
+});
+
+router.get('/space-requests', authenticate, async (req, res) => {
+  try {
+    return res.json({ items: await SpaceRentalService.listSpaceRequests(req.authUser.user_id) });
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'listSpaceRequests');
+  }
+});
+
+router.post('/spaces/:spaceId/requests', authenticate, async (req, res) => {
+  try {
+    const rentalRequest = await SpaceRentalService.createSpaceRequest({
+      spaceId: req.params.spaceId,
+      requesterId: req.authUser.user_id,
+      requestedFrom: req.body.requested_from,
+      requestedTo: req.body.requested_to,
+      message: req.body.message,
+    });
+    return res.status(201).json(rentalRequest);
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'createSpaceRequest');
+  }
+});
+
+router.patch('/space-requests/:requestId', authenticate, async (req, res) => {
+  try {
+    const rentalRequest = await SpaceRentalService.updateSpaceRequest({
+      requestId: req.params.requestId,
+      ownerId: req.authUser.user_id,
+      status: req.body.status,
+    });
+    return res.json(rentalRequest);
+  } catch (error) {
+    return handleSpaceRentalError(res, error, 'updateSpaceRequest');
+  }
+});
 
 router.get('/rfqs', authenticate, async (req, res) => {
   try {

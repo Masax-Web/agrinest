@@ -208,6 +208,43 @@ export const api = {
     return apiRequest('/soko/listings');
   },
 
+  async getSpaceListings() {
+    return apiRequest('/soko/spaces');
+  },
+
+  async getMySpaceListings() {
+    return apiRequest('/soko/spaces/mine');
+  },
+
+  async createSpaceListing(data) {
+    return apiRequest('/soko/spaces', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async setSpaceListingStatus(spaceId, status) {
+    return apiRequest(`/soko/spaces/${encodeURIComponent(spaceId)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async getSpaceRentalRequests() {
+    return apiRequest('/soko/space-requests');
+  },
+
+  async createSpaceRentalRequest(spaceId, data) {
+    return apiRequest(`/soko/spaces/${encodeURIComponent(spaceId)}/requests`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateSpaceRentalRequest(requestId, status) {
+    return apiRequest(`/soko/space-requests/${encodeURIComponent(requestId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
   async getFeedRfqs() {
     return apiRequest('/soko/rfqs');
   },
