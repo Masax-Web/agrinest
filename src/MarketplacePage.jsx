@@ -1,97 +1,47 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import api from './lib/api';
 
-const categories = ['All categories', 'Livestock feed', 'Day-old chicks', 'Vet supplies', 'Equipment', 'Grains'];
+const listingTypes = ['All listings', 'Livestock', 'Animal products', 'Farm inputs'];
+const formListingTypes = listingTypes.slice(1);
 
-const products = [
-  {
-    id: 'layer-mash',
-    name: 'Premium Layer Mash',
-    category: 'Livestock feed',
-    description: 'High-protein growth formula for laying hens. 50 kg bag.',
-    price: 34500,
-    unit: '50 kg bag',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAoiCfS4YjgFBfYT72IuGIGUH0pY4hbAq-GH2YKFWsL2A4MKBoLJUXFPcneKjm0LKKndgr61fiLfiVRKDKNgtZASGHINCdWUPBQMgpnW9V50rI4YlTNDMSCPoql69dhMG4HgBiSfrP6qVgMNMoCnw8obGHWI_6MG4QiSYFR9s7LgTfyBKrCuHLfmtjtfo4NsZUtXNGQiZZupLm53mwU4b5JWJnIOVJKliojIR-jcmhmcSZzdpTQ10mprfMFKgIvGYLLGQWHyQZrwJg',
-    seller: 'Example listing · Morogoro',
-    demo: true,
-  },
-  {
-    id: 'kuroiler-chicks',
-    name: 'Day-old Kuroiler Chicks',
-    category: 'Day-old chicks',
-    description: 'Dual-purpose improved breed. Minimum order: 50 chicks.',
-    price: 1100,
-    unit: 'per chick',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCfSli7Hf6Qus2LeKpWlknNbwAxAWsz4rV_je8dW0emCbPKlITz8FPbYDoNliLLLXOXdlmyga-2Sh-_xx5eWy2nMGJqoBS_oVvFhztTfvb9maQPs1f7dkwoJVLbi2ZHcODIidhhW_DA8AmfMVYPcJbXpHer0vebCjC_LlJQxKky0w60KCQPMskhjc7P-CQCz2dGqs0DKcyhwsbvF0xgF0fvr7WVTtNnzC2wvT-RGfv2fsr_NFbMXJCG5wAadmQtvs3xJcThE9qB0KM',
-    seller: 'Example listing · Iringa',
-    demo: true,
-  },
-  {
-    id: 'gumboro-vaccine',
-    name: 'Gumboro Vaccine',
-    category: 'Vet supplies',
-    description: 'Infectious Bursal Disease vaccine. Pack of 1,000 doses.',
-    price: 12000,
-    unit: '1,000 doses',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1ON1koo5_h4c4I8BwIc9VQM3HdJCa1e8uCFH9WRQDqa7ljBBFxZagrWp6WkwY-KNpAgMEKtD8g2Bb3Tix8QYKomIIOblNc5gFZ1C5eCqEyKv_RrNRY9Onq-MYLvWTUaApq8eaNvM4wW8Jrk1xAMAMdL_kN_isGxt15HxFei2RjnNvGLSTY-oB7KMxyfjIOPutjNCxbhuZDVlGuDVt_-7a61qFWH13_xEmdo8AUXG24EXDPYpO6FS-c5UOSxWoGvsshOaIqYM2eEQ',
-    seller: 'Example listing · Dar es Salaam',
-    demo: true,
-  },
-  {
-    id: 'broiler-starter',
-    name: 'Broiler Starter Crumbles',
-    category: 'Livestock feed',
-    description: 'Starter feed for chicks from day 1 to 14. 50 kg bag.',
-    price: 38000,
-    unit: '50 kg bag',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOK-KrMx517G0PrbbYWnW1BBxXT3CgqaqUumP0Q9rSfi1p6DwC6lxCjy6QaC2yjLPyQNw1jkk7qcAGQiW2QUhv94FX_RTiww0qzCnjlQT_HKCNqXDXUVpX9KpDFwmDjggyv-TZ41oD0ojHvxyaC6UA69nqJ4F5OPGaP6Tgi_2snPnn1XddmUd64FjKCdu086PLJW8gwgJkyY4YTVWkkMMA_D_Ne074Wr5UaojizYUZ5LLuKPDt7by7KIcQe9BKCOCuocZiU4QR7Lg',
-    seller: 'Example listing · Morogoro',
-    demo: true,
-  },
-  {
-    id: 'poultry-feeder',
-    name: 'Automatic Poultry Feeder',
-    category: 'Equipment',
-    description: 'Anti-waste design with a 10 kg capacity. Durable HDPE.',
-    price: 21500,
-    unit: 'each',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPayz0OvMfqKdnxXpEcUxxUYB3H1gP-PeiRoccQN8IpachYEejTA1bU6v8c3YmwO7jzVCGdL4y04-IMvfNpiz2Ljl17A8FQP0yz4gWA-2sZAYk7CWNQhNr5OAj3QrsCcnCe7h0jSnROPAJLsSGllXuaW4EsVZc3_8N9KJ-Z8c3fJYxq3Zml-U9XU2i09rVZdvdOBUY80R-iISNxK2qE7QW3l2tQ9hMq3dFbcEvGcpstv0FEN12heg9GHO6w2iDkT0eMwWvyvNVluo',
-    seller: 'Example listing · Mbeya',
-    demo: true,
-  },
-  {
-    id: 'maize-bran',
-    name: 'Pure Maize Bran',
-    category: 'Grains',
-    description: 'Grade A sifted maize bran, excellent for feed mixing. 90 kg.',
-    price: 19500,
-    unit: '90 kg bag',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBtkUOKrYUlPRGt74LE3_iIEt3wwhLdgCXBkfep09wQoFRGfa4Yzg1dQRSKuEfbHhwPvDzTwe0HfNWWkBiwsC5txwsNmL33XFxEKNeOdXeEGLnbX-0E5eig8ewhgCvL1mKCESas9aYeut-c6iamz5CLKbib3wBkCH-ELlugnnd-4y74j9rSixaZbpdLd-X_gmFWd63PmVPukAzhCLNsDiW3D2vGkUupgQtisyLv-HipxeTiOUJb-ViBoNikbZkxVWv5vQiSjrL1-dg',
-    seller: 'Example listing · Kilimanjaro',
-    demo: true,
-  },
-];
+const formatTzs = (value) => `TZS ${Number(value || 0).toLocaleString('en-TZ', { maximumFractionDigits: 0 })}`;
 
-const trends = [
-  { label: 'Maize bran · 90 kg', price: 19500, change: 4.2, up: true, bars: [3, 5, 4, 6, 8, 10] },
-  { label: 'Soya meal · 50 kg', price: 42000, change: 2.1, up: false, bars: [8, 7, 9, 6, 5, 4] },
-];
+function listingType(listing) {
+  const category = String(listing.category || '').trim().toLowerCase();
+  if (category === 'livestock') return 'Livestock';
+  if (category === 'animal products') return 'Animal products';
+  if (category === 'farm inputs') return 'Farm inputs';
+  if (/feed|chick|veterinary|vet supplies|equipment|grain|seed|fertili[sz]er|tool/.test(category)) return 'Farm inputs';
+  const searchable = `${listing.name || ''} ${listing.crop_type || ''} ${listing.description || ''} ${category}`.toLowerCase();
+  if (/\b(milk|egg|manure|honey|meat|wool|leather|cheese)\b/.test(searchable)) return 'Animal products';
+  if (/\b(cattle|cow|cows|bull|bulls|heifer|heifers|goat|goats|sheep|pig|pigs|poultry|chicken|chickens|duck|ducks|livestock|animal|animals)\b/.test(searchable)) return 'Livestock';
+  return 'Farm inputs';
+}
 
-const formatTzs = (value) => `TZS ${Number(value || 0).toLocaleString('en-TZ')}`;
+function safeImageUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.href : '';
+  } catch {
+    return '';
+  }
+}
 
 function fromListing(listing) {
-  const fallback = products.find((product) => product.category === listing.category) || products[0];
   return {
-    id: String(listing.listing_id),
+    id: String(listing.listing_id || ''),
     name: listing.name || listing.crop_type || 'Farm product',
-    category: categories.includes(listing.category) ? listing.category : 'Grains',
-    description: listing.description || `${listing.quantity || ''} ${listing.unit || 'units'} available.`,
+    type: listingType(listing),
+    description: listing.description || '',
     price: Number(listing.price || 0),
-    unit: listing.unit || 'per unit',
-    image: listing.image_url || fallback.image,
-    seller: [listing.seller_name, listing.region].filter(Boolean).join(' · ') || 'AGRI-NEST seller',
-    verified: false,
-    demo: false,
+    quantity: Number(listing.quantity || 0),
+    unit: listing.unit || 'unit',
+    image: safeImageUrl(listing.image_url),
+    seller: listing.seller_name || 'AGRI-NEST seller',
+    sellerId: listing.farmer_id || '',
+    region: listing.region || '',
+    createdAt: listing.created_at || '',
   };
 }
 
@@ -99,22 +49,55 @@ function activityLabel(activity) {
   const details = activity.details || {};
   if (activity.event_type === 'listing_created') return `New listing: ${details.name || 'Farm product'}${details.region ? ` · ${details.region}` : ''}`;
   if (activity.event_type === 'cart_item_added') return `A shopper added ${details.product_name || 'a product'} to their cart`;
-  if (activity.event_type === 'order_placed') return `An order was placed for ${details.item_count || 0} items · ${formatTzs(details.total_amount)}`;
+  if (activity.event_type === 'order_placed') return `An order request was placed for ${details.item_count || 0} items · ${formatTzs(details.total_amount)}`;
   return 'Marketplace updated';
 }
 
-export default function MarketplacePage({ profile, search = '' }) {
-  const [category, setCategory] = useState(categories[0]);
+function downloadRegionalReport(products, region) {
+  const regionalProducts = region
+    ? products.filter((product) => product.region.trim().toLowerCase() === region.trim().toLowerCase())
+    : products;
+  const rows = [
+    ['Listing', 'Type', 'Seller', 'Region', 'Price (TZS)', 'Available quantity', 'Unit'],
+    ...regionalProducts.map((product) => [product.name, product.type, product.seller, product.region, product.price, product.quantity, product.unit]),
+  ];
+  const csv = rows.map((row) => row.map((value) => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `agrinest-market-${String(region || 'all-regions').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function ListingImage({ product }) {
+  return product.image
+    ? <img src={product.image} alt={product.name} loading="lazy" />
+    : <div className="soko-listing-placeholder" aria-hidden="true"><span className="material-symbols-outlined">{product.type === 'Livestock' ? 'pets' : product.type === 'Animal products' ? 'egg_alt' : 'agriculture'}</span></div>;
+}
+
+export default function MarketplacePage({ profile, user, search = '', onTransport }) {
+  const [selectedType, setSelectedType] = useState(listingTypes[0]);
+  const [page, setPage] = useState('browse');
   const [cart, setCart] = useState([]);
   const [notice, setNotice] = useState('');
   const [listingProducts, setListingProducts] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [listingLoadFailed, setListingLoadFailed] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [isListingFormOpen, setIsListingFormOpen] = useState(false);
   const [isPublishingListing, setIsPublishingListing] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [listingDraft, setListingDraft] = useState({ name: '', category: 'Livestock feed', description: '', price: '', quantity: '', unit: '', region: profile.region || '' });
+  const [listingDraft, setListingDraft] = useState({
+    name: '', category: 'Livestock', description: '', price: '', quantity: '',
+    unit: '', region: profile.region || profile.location || '', imageUrl: '',
+  });
   const lastActivityId = useRef(0);
+  const userId = user?.user_id || user?.id || '';
+  const profileName = profile.name || user?.name || '';
+  const region = profile.region || profile.district || profile.location || '';
 
   useEffect(() => {
     let isCurrent = true;
@@ -122,15 +105,20 @@ export default function MarketplacePage({ profile, search = '' }) {
 
     Promise.allSettled([api.getListings(), api.getMarketplaceActivity()]).then(([listingResponse, activityResponse]) => {
       if (!isCurrent) return;
-      const listingResult = listingResponse.status === 'fulfilled' ? listingResponse.value : { items: [] };
       const activityResult = activityResponse.status === 'fulfilled' ? activityResponse.value : { items: [] };
-      const liveListings = Array.isArray(listingResult.items) ? listingResult.items.map(fromListing) : [];
-      setListingProducts(liveListings);
+      if (listingResponse.status === 'fulfilled') {
+        const liveListings = Array.isArray(listingResponse.value.items) ? listingResponse.value.items.map(fromListing) : [];
+        setListingProducts(liveListings);
+        setListingLoadFailed(false);
+      } else {
+        setListingProducts(null);
+        setListingLoadFailed(true);
+      }
       const recent = Array.isArray(activityResult.items) ? activityResult.items : [];
       setActivities(recent);
       lastActivityId.current = Math.max(0, ...recent.map((activity) => Number(activity.activity_id) || 0));
       if (listingResponse.status === 'rejected' || activityResponse.status === 'rejected') {
-        setNotice('Some live market data is unavailable. Featured products are shown while we reconnect.');
+        setNotice('Live marketplace data is temporarily unavailable. Please reconnect and try again.');
       }
       unsubscribe = api.subscribeMarketplaceActivity((activity) => {
         if (!isCurrent) return;
@@ -139,7 +127,7 @@ export default function MarketplacePage({ profile, search = '' }) {
         if (activity.event_type === 'listing_created') {
           api.getListings().then((result) => {
             if (isCurrent) setListingProducts((result.items || []).map(fromListing));
-          }).catch(() => setNotice('A new listing arrived, but the catalog could not refresh.'));
+          }).catch(() => setNotice('A new listing arrived, but the marketplace could not refresh.'));
         }
       }, setIsLive, lastActivityId.current);
     });
@@ -148,36 +136,78 @@ export default function MarketplacePage({ profile, search = '' }) {
       isCurrent = false;
       unsubscribe();
     };
-  }, []);
+  }, [reloadToken]);
 
-  const catalog = listingProducts?.length ? listingProducts : products;
-
-  const visibleProducts = useMemo(() => catalog.filter((product) => {
-    const matchesCategory = category === categories[0] || product.category === category;
-    const searchText = `${product.name} ${product.description} ${product.seller} ${product.category}`.toLowerCase();
-    return matchesCategory && searchText.includes(search.trim().toLowerCase());
-  }), [category, search, catalog]);
+  const catalog = listingProducts || [];
+  const myListings = useMemo(() => catalog.filter((product) => (
+    Boolean(userId && product.sellerId === userId)
+  )), [catalog, profileName, userId]);
+  const benchmarkListings = page === 'mine' ? myListings : catalog;
+  const localListings = region
+    ? benchmarkListings.filter((product) => product.region.trim().toLowerCase() === region.trim().toLowerCase())
+    : [];
+  const averagePrice = (items) => items.length
+    ? items.reduce((total, item) => total + item.price, 0) / items.length
+    : null;
+  const categoryBenchmarks = useMemo(() => formListingTypes.flatMap((type) => {
+    const items = benchmarkListings.filter((product) => product.type === type);
+    const units = [...new Set(items.map((item) => item.unit.trim().toLowerCase()).filter(Boolean))];
+    return units.map((unit) => {
+      const comparableItems = items.filter((item) => item.unit.trim().toLowerCase() === unit);
+      const localItems = localListings.filter((product) => product.type === type && product.unit.trim().toLowerCase() === unit);
+      const localAverage = averagePrice(localItems);
+      const marketAverage = averagePrice(comparableItems);
+      return {
+        type,
+        unit,
+        count: comparableItems.length,
+        localCount: localItems.length,
+        localAverage,
+        marketAverage,
+        difference: localAverage !== null && marketAverage ? ((localAverage - marketAverage) / marketAverage) * 100 : null,
+      };
+    });
+  }), [benchmarkListings, localListings]);
+  const visibleBenchmarks = categoryBenchmarks.filter((benchmark) => (
+    selectedType === listingTypes[0] || benchmark.type === selectedType
+  ));
+  const visibleProducts = useMemo(() => {
+    const source = page === 'mine' ? myListings : catalog;
+    const query = search.trim().toLowerCase();
+    return source.filter((product) => {
+      const matchesType = selectedType === listingTypes[0] || product.type === selectedType;
+      const searchable = `${product.name} ${product.description} ${product.seller} ${product.region} ${product.type}`.toLowerCase();
+      return matchesType && searchable.includes(query);
+    });
+  }, [catalog, myListings, page, search, selectedType]);
 
   const addToCart = (product) => {
-    if (product.demo) {
-      setNotice('This is a featured example, not a live seller listing. Add a real seller listing to place an order.');
+    const existing = cart.find((item) => item.product.id === product.id);
+    if (product.quantity <= 0 || (existing && existing.quantity >= product.quantity)) {
+      setNotice(`Only ${product.quantity.toLocaleString()} ${product.unit} are listed as available for ${product.name}.`);
       return;
     }
     setCart((current) => {
-      const existing = current.find((item) => item.product.id === product.id);
       if (existing) return current.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       return [...current, { product, quantity: 1 }];
     });
-    setNotice(`${product.name} added to your cart.`);
+    setNotice(`${product.name} added to your order request.`);
     api.createMarketplaceActivity({
       event_type: 'cart_item_added',
-      details: { product_name: product.name, category: product.category, region: profile.region || '' },
+      details: { product_name: product.name, category: product.type, region: region || '' },
     }).catch(() => setIsLive(false));
   };
 
-  const changeQuantity = (productId, amount) => setCart((current) => current
-    .map((item) => item.product.id === productId ? { ...item, quantity: item.quantity + amount } : item)
-    .filter((item) => item.quantity > 0));
+  const changeQuantity = (productId, amount) => {
+    const item = cart.find((entry) => entry.product.id === productId);
+    if (amount > 0 && item && item.quantity >= item.product.quantity) {
+      setNotice(`Only ${item.product.quantity.toLocaleString()} ${item.product.unit} are listed as available for ${item.product.name}.`);
+      return;
+    }
+    setCart((current) => current
+      .map((entry) => entry.product.id === productId ? { ...entry, quantity: Math.min(entry.product.quantity, entry.quantity + amount) } : entry)
+      .filter((entry) => entry.quantity > 0));
+  };
 
   const publishListing = async (event) => {
     event.preventDefault();
@@ -191,15 +221,15 @@ export default function MarketplacePage({ profile, search = '' }) {
         price: Number(listingDraft.price),
         quantity: Number(listingDraft.quantity),
         unit: listingDraft.unit.trim(),
-        seller_name: profile.name,
+        image_url: listingDraft.imageUrl.trim() || null,
+        seller_name: profileName,
         region: listingDraft.region.trim(),
-        farmer_id: null,
       });
       const product = fromListing(result);
       setListingProducts((current) => [product, ...(current || []).filter((item) => item.id !== product.id)]);
       setIsListingFormOpen(false);
-      setListingDraft({ name: '', category: 'Livestock feed', description: '', price: '', quantity: '', unit: '', region: profile.region || '' });
-      setNotice(`${product.name} is now listed for AGRI-NEST shoppers.`);
+      setListingDraft({ name: '', category: 'Livestock', description: '', price: '', quantity: '', unit: '', region, imageUrl: '' });
+      setNotice(`${product.name} is now listed in the marketplace.`);
     } catch {
       setNotice('Could not publish the listing. Check your connection and try again.');
     } finally {
@@ -211,7 +241,7 @@ export default function MarketplacePage({ profile, search = '' }) {
     setIsPlacingOrder(true);
     try {
       const order = await api.createMarketplaceOrder({
-        buyer_name: profile.name,
+        buyer_name: profileName,
         items: cart.map(({ product, quantity }) => ({
           product_id: product.id,
           name: product.name,
@@ -221,9 +251,9 @@ export default function MarketplacePage({ profile, search = '' }) {
         total_amount: cart.reduce((total, item) => total + item.product.price * item.quantity, 0),
       });
       setCart([]);
-      setNotice(`Order request ${String(order.order_id).slice(0, 8)} was sent. The seller will confirm availability and delivery.`);
+      setNotice(`Order request ${String(order.order_id).slice(0, 8)} was sent. Confirm availability and delivery with the seller before payment.`);
     } catch {
-      setNotice('Could not send your order request. Your cart is still saved on this page.');
+      setNotice('Could not send your order request. Your order items are still in the cart.');
     } finally {
       setIsPlacingOrder(false);
     }
@@ -231,106 +261,146 @@ export default function MarketplacePage({ profile, search = '' }) {
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
-  const cartHasExamples = cart.some((item) => item.product.demo);
+  const benchmarkCount = page === 'mine' ? myListings.length : catalog.length;
 
   return (
-    <main className="marketplace-page">
-      <section className="marketplace-main-column" aria-label="Marketplace products">
-        <div className="marketplace-filter-bar">
-          <div className="marketplace-categories" role="group" aria-label="Filter products by category">
-            {categories.map((option) => (
-              <button type="button" key={option} className={category === option ? 'marketplace-category active' : 'marketplace-category'} onClick={() => setCategory(option)}>
-                {option}
-              </button>
-            ))}
-          </div>
-          <div className="marketplace-toolbar-actions">
-            <button type="button" className="marketplace-sell-button" onClick={() => setIsListingFormOpen(true)}><span className="material-symbols-outlined">add</span>Sell item</button>
-            <button type="button" className="marketplace-filter-button" onClick={() => setNotice('Advanced filters are coming soon.')}><span className="material-symbols-outlined">tune</span>Advanced filters</button>
-          </div>
+    <main className="marketplace-page soko-marketplace">
+      <header className="soko-heading">
+        <div>
+          <span className="soko-eyebrow">AGRI-NEST SOKO · TANZANIA</span>
+          <h1>Farm &amp; livestock marketplace</h1>
+          <p>Browse live seller listings, compare current offers, and send an order request.</p>
         </div>
+        <button type="button" className="marketplace-sell-button" onClick={() => setIsListingFormOpen(true)}>
+          <span className="material-symbols-outlined">add</span>Post a listing
+        </button>
+      </header>
 
-        {notice && <div className="marketplace-notice" role="status"><span>{notice}</span><button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
-        {listingProducts?.length === 0 && <p className="marketplace-catalog-note">Showing featured items while sellers add live listings.</p>}
-
-        {isListingFormOpen && (
-          <div className="marketplace-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsListingFormOpen(false); }}>
-            <section className="marketplace-listing-modal" role="dialog" aria-modal="true" aria-labelledby="marketplace-listing-title">
-              <div className="marketplace-modal-heading"><div><span>AGRI-NEST SOKO</span><h2 id="marketplace-listing-title">List a product</h2></div><button type="button" aria-label="Close listing form" onClick={() => setIsListingFormOpen(false)}><span className="material-symbols-outlined">close</span></button></div>
-              <form className="marketplace-listing-form" onSubmit={publishListing}>
-                <label>Product name<input required maxLength="120" value={listingDraft.name} onChange={(event) => setListingDraft((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. Sunflower seed, 50 kg" /></label>
-                <label>Category<select value={listingDraft.category} onChange={(event) => setListingDraft((current) => ({ ...current, category: event.target.value }))}>{categories.slice(1).map((option) => <option key={option}>{option}</option>)}</select></label>
-                <label className="marketplace-listing-full">Description<textarea maxLength="500" rows="3" value={listingDraft.description} onChange={(event) => setListingDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Quality, variety, packaging, or collection details" /></label>
-                <label>Price per unit (TZS)<input required type="number" min="1" step="1" value={listingDraft.price} onChange={(event) => setListingDraft((current) => ({ ...current, price: event.target.value }))} placeholder="e.g. 35000" /></label>
-                <label>Available quantity<input required type="number" min="1" step="any" value={listingDraft.quantity} onChange={(event) => setListingDraft((current) => ({ ...current, quantity: event.target.value }))} placeholder="e.g. 20" /></label>
-                <label>Unit<input required maxLength="40" value={listingDraft.unit} onChange={(event) => setListingDraft((current) => ({ ...current, unit: event.target.value }))} placeholder="50 kg bag, crate, or kg" /></label>
-                <label>Region<input maxLength="100" value={listingDraft.region} onChange={(event) => setListingDraft((current) => ({ ...current, region: event.target.value }))} placeholder="e.g. Iringa Region" /></label>
-                <p className="marketplace-listing-note">Your profile name is shown as the seller. Listing prices are in Tanzanian shillings.</p>
-                <div className="marketplace-listing-actions-row"><button type="button" onClick={() => setIsListingFormOpen(false)}>Cancel</button><button type="submit" disabled={isPublishingListing}>{isPublishingListing ? 'Publishing…' : 'Publish listing'}</button></div>
-              </form>
-            </section>
-          </div>
-        )}
-
-        <div className="marketplace-product-grid">
-          {visibleProducts.map((product) => (
-            <article className="marketplace-product" key={product.id}>
-              <div className="marketplace-product-image">
-                <img src={product.image} alt={product.name} loading="lazy" />
-                {product.verified && <span className="marketplace-verified"><span className="material-symbols-outlined">verified</span>Verified seller</span>}
-              </div>
-              <div className="marketplace-product-info">
-                <span className="marketplace-product-category">{product.category}</span>
-                <h2>{product.name}</h2>
-                <p className="marketplace-product-description">{product.description}</p>
-                <p className="marketplace-seller">{product.seller}</p>
-                <div className="marketplace-product-buy">
-                  <div><strong>{formatTzs(product.price)}</strong><small>{product.unit}</small></div>
-                  <button type="button" aria-label={`Add ${product.name} to cart`} title="Add to cart" onClick={() => addToCart(product)}><span className="material-symbols-outlined">add_shopping_cart</span></button>
-                </div>
-              </div>
-            </article>
-          ))}
-          {!visibleProducts.length && <div className="marketplace-empty-results"><span className="material-symbols-outlined">search_off</span><h2>No matching products</h2><p>Try a different search or category.</p></div>}
-        </div>
+      <section className="soko-stats" aria-label="Marketplace listing summary">
+        <article><span>Listings loaded</span><strong>{listingProducts === null ? '—' : catalog.length.toLocaleString()}</strong><small>Newest records · up to 100</small></article>
+        <article><span>Price comparisons</span><strong>{categoryBenchmarks.length.toLocaleString()}</strong><small>Comparable listing units</small></article>
+        <article><span>Livestock</span><strong>{catalog.filter((product) => product.type === 'Livestock').length.toLocaleString()}</strong><small>Among newest 100 listings</small></article>
+        <article><span>Animal products</span><strong>{catalog.filter((product) => product.type === 'Animal products').length.toLocaleString()}</strong><small>Among newest 100 listings</small></article>
       </section>
 
-      <aside className="marketplace-side-column" aria-label="Cart and market information">
-        <section className="marketplace-panel marketplace-cart-panel">
-          <div className="marketplace-panel-heading"><h2>Your cart</h2><span>{cartCount} {cartCount === 1 ? 'item' : 'items'}</span></div>
-          {cart.length ? (
-            <div className="marketplace-cart-items">
-              {cart.map(({ product, quantity }) => (
-                <div className="marketplace-cart-item" key={product.id}>
-                  <img src={product.image} alt="" />
-                  <div className="marketplace-cart-item-copy"><strong>{product.name}</strong><small>{formatTzs(product.price * quantity)}</small><div className="marketplace-quantity"><button type="button" aria-label={`Decrease ${product.name} quantity`} onClick={() => changeQuantity(product.id, -1)}>−</button><span>{quantity}</span><button type="button" aria-label={`Increase ${product.name} quantity`} onClick={() => changeQuantity(product.id, 1)}>+</button></div></div>
-                </div>
+      <nav className="soko-tabs" aria-label="Marketplace sections">
+        <button type="button" className={page === 'browse' ? 'active' : ''} onClick={() => setPage('browse')}><span className="material-symbols-outlined">storefront</span>Browse</button>
+        <button type="button" className={page === 'mine' ? 'active' : ''} onClick={() => setPage('mine')}><span className="material-symbols-outlined">inventory_2</span>My listings <span className="soko-tab-count">{myListings.length}</span></button>
+        <button type="button" className={page === 'benchmarks' ? 'active' : ''} onClick={() => setPage('benchmarks')}><span className="material-symbols-outlined">monitoring</span>Price benchmarks</button>
+      </nav>
+
+      {notice && <div className="marketplace-notice" role="status"><span>{notice}</span><button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
+
+      <div className="soko-content-grid">
+        <section className="soko-listings-column" aria-label="Marketplace listings">
+          <div className="soko-filter-bar">
+            <div className="soko-category-filters" role="group" aria-label="Filter listings">
+              {listingTypes.map((type) => (
+                <button type="button" key={type} className={selectedType === type ? 'active' : ''} onClick={() => setSelectedType(type)}>{type}</button>
               ))}
             </div>
-          ) : <div className="marketplace-cart-empty"><span className="material-symbols-outlined">shopping_basket</span><p>Your cart is empty</p><small>Add products to start an order.</small></div>}
-          <div className="marketplace-cart-total"><span>Estimated total</span><strong>{formatTzs(cartTotal)}</strong></div>
-          <button type="button" className="marketplace-checkout-button" disabled={!cart.length || cartHasExamples || isPlacingOrder} onClick={placeOrder}>
-            {isPlacingOrder ? 'Sending request…' : 'Place order request'} <span className="material-symbols-outlined">arrow_forward</span>
-          </button>
-          <p className="marketplace-payment-note">{cartHasExamples ? 'Featured examples cannot be ordered. Add a live seller listing to your cart.' : 'No payment is taken here. Sellers confirm availability and delivery.'}</p>
+            <span className="soko-listing-count">{page === 'benchmarks' ? `${visibleBenchmarks.length} price group${visibleBenchmarks.length === 1 ? '' : 's'}` : `${visibleProducts.length} listing${visibleProducts.length === 1 ? '' : 's'}`}</span>
+          </div>
+
+          {page === 'benchmarks' ? (
+            <section className="soko-panel soko-benchmark-panel">
+              <div className="soko-panel-title"><span className="material-symbols-outlined">query_stats</span><div><h2>Asking-price comparison</h2><p>Calculated from the newest 100 listings returned by the marketplace; not a verified market index.</p></div></div>
+              {visibleBenchmarks.map((benchmark) => (
+                <article className="soko-benchmark-row" key={benchmark.type}>
+                  <div>                  <strong>{benchmark.type} · {benchmark.unit}</strong><small>{benchmark.count} listing{benchmark.count === 1 ? '' : 's'} at this unit</small></div>
+                  <div className="soko-benchmark-prices">
+                    <span><small>{region || 'Your region'}</small><strong>{benchmark.localAverage === null ? 'No local listings' : `${formatTzs(benchmark.localAverage)} / ${benchmark.unit}`}</strong></span>
+                    <span><small>Latest listings · all regions</small><strong>{benchmark.marketAverage === null ? 'No listings yet' : `${formatTzs(benchmark.marketAverage)} / ${benchmark.unit}`}</strong></span>
+                    {benchmark.difference !== null && <span className={benchmark.difference > 0 ? 'is-higher' : benchmark.difference < 0 ? 'is-lower' : ''}>{benchmark.difference > 0 ? '+' : ''}{benchmark.difference.toFixed(1)}%</span>}
+                  </div>
+                </article>
+              ))}
+              <button type="button" className="soko-report-button" disabled={!benchmarkCount} onClick={() => downloadRegionalReport(benchmarkListings, region)}>Download listing report</button>
+            </section>
+          ) : (
+            <>
+              <div className="soko-listings-heading">
+                <div><h2>{page === 'mine' ? 'My listings' : selectedType === listingTypes[0] ? 'Current seller listings' : selectedType}</h2><p>{page === 'mine' ? 'Listings published by your account.' : 'Prices and availability are provided by the sellers.'}</p></div>
+                <span className={isLive ? 'marketplace-live-status' : 'marketplace-live-status offline'}><i />{isLive ? 'Live updates' : 'Live updates reconnecting'}</span>
+              </div>
+              {listingProducts === null ? (
+                <div className="soko-empty"><span className="material-symbols-outlined">{listingLoadFailed ? 'cloud_off' : 'sync'}</span><strong>{listingLoadFailed ? 'Marketplace listings could not load' : 'Loading seller listings'}</strong><p>{listingLoadFailed ? 'Check your connection and retry to load current seller listings.' : 'Connecting to the AGRI-NEST marketplace.'}</p>{listingLoadFailed && <button type="button" onClick={() => setReloadToken((current) => current + 1)}>Retry</button>}</div>
+              ) : visibleProducts.length ? (
+                <div className="soko-listing-grid">
+                  {visibleProducts.map((product) => (
+                    <article className="soko-listing-card" key={product.id}>
+                      <div className="soko-listing-image"><ListingImage product={product} /><span>{product.type}</span></div>
+                      <div className="soko-listing-copy">
+                        <div className="soko-product-title"><h3>{product.name}</h3><strong>{formatTzs(product.price)}</strong></div>
+                        <p className="soko-product-description">{product.description || 'The seller has not added a description.'}</p>
+                        <div className="soko-product-details"><span><span className="material-symbols-outlined">inventory</span>{product.quantity.toLocaleString()} {product.unit} available</span><span><span className="material-symbols-outlined">location_on</span>{product.region || 'Region not provided'}</span></div>
+                        <p className="soko-seller"><span className="material-symbols-outlined">person</span>{product.seller}</p>
+                        <div className="soko-listing-actions">
+                          <button type="button" className="soko-offer-button" disabled={product.quantity <= 0} title={product.quantity <= 0 ? 'This listing has no available quantity.' : ''} onClick={() => addToCart(product)}>{product.quantity <= 0 ? 'Unavailable' : 'Offer'}</button>
+                          <button type="button" disabled title="Direct seller chat is not available yet">Chat</button>
+                          <button type="button" onClick={() => onTransport ? onTransport(product) : setNotice('Open Transport from the main menu to arrange delivery.')}>Transport</button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="soko-empty"><span className="material-symbols-outlined">{page === 'mine' ? 'inventory_2' : 'search_off'}</span><strong>{page === 'mine' ? 'No listings from this account yet' : 'No matching seller listings'}</strong><p>{page === 'mine' ? 'Post an item to make it available to marketplace buyers.' : 'Try another category or search, or check back when sellers post listings.'}</p>{page === 'mine' && <button type="button" onClick={() => setIsListingFormOpen(true)}>Post a listing</button>}</div>
+              )}
+            </>
+          )}
         </section>
 
-        <section className="marketplace-panel marketplace-trends-panel">
-          <div className="marketplace-trends-heading"><span className="material-symbols-outlined">trending_up</span><h2>Price trends</h2><small>Illustrative · TZS</small></div>
-          {trends.map((trend) => (
-            <div className="marketplace-trend" key={trend.label}>
-              <div><span>{trend.label}</span><strong>{formatTzs(trend.price)} <small className={trend.up ? 'marketplace-trend-up' : 'marketplace-trend-down'}>{trend.up ? '↑' : '↓'} {trend.change}%</small></strong></div>
-              <div className="marketplace-trend-bars" aria-label={`${trend.label} recent price trend`}>{trend.bars.map((height, index) => <i className={index === trend.bars.length - 1 ? 'current' : ''} style={{ height: `${height * 4}px` }} key={`${trend.label}-${index}`} />)}</div>
-            </div>
-          ))}
-          <div className="marketplace-market-note"><span className="material-symbols-outlined">lightbulb</span><div><strong>Market note</strong><p>Prices vary by region, season, and delivery distance. Confirm the final total with the seller.</p></div></div>
-        </section>
+        <aside className="soko-side-column" aria-label="Marketplace tools">
+          <section className="soko-panel soko-cart-panel">
+            <div className="soko-panel-heading"><h2>Order request</h2><span>{cartCount} item{cartCount === 1 ? '' : 's'}</span></div>
+            {cart.length ? <div className="soko-cart-items">
+              {cart.map(({ product, quantity }) => <article className="soko-cart-item" key={product.id}>
+                <div><strong>{product.name}</strong><small>{formatTzs(product.price)} · {product.unit}</small></div>
+                <div className="soko-quantity"><button type="button" aria-label={`Remove one ${product.name}`} onClick={() => changeQuantity(product.id, -1)}>−</button><span>{quantity}</span><button type="button" aria-label={`Add one ${product.name}`} onClick={() => changeQuantity(product.id, 1)}>+</button></div>
+              </article>)}
+              <div className="soko-cart-total"><span>Estimated total</span><strong>{formatTzs(cartTotal)}</strong></div>
+              <button type="button" className="soko-checkout-button" disabled={isPlacingOrder} onClick={placeOrder}>{isPlacingOrder ? 'Sending request…' : 'Send order request'}</button>
+              <p className="soko-disclaimer">No payment is taken here. Confirm item availability, delivery, and payment terms with the seller.</p>
+            </div> : <div className="soko-cart-empty"><span className="material-symbols-outlined">shopping_bag</span><p>Your order request is empty.</p><small>Select Offer on a listing to start.</small></div>}
+          </section>
 
-        <section className="marketplace-panel marketplace-activity-panel">
-          <div className="marketplace-panel-heading"><h2>Market activity</h2><span className={isLive ? 'marketplace-live-status' : 'marketplace-live-status offline'}><i />{isLive ? 'Live' : 'Reconnecting'}</span></div>
-          {activities.length ? <ul className="marketplace-activity-list">{activities.slice(0, 5).map((activity) => <li key={activity.activity_id}><span>{activityLabel(activity)}</span><time dateTime={activity.created_at}>{new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></li>)}</ul> : <p>New listings, cart interest, and order requests will appear here for all connected shoppers.</p>}
+          <section className="soko-panel soko-benchmarks-summary">
+            <div className="soko-panel-title"><span className="material-symbols-outlined">monitoring</span><div><h2>Price benchmarks</h2><p>{region ? `Live asking prices · ${region}` : 'Live asking prices by listing type'}</p></div></div>
+            {visibleBenchmarks.map((benchmark) => <div className="soko-summary-row" key={`${benchmark.type}-${benchmark.unit}`}><span>{benchmark.type} · {benchmark.unit}</span><strong>{benchmark.localAverage === null ? '—' : `${formatTzs(benchmark.localAverage)} / ${benchmark.unit}`}</strong><small>{benchmark.localAverage === null ? 'No matching regional listings' : `${benchmark.localCount} local listing${benchmark.localCount === 1 ? '' : 's'}`}</small></div>)}
+            <p className="soko-disclaimer">Based on the newest 100 seller asking prices; not independently verified market rates.</p>
+            <button type="button" className="soko-report-button" disabled={!benchmarkCount} onClick={() => downloadRegionalReport(benchmarkListings, region)}>Download listing report</button>
+          </section>
+
+          <section className="soko-safe-trading">
+            <div><span className="material-symbols-outlined">shield</span><h2>Trade carefully</h2></div>
+            <ul><li>Confirm the seller and item before arranging payment.</li><li>Agree on delivery, inspection, and refund terms directly.</li><li>AGRI-NEST does not hold or process payment for these requests.</li></ul>
+          </section>
+
+          <section className="soko-panel soko-activity-panel">
+            <div className="soko-panel-heading"><h2>Market activity</h2><span className={isLive ? 'marketplace-live-status' : 'marketplace-live-status offline'}><i />{isLive ? 'Live' : 'Reconnecting'}</span></div>
+            {activities.length ? <ul>{activities.slice(0, 5).map((activity) => <li key={activity.activity_id}><span>{activityLabel(activity)}</span><time dateTime={activity.created_at}>{new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></li>)}</ul> : <p>New listing and order-request activity will appear here when available.</p>}
+          </section>
+        </aside>
+      </div>
+
+      {isListingFormOpen && <div className="marketplace-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsListingFormOpen(false); }}>
+        <section className="marketplace-listing-modal" role="dialog" aria-modal="true" aria-labelledby="marketplace-listing-title">
+          <div className="marketplace-modal-heading"><div><span>AGRI-NEST SOKO</span><h2 id="marketplace-listing-title">Post a seller listing</h2></div><button type="button" aria-label="Close listing form" onClick={() => setIsListingFormOpen(false)}><span className="material-symbols-outlined">close</span></button></div>
+          <form className="marketplace-listing-form" onSubmit={publishListing}>
+            <label>Listing title<input required maxLength="120" value={listingDraft.name} onChange={(event) => setListingDraft((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. Dairy heifer, fresh milk, layer eggs" /></label>
+            <label>Listing type<select value={listingDraft.category} onChange={(event) => setListingDraft((current) => ({ ...current, category: event.target.value }))}>{formListingTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
+            <label className="marketplace-listing-full">Description<textarea maxLength="500" rows="3" value={listingDraft.description} onChange={(event) => setListingDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Add breed, quality, packaging, collection, or other useful details" /></label>
+            <label>Price per unit (TZS)<input required type="number" min="1" step="1" value={listingDraft.price} onChange={(event) => setListingDraft((current) => ({ ...current, price: event.target.value }))} /></label>
+            <label>Available quantity<input required type="number" min="1" step="any" value={listingDraft.quantity} onChange={(event) => setListingDraft((current) => ({ ...current, quantity: event.target.value }))} /></label>
+            <label>Unit<input required maxLength="40" value={listingDraft.unit} onChange={(event) => setListingDraft((current) => ({ ...current, unit: event.target.value }))} placeholder="per animal, litre, tray, or kg" /></label>
+            <label>Region<input maxLength="100" value={listingDraft.region} onChange={(event) => setListingDraft((current) => ({ ...current, region: event.target.value }))} placeholder="Your district or region" /></label>
+            <label className="marketplace-listing-full">Photo URL (optional)<input type="url" value={listingDraft.imageUrl} onChange={(event) => setListingDraft((current) => ({ ...current, imageUrl: event.target.value }))} placeholder="https://…" /></label>
+            <p className="marketplace-listing-note">Listing information and prices are provided by the seller. Only secure (HTTPS) photo URLs are displayed.</p>
+            <div className="marketplace-listing-actions-row"><button type="button" onClick={() => setIsListingFormOpen(false)}>Cancel</button><button type="submit" disabled={isPublishingListing}>{isPublishingListing ? 'Publishing…' : 'Publish listing'}</button></div>
+          </form>
         </section>
-      </aside>
+      </div>}
     </main>
   );
 }

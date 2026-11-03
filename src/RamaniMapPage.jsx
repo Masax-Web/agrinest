@@ -1246,7 +1246,7 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
         )}
         {showWeather && <div className="ramani-weather-card">
           <div className="ramani-weather-heading"><strong>Farm weather</strong><button type="button" aria-label="Refresh farm weather" title={weatherStatus} onClick={() => { if (isOnline) setWeatherRefreshToken((current) => current + 1); else setWeatherStatus('Offline · showing saved weather only.'); }}>{weatherStatus}</button></div>
-          {weatherSnapshot?.location === weatherLocation?.map((coordinate) => coordinate.toFixed(2)).join(',') ? (
+          {weatherSnapshot && weatherLocation && weatherSnapshot.location === weatherLocation.map((coordinate) => coordinate.toFixed(2)).join(',') ? (
             <>
               <div className="ramani-weather-current"><strong>{Number.isFinite(weatherSnapshot.temperature) ? `${Math.round(weatherSnapshot.temperature)}°C` : '—'}</strong><span>Rain {Number.isFinite(weatherSnapshot.precipitation) ? `${weatherSnapshot.precipitation} mm` : '—'} · wind {Number.isFinite(weatherSnapshot.wind) ? `${Math.round(weatherSnapshot.wind)} km/h` : '—'} · humidity {Number.isFinite(weatherSnapshot.humidity) ? `${Math.round(weatherSnapshot.humidity)}%` : '—'}</span></div>
               <div className="ramani-weather-days">{weatherSnapshot.days?.slice(0, 4).map((day) => <span key={day.date}><strong>{new Date(`${day.date}T12:00:00Z`).toLocaleDateString('en', { weekday: 'short', timeZone: 'UTC' })}</strong>{Number.isFinite(day.rainfall) ? `${day.rainfall} mm rain` : 'No rain data'}</span>)}</div>

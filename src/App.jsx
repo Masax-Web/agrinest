@@ -173,7 +173,7 @@ const initialFarmerProfile = {
   farm: 'Mtakuja Farm',
   farmSize: '3.5',
   crops: 'Maize, Beans, Sunflower',
-  livestock: '12',
+  livestock: '0',
   landTenure: '',
   yearsFarming: '',
   cooperative: '',
@@ -2128,7 +2128,7 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search supplies, feeds, chicks...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace products' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2257,7 +2257,7 @@ function SmallholderDashboard({ user, onLogout }) {
             onExpert={() => setActiveView('experts')}
           />
         ) : activeView === 'marketplace' ? (
-          <MarketplacePage profile={farmerProfile} search={marketplaceSearch} onSearch={setMarketplaceSearch} />
+          <MarketplacePage profile={farmerProfile} user={user} search={marketplaceSearch} onSearch={setMarketplaceSearch} onTransport={() => setActiveView('transport')} />
         ) : activeView === 'procurement' ? (
           <ProcurementWorkspace user={user} profile={farmerProfile} />
         ) : activeView === 'ramani' ? (
@@ -2540,6 +2540,7 @@ function SmallholderDashboard({ user, onLogout }) {
             page={activeView}
             user={user}
             search={marketplaceSearch}
+            onSearch={setMarketplaceSearch}
             profile={farmerProfile}
             records={farmerRecords}
             farmRecordsSyncStatus={farmRecordsSyncStatus}
@@ -3970,7 +3971,7 @@ function BuyerDashboard({ user, onLogout }) {
         </section>
         </>
         ) : activeView === 'marketplace' ? (
-          <MarketplacePage profile={{ name: user?.name || 'Buyer', region: user?.region || '', city: user?.region || '', location: user?.region || '' }} />
+          <MarketplacePage profile={{ name: user?.name || 'Buyer', region: user?.region || '', city: user?.region || '', location: user?.region || '' }} user={user} onTransport={() => setActiveView('transport')} />
         ) : activeView === 'procurement' ? (
           <ProcurementWorkspace user={user} profile={{ name: user?.name, region: user?.region }} />
         ) : (

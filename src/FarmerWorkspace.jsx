@@ -8,6 +8,7 @@ import {
   squareMetersPerAcre,
 } from './lib/farm-geometry';
 import LabourWorkspace from './LabourWorkspace';
+import LivestockWorkspace from './LivestockWorkspace';
 import ProductionProfileWorkspace from './ProductionProfileWorkspace';
 import RamaniMapPage from './RamaniMapPage';
 import SpaceRentalWorkspace from './SpaceRentalWorkspace';
@@ -17,7 +18,7 @@ const workspaceDetails = {
   trust: { title: 'Trust Score', icon: 'verified_user', description: 'Your profile completeness score and the records that support it.', recordType: 'activities' },
   listings: { title: 'Active Listings', icon: 'storefront', description: 'Manage produce listings and open the marketplace to publish or update an offer.', recordType: 'listings' },
   income: { title: 'Season Income', icon: 'payments', description: 'Keep a local ledger of crop sales and season income.', recordType: 'income', submitLabel: 'Record income', fields: [['crop', 'Produce', 'text'], ['amount', 'Amount (TZS)', 'number'], ['date', 'Sale date', 'date'], ['note', 'Buyer or note', 'text']] },
-  livestock: { title: 'Livestock Head', icon: 'pets', description: 'Update the livestock count saved in your farmer profile.', recordType: 'livestock', submitLabel: 'Save livestock count', fields: [['count', 'Current head count', 'number'], ['notes', 'Notes', 'text']] },
+  livestock: { title: 'Livestock Management', icon: 'pets', description: 'Register animals, track milk production, and keep health and local price records together.', recordType: 'livestock' },
   groups: { title: 'My Groups', icon: 'groups', description: 'Track your farmer groups and open community conversations.', recordType: 'groups', submitLabel: 'Join group', fields: [['name', 'Group name', 'text'], ['region', 'Region', 'text']] },
   loans: { title: 'Loan Applications', icon: 'account_balance', description: 'Prepare an application record for a farm or input loan.', recordType: 'requests', submitLabel: 'Save loan request', fields: [['title', 'Loan purpose', 'text'], ['amount', 'Amount requested (TZS)', 'number'], ['details', 'Additional details', 'textarea']] },
   'smart-loan': { title: 'Smart Loan', icon: 'psychology', description: 'Create a loan request using your saved farm and income records.', recordType: 'requests', submitLabel: 'Save smart-loan request', fields: [['title', 'Loan purpose', 'text'], ['amount', 'Amount requested (TZS)', 'number'], ['details', 'How will the loan be used?', 'textarea']] },
@@ -428,7 +429,7 @@ function FieldDataProfile({ field, profile, activities, onBack, onNavigate, onUp
   );
 }
 
-export default function FarmerWorkspace({ page, user, search = '', profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
+export default function FarmerWorkspace({ page, user, search = '', onSearch, profile, records, farmRecordsSyncStatus = 'loading', onRetryFarmRecordsSync, liveListingCount = 0, onRecordsChange, onProfileSave, onNavigate, onBack }) {
   const details = workspaceDetails[page] || { title: page.replaceAll('-', ' '), icon: 'dashboard', description: 'Record and manage this part of your farm account.', recordType: 'requests', submitLabel: 'Save record', fields: [['title', 'Name', 'text'], ['details', 'Details', 'textarea']] };
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
@@ -441,6 +442,18 @@ export default function FarmerWorkspace({ page, user, search = '', profile, reco
         ? records.livestock
         : records[details.recordType].filter((record) => details.recordType !== 'requests' || record.module === page);
   const seasonIncome = records.income.reduce((total, entry) => total + Number(entry.amount || 0), 0);
+
+  if (page === 'livestock') {
+    return <LivestockWorkspace
+      profile={profile}
+      records={records}
+      search={search}
+      onSearch={onSearch}
+      onRecordsChange={onRecordsChange}
+      onProfileSave={onProfileSave}
+      onBack={onBack}
+    />;
+  }
 
   if (page === 'production') {
     return <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={onBack} />;
@@ -686,10 +699,17 @@ function DigitalFarmPage({ profile, records, farmRecordsSyncStatus, onRetryFarmR
       createdAt: new Date().toISOString(),
     }];
     onRecordsChange('livestock', updatedLivestock);
-    const registeredHeadCount = updatedLivestock
-      .filter((record) => record.module === 'livestock')
+    const activeLivestock = updatedLivestock
+      .filter((record) => record.module === 'livestock' && record.species && record.status !== 'sold' && record.status !== 'deceased')
       .reduce((total, record) => total + Number(record.count || 0), 0);
-    onProfileSave({ ...profile, livestock: String(registeredHeadCount) });
+    const existingBaseline = updatedLivestock.find((record) => record.module === 'livestock-baseline');
+    const previousRegisteredCount = livestockRecords
+      .filter((record) => record.module === 'livestock' && record.species && record.status !== 'sold' && record.status !== 'deceased')
+      .reduce((total, record) => total + Number(record.count || 0), 0);
+    const baselineCount = existingBaseline
+      ? Number(existingBaseline.count || 0)
+      : Math.max(0, Number(profile.livestock || 0) - previousRegisteredCount);
+    onProfileSave({ ...profile, livestock: String(baselineCount + activeLivestock) });
     setLivestockDraft({ species: '', breed: '', count: '1', age: '', earTag: '', health: 'healthy', lastWeight: '' });
     setDialog('');
     setNotice('Livestock record saved on this device. Animal identity and health have not been independently verified.');
