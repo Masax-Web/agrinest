@@ -9,6 +9,7 @@ import FinanceHub from './FinanceHub';
 import CrowdfundingWorkspace from './CrowdfundingWorkspace';
 import CarbonCreditsWorkspace from './CarbonCreditsWorkspace';
 import SustainabilityWorkspace from './SustainabilityWorkspace';
+import JichoNdviWorkspace from './JichoNdviWorkspace';
 import GroupsDashboard from './GroupsDashboard';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
@@ -1662,6 +1663,7 @@ function normalizeFarmerRecords(records = {}) {
     crowdfunding: collection(records.crowdfunding).length ? collection(records.crowdfunding) : legacyCampaigns,
     carbon: collection(records.carbon),
     sustainability: collection(records.sustainability),
+    ndvi: collection(records.ndvi),
     livestock: collection(records.livestock),
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
@@ -2154,7 +2156,7 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search fields, crops, soils...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search fields, crops, or soils' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2268,8 +2270,10 @@ function SmallholderDashboard({ user, onLogout }) {
         ) : activeView === 'jicho' ? (
           <JichoDiagnostic
             onBackToDashboard={() => setActiveView('dashboard')}
+            onNavigate={setActiveView}
             profile={farmerProfile}
             records={farmerRecords}
+            onRecordsChange={updateFarmerRecords}
             search={marketplaceSearch}
             onSearch={setMarketplaceSearch}
             onMap={() => {
@@ -2618,14 +2622,14 @@ function SmallholderDashboard({ user, onLogout }) {
   );
 }
 
-function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, onSearch, onMap, profile, records }) {
+function JichoDiagnostic({ onBackToDashboard, onNavigate, onMarketplace, onExpert, search, onSearch, onMap, onRecordsChange, profile, records }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [scans, setScans] = useState(initialJichoScans);
   const [result, setResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('scan');
+  const [activeTab, setActiveTab] = useState('ndvi');
   const [expertRequested, setExpertRequested] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const fileInputRef = useRef(null);
@@ -2688,7 +2692,7 @@ function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, o
   return (
     <main className="jicho-page">
       <div className="jicho-workspace-tabs">
-        {[['scan', 'document_scanner', 'AI Scan'], ['crops', 'agriculture', 'Crops'], ['soils', 'layers', 'Soils'], ['pests', 'bug_report', 'Pests & Diseases'], ['ndvi', 'sensors', 'NDVI']].map(([id, icon, label]) => (
+        {[['scan', 'document_scanner', 'AI Scan'], ['crops', 'agriculture', 'Crops'], ['soils', 'layers', 'Soils'], ['pests', 'bug_report', 'Pests & Diseases'], ['ndvi', 'sensors', 'Crops & NDVI']].map(([id, icon, label]) => (
           <button type="button" className={activeTab === id ? 'jicho-workspace-tab active' : 'jicho-workspace-tab'} key={id} onClick={() => setActiveTab(id)}>
             <span className="material-symbols-outlined">{icon}</span>{label}
           </button>
@@ -2714,7 +2718,17 @@ function JichoDiagnostic({ onBackToDashboard, onMarketplace, onExpert, search, o
         onSearch={onSearch}
         onMap={onMap}
         onExpert={onExpert}
-      /> : activeTab === 'ndvi' ? <JichoKnowledge title="NDVI Monitor" icon="sensors" copy="Monitor crop vigor from satellite vegetation signals and field observations." /> : (
+      /> : activeTab === 'ndvi' ? <JichoNdviWorkspace
+        fields={records.fields || []}
+        observations={records.ndvi || []}
+        profile={profile}
+        search={search}
+        onNavigate={(view) => {
+          if (view === 'ramani') onMap();
+          else onNavigate(view);
+        }}
+        onObservationsChange={onRecordsChange}
+      /> : (
       <div className="jicho-layout">
         <section className="jicho-main-column">
           <button type="button" className="jicho-back-button" onClick={onBackToDashboard}><span className="material-symbols-outlined">arrow_back</span> Dashboard</button>

@@ -65,6 +65,7 @@ describe('Authenticated farmer profile API', () => {
       crowdfunding: [{ id: 'campaign-1', title: 'Community grain store', goal: 1200000, pledges: [] }],
       carbon: [{ id: 'carbon-activity-1', module: 'carbon-activity', title: 'Planted trees', date: '2026-11-03' }],
       sustainability: [{ id: 'water-1', type: 'water', crop: 'Maize', waterLiters: 1200, yieldKg: 500, date: '2026-11-03' }],
+      ndvi: [{ id: 'ndvi-1', fieldId: 'field-1', date: '2026-11-03', value: 0.62, source: 'Test sensor' }],
       livestock: [],
       groups: [],
       activities: [],
