@@ -61,6 +61,8 @@ describe('Authenticated farmer profile API', () => {
       fields: [{ id: 'field-1', name: 'North plot' }],
       listings: [],
       income: [],
+      expenses: [],
+      crowdfunding: [{ id: 'campaign-1', title: 'Community grain store', goal: 1200000, pledges: [] }],
       livestock: [],
       groups: [],
       activities: [],

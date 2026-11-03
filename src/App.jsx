@@ -5,6 +5,8 @@ import { fetchWeatherData, geocodeSavedWeatherLocation, getSavedWeatherLocation 
 import MarketplacePage from './MarketplacePage';
 import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
+import FinanceHub from './FinanceHub';
+import CrowdfundingWorkspace from './CrowdfundingWorkspace';
 import GroupsDashboard from './GroupsDashboard';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
@@ -1634,10 +1636,28 @@ function normalizeFarmerRecords(records = {}) {
   const collection = (value) => Array.isArray(value)
     ? value.filter((record) => record && typeof record === 'object' && !Array.isArray(record))
     : [];
+  const legacyCampaigns = collection(records.requests)
+    .filter((record) => record.module === 'crowdfunding')
+    .map((record) => ({
+      id: `legacy-${record.id || record.date || 'campaign'}`,
+      title: record.title || 'Community project',
+      category: 'Community',
+      location: '',
+      goal: Number(record.amount) || 0,
+      deadline: '',
+      description: record.details || '',
+      organizer: '',
+      createdAt: record.date || '',
+      status: 'active',
+      raisedAmount: 0,
+      pledges: [],
+    }));
   return {
     fields: collection(records.fields),
     listings: collection(records.listings),
     income: collection(records.income),
+    expenses: collection(records.expenses),
+    crowdfunding: collection(records.crowdfunding).length ? collection(records.crowdfunding) : legacyCampaigns,
     livestock: collection(records.livestock),
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
@@ -2119,6 +2139,7 @@ function SmallholderDashboard({ user, onLogout }) {
                 <span />
               </span>
             </button>
+            {activeView === 'income' && <h2 className="topbar-page-title">Hesabu Yangu</h2>}
             {activeView === 'community' && <h2 className="topbar-page-title">Community Chat</h2>}
             {activeView === 'jicho' && <h2 className="topbar-page-title">Jicho AI</h2>}
             {activeView === 'marketplace' && <h2 className="topbar-page-title">Soko Marketplace</h2>}
@@ -2128,7 +2149,7 @@ function SmallholderDashboard({ user, onLogout }) {
             {activeView === 'rent-space' && <h2 className="topbar-page-title">Kupanga Nafasi</h2>}
             <div className="search-shell">
               <span className="material-symbols-outlined">search</span>
-              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
+              <input type="search" value={marketplaceSearch} onChange={(event) => setMarketplaceSearch(event.target.value)} placeholder={activeView === 'income' ? 'Search finance records...' : activeView === 'marketplace' ? 'Search livestock, products, or regions...' : activeView === 'ramani' ? 'Search parcels or coordinates...' : activeView === 'jicho' ? 'Search soils, crops, pH levels...' : activeView === 'livestock' ? 'Search animal IDs, breeds, species...' : activeView === 'rent-space' ? 'Search spaces...' : 'Search...'} aria-label={activeView === 'income' ? 'Search finance records' : activeView === 'marketplace' ? 'Search marketplace livestock, products, or regions' : activeView === 'ramani' ? 'Search map coordinates or locations' : activeView === 'jicho' ? 'Search soils, crops, or pests' : activeView === 'livestock' ? 'Search livestock register' : activeView === 'rent-space' ? 'Search rental spaces' : 'Search AGRI-NEST'} />
             </div>
           </div>
 
@@ -2529,6 +2550,22 @@ function SmallholderDashboard({ user, onLogout }) {
           />
         ) : activeView === 'loan-spending' ? (
           <LoanSpendingPage userId={user?.user_id} onBack={() => setActiveView('dashboard')} />
+        ) : activeView === 'income' ? (
+          <FinanceHub
+            profile={farmerProfile}
+            records={farmerRecords}
+            onRecordsChange={updateFarmerRecords}
+            onNavigate={setActiveView}
+            search={marketplaceSearch}
+            syncStatus={farmRecordsSyncStatus}
+          />
+        ) : activeView === 'crowdfunding' ? (
+          <CrowdfundingWorkspace
+            profile={farmerProfile}
+            campaigns={farmerRecords.crowdfunding}
+            onCampaignsChange={(campaigns) => updateFarmerRecords('crowdfunding', campaigns)}
+            search={marketplaceSearch}
+          />
         ) : activeView === 'groups' ? (
           <GroupsDashboard
             profile={farmerProfile}
