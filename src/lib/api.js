@@ -56,6 +56,13 @@ export const api = {
     });
   },
 
+  async setFarmerPersona(personaId) {
+    return apiRequest('/auth/persona', {
+      method: 'PUT',
+      body: JSON.stringify({ persona_id: personaId }),
+    });
+  },
+
   async startAdminImpersonation(userId) {
     return apiRequest('/auth/admin/impersonate', {
       method: 'POST',

@@ -97,6 +97,7 @@ describe('Google OAuth callback', () => {
     expect(response.body.authorization_url).to.include('accounts.google.com');
     expect(savedState[0]).to.equal('registration-state-hash');
     expect(savedState[1]).to.deep.equal({
+      core_role: 'admin',
       persona_id: 'partnership_manager',
       phone: '+255712345678',
       invitation_token_hash: GoogleOAuthService.hashState('one-time-invite-token'),
@@ -117,6 +118,21 @@ describe('Google OAuth callback', () => {
       .expect(403);
 
     expect(response.body.error).to.equal('invitation_required_for_persona');
+  });
+
+  it('rejects Google registration when the persona does not belong to the selected core role', async () => {
+    const response = await request(app)
+      .post('/auth/google/start')
+      .send({
+        registration: {
+          core_role: 'farmer',
+          persona_id: 'partnership_manager',
+          phone: '+255712345678',
+        },
+      })
+      .expect(400);
+
+    expect(response.body.error).to.equal('persona_core_role_mismatch');
   });
 
   it('passes the server-stored registration intent from OAuth state to identity processing', async () => {

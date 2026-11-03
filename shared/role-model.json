@@ -1,0 +1,160 @@
+{
+  "coreRoles": [
+    {
+      "id": "farmer",
+      "label": "Farmer",
+      "defaultPersona": "smallholder_farmer",
+      "personas": ["smallholder_farmer", "commercial_farmer", "livestock_keeper", "farmer_group", "landowner"],
+      "journey": [
+        { "module": "fields", "label": "Create your digital farm", "route": "/farmer/digital-farm", "icon": "agriculture", "description": "Register fields, boundaries, soil notes, and crops." },
+        { "module": "activity", "label": "Log daily farm work", "route": "/farmer/activity-log", "icon": "edit_calendar", "description": "Keep dated records of planting, care, harvest, and other work." },
+        { "module": "jicho", "label": "Review crop health", "route": "/farmer/jicho-ai", "icon": "psychology", "description": "Capture crop evidence and review available diagnostic guidance." },
+        { "module": "marketplace", "label": "Prepare produce for market", "route": "/marketplace/soko", "icon": "storefront", "description": "Browse market access and manage produce offers." },
+        { "module": "transport", "label": "Coordinate transport", "route": "/logistics/transport", "icon": "local_shipping", "description": "Record pickup and delivery requirements." },
+        { "module": "smart-loan", "label": "Prepare a finance request", "route": "/finance/hub", "icon": "account_balance", "description": "Review your records and prepare a loan request; approval is not guaranteed." },
+        { "module": "waste", "label": "Explore waste exchange", "route": "/farmer/waste-exchange", "icon": "recycling", "description": "Record an offer or input request for follow-up." },
+        { "module": "loan-spending", "label": "Review loan spending", "route": "/finance/wallet", "icon": "payments", "description": "Track saved spending-plan and repayment records." },
+        { "module": "analytics", "label": "Review the season", "route": "/ai/analytics", "icon": "analytics", "description": "Summarize your saved farm, activity, and finance records." }
+      ]
+    },
+    {
+      "id": "buyer",
+      "label": "Buyer",
+      "defaultPersona": "local_buyer",
+      "personas": ["local_buyer", "exporter", "ngo_development_organization", "impact_investor"],
+      "journey": [
+        { "module": "marketplace", "label": "Find produce and suppliers", "route": "/marketplace/soko", "icon": "storefront", "description": "Browse available produce and supplier records." },
+        { "module": "traceability", "label": "Review batch evidence", "route": "/marketplace/batches", "icon": "qr_code_2", "description": "Review available batch and origin information; records are not independently verified." },
+        { "module": "purchase", "label": "Prepare a purchase request", "route": "/marketplace/orders", "icon": "shopping_cart", "description": "Save purchase details for seller follow-up; payments are not processed here." },
+        { "module": "logistics", "label": "Arrange delivery", "route": "/logistics/transport", "icon": "local_shipping", "description": "Record pickup and delivery coordination details." },
+        { "module": "orders", "label": "Track order follow-up", "route": "/marketplace/orders", "icon": "receipt_long", "description": "Keep order references and delivery updates together." },
+        { "module": "contracts", "label": "Record commercial terms", "route": "/marketplace/contracts", "icon": "description", "description": "Save contract terms for review; no binding contract is created." },
+        { "module": "reports", "label": "Review impact evidence", "route": "/investor/reports", "icon": "assessment", "description": "Summarize available program and portfolio records without implying verification." }
+      ]
+    },
+    {
+      "id": "admin",
+      "label": "Platform Staff",
+      "defaultPersona": "ai_model_manager",
+      "personas": ["super_admin", "ai_model_manager", "content_moderator", "customer_support_agent", "finance_administrator", "partnership_manager"],
+      "journey": [
+        { "module": "system", "label": "Review platform health", "route": "/admin/dashboard", "icon": "dashboard", "description": "Review platform status and operational notes." },
+        { "module": "users", "label": "Manage accounts", "route": "/admin/users", "icon": "manage_accounts", "description": "Review users, invitations, approvals, and account status." },
+        { "module": "models", "label": "Review AI models", "route": "/admin/ai-training", "icon": "psychology", "description": "Track model and evaluation records; this does not deploy models." },
+        { "module": "disputes", "label": "Review disputes", "route": "/admin/disputes", "icon": "gavel", "description": "Record dispute evidence and follow-up; no escrow is released here." },
+        { "module": "transactions", "label": "Reconcile finance records", "route": "/admin/transactions", "icon": "receipt_long", "description": "Track transaction review notes; settlement is not connected." },
+        { "module": "partners", "label": "Coordinate partners", "route": "/admin/partners", "icon": "handshake", "description": "Manage partner and service-level follow-up records." }
+      ]
+    },
+    {
+      "id": "expert",
+      "label": "Expert",
+      "defaultPersona": "agricultural_expert",
+      "personas": ["agricultural_expert", "veterinary_specialist"],
+      "journey": [
+        { "module": "bookings", "label": "Review consultation requests", "route": "/expert/bookings", "icon": "event_available", "description": "Organize farmer requests and appointment follow-up." },
+        { "module": "consultations", "label": "Document consultations", "route": "/expert/consultations", "icon": "support_agent", "description": "Keep consultation notes and next steps." },
+        { "module": "knowledge", "label": "Consult reference material", "route": "/expert/knowledge", "icon": "menu_book", "description": "Organize guides and reference notes." },
+        { "module": "advisory", "label": "Share advisory notes", "route": "/expert/advisory", "icon": "description", "description": "Record advice for review and farmer follow-up." },
+        { "module": "visits", "label": "Plan field visits", "route": "/expert/visits", "icon": "map", "description": "Schedule and document field visits." },
+        { "module": "earnings", "label": "Review earnings records", "route": "/expert/earnings", "icon": "payments", "description": "Track consultation fee notes; payouts are not processed here." }
+      ]
+    },
+    {
+      "id": "transporter",
+      "label": "Transport & Equipment",
+      "defaultPersona": "transport_provider",
+      "personas": ["transport_provider", "equipment_owner"],
+      "journey": [
+        { "module": "availability", "label": "Post availability", "route": "/logistics/transporter-dashboard", "icon": "add_road", "description": "Record vehicle, equipment, route, and availability details." },
+        { "module": "jobs", "label": "Review open jobs", "route": "/logistics/deliveries", "icon": "work_history", "description": "Track job opportunities and quote follow-up." },
+        { "module": "trips", "label": "Update active trips", "route": "/logistics/track", "icon": "distance", "description": "Record trip status; live GPS tracking is not connected." },
+        { "module": "routes", "label": "Plan a route", "route": "/logistics/routes", "icon": "map", "description": "Save pickup, destination, and cargo details." },
+        { "module": "fleet", "label": "Maintain fleet records", "route": "/logistics/fleet", "icon": "local_shipping", "description": "Track vehicles, equipment, and service follow-up." },
+        { "module": "earnings", "label": "Review earnings", "route": "/finance/wallet", "icon": "account_balance_wallet", "description": "Track local earnings records; payments are not processed here." }
+      ]
+    },
+    {
+      "id": "lender",
+      "label": "Financial Services",
+      "defaultPersona": "financial_institution",
+      "personas": ["financial_institution", "insurance_company"],
+      "journey": [
+        { "module": "applications", "label": "Review applications", "route": "/finance/approvals", "icon": "assignment", "description": "Record an application review and status; no lending decision is automated." },
+        { "module": "portfolio", "label": "Monitor portfolio", "route": "/finance/portfolio", "icon": "account_balance", "description": "Track portfolio review records." },
+        { "module": "repayments", "label": "Track repayments", "route": "/finance/loans", "icon": "payments", "description": "Record repayment follow-up; payment collection is not connected." },
+        { "module": "risk", "label": "Document risk reviews", "route": "/finance/risk", "icon": "verified_user", "description": "Save evidence and review notes; no ML risk score is generated." },
+        { "module": "policies", "label": "Manage policy records", "route": "/insurance/policies", "icon": "shield", "description": "Track policy details; coverage is not issued by this workspace." },
+        { "module": "claims", "label": "Review claims", "route": "/insurance/payouts", "icon": "fact_check", "description": "Record a claim review; payouts are not processed here." }
+      ]
+    },
+    {
+      "id": "processor",
+      "label": "Processor & Warehouse",
+      "defaultPersona": "agrishop_owner",
+      "personas": ["agrishop_owner", "warehouse_operator"],
+      "journey": [
+        { "module": "supply-chain", "label": "Review supply chain", "route": "/processor/supply-chain", "icon": "account_tree", "description": "Track sourcing, inbound, and processing follow-up." },
+        { "module": "marketplace", "label": "Source raw materials", "route": "/marketplace/soko", "icon": "storefront", "description": "Review produce listings and supplier notes." },
+        { "module": "inbound", "label": "Receive deliveries", "route": "/processor/inbound", "icon": "move_to_inbox", "description": "Record incoming produce and receipt details." },
+        { "module": "quality", "label": "Document quality checks", "route": "/processor/quality", "icon": "fact_check", "description": "Record test details and evidence; no lab result is generated." },
+        { "module": "inventory", "label": "Manage inventory", "route": "/processor/inventory", "icon": "inventory_2", "description": "Maintain stock records." },
+        { "module": "procurement", "label": "Track procurement", "route": "/processor/procurement", "icon": "shopping_cart", "description": "Save purchasing and supplier follow-up records." }
+      ]
+    },
+    {
+      "id": "government",
+      "label": "Government",
+      "defaultPersona": "government_agency",
+      "personas": ["government_agency"],
+      "journey": [
+        { "module": "analytics", "label": "Review regional data", "route": "/government/regional", "icon": "analytics", "description": "Explore available, non-verified regional records." },
+        { "module": "alerts", "label": "Review policy alerts", "route": "/government/alerts", "icon": "campaign", "description": "Track policy and alert follow-up." },
+        { "module": "registry", "label": "Review farmer registry", "route": "/government/registry", "icon": "groups", "description": "Review accessible profile records; no subsidy eligibility is determined." },
+        { "module": "compliance", "label": "Track compliance evidence", "route": "/government/compliance", "icon": "fact_check", "description": "Document inspection and standards follow-up." },
+        { "module": "sustainability", "label": "Review sustainability records", "route": "/government/sustainability", "icon": "eco", "description": "Review recorded activities; no carbon credits are verified." }
+      ]
+    },
+    {
+      "id": "student",
+      "label": "Student",
+      "defaultPersona": "agri_student",
+      "personas": ["agri_student"],
+      "journey": [
+        { "module": "courses", "label": "Browse courses", "route": "/student/courses", "icon": "school", "description": "Review available learning records and resources." },
+        { "module": "learning-path", "label": "Track learning progress", "route": "/student/learning", "icon": "checklist", "description": "Record courses, study goals, and progress." },
+        { "module": "discussions", "label": "Join study discussions", "route": "/student/discussions", "icon": "forum", "description": "Save study and group discussion follow-up." },
+        { "module": "internships", "label": "Track internships", "route": "/student/internships", "icon": "work", "description": "Record applications; placement is not guaranteed." },
+        { "module": "research-hub", "label": "Develop research", "route": "/student/research", "icon": "science", "description": "Organize papers, projects, and review notes." },
+        { "module": "certificates", "label": "Review certificates", "route": "/student/certificates", "icon": "workspace_premium", "description": "Track certificate records; no blockchain verification is connected." }
+      ]
+    },
+    {
+      "id": "user",
+      "label": "Community Member",
+      "defaultPersona": "community_member",
+      "personas": ["community_member"],
+      "journey": [
+        { "module": "hub", "label": "Explore the community hub", "route": "/community/hub", "icon": "diversity_3", "description": "Discover available community services." },
+        { "module": "groups", "label": "Find groups", "route": "/community/groups", "icon": "groups", "description": "Browse farmer, cooperative, and study groups." },
+        { "module": "chat", "label": "Connect with members", "route": "/community/chat", "icon": "chat", "description": "Open available community conversations." },
+        { "module": "news", "label": "Read agriculture news", "route": "/community/news", "icon": "newspaper", "description": "Review agriculture updates." },
+        { "module": "events", "label": "Explore events", "route": "/community/events", "icon": "event", "description": "Track upcoming workshops and field days." },
+        { "module": "marketplace", "label": "Discover services", "route": "/marketplace/soko", "icon": "storefront", "description": "Explore available products and services." }
+      ]
+    }
+  ],
+  "legacyPersonaAliases": {
+    "smallholder": "smallholder_farmer",
+    "farmer": "smallholder_farmer",
+    "commercial": "commercial_farmer",
+    "buyer": "local_buyer",
+    "bank": "financial_institution",
+    "gov": "government_agency",
+    "student": "agri_student",
+    "transporter": "transport_provider",
+    "coop": "farmer_group",
+    "expert": "agricultural_expert",
+    "admin": "ai_model_manager"
+  }
+}

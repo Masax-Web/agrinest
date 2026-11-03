@@ -219,6 +219,30 @@ paths:
         '413':
           description: Profile exceeds the allowed size
 
+  /auth/persona:
+    put:
+      summary: Switch personas within the authenticated Farmer core role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FarmerPersonaRequest'
+      responses:
+        '200':
+          description: Updated account identity
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user: { $ref: '#/components/schemas/AuthUser' }
+        '400':
+          description: Persona is not part of the Farmer core role
+        '403':
+          description: Authenticated account is not a Farmer
+
   /auth/admin/impersonate:
     post:
       summary: Start a short-lived super-admin impersonation session
@@ -1393,7 +1417,8 @@ components:
         name: { type: string, nullable: true }
         email: { type: string, nullable: true }
         phone: { type: string, nullable: true }
-        role: { type: string }
+        role: { type: string, description: Core role used for authorization }
+        persona_id: { type: string, description: Active persona within the core role }
         role_status: { type: string }
         region: { type: string, nullable: true }
         trust_score: { type: number }
@@ -1439,6 +1464,7 @@ components:
           type: object
           required: [persona_id, phone]
           properties:
+            core_role: { type: string, minLength: 1 }
             persona_id: { type: string, minLength: 1 }
             phone: { type: string, minLength: 9, maxLength: 20 }
             invitation_token: { type: string, maxLength: 256 }
@@ -1500,13 +1526,22 @@ components:
       type: object
       required: [name, phone, password, persona_id]
       properties:
+        core_role: { type: string, enum: [farmer, buyer, admin, expert, transporter, lender, processor, government, student, user], description: Core role selected for the account }
         name: { type: string, minLength: 2, maxLength: 120 }
         phone: { type: string, minLength: 9, maxLength: 16 }
         email: { type: string, format: email, maxLength: 254 }
         password: { type: string, minLength: 12, maxLength: 128 }
         persona_id:
           type: string
-          enum: [smallholder_farmer, commercial_farmer, livestock_keeper, farmer_group, agricultural_expert, veterinary_specialist, agri_student, transport_provider, agrishop_owner, warehouse_operator, equipment_owner, local_buyer, exporter, financial_institution, insurance_company, government_agency, ngo_development_organization, impact_investor, ai_model_manager, content_moderator, customer_support_agent, finance_administrator, partnership_manager]
+          description: Persona selected within the core role
+          enum: [smallholder_farmer, commercial_farmer, livestock_keeper, farmer_group, landowner, agricultural_expert, veterinary_specialist, agri_student, transport_provider, agrishop_owner, warehouse_operator, equipment_owner, local_buyer, exporter, financial_institution, insurance_company, government_agency, ngo_development_organization, impact_investor, ai_model_manager, content_moderator, customer_support_agent, finance_administrator, partnership_manager, community_member]
+    FarmerPersonaRequest:
+      type: object
+      required: [persona_id]
+      properties:
+        persona_id:
+          type: string
+          enum: [smallholder_farmer, commercial_farmer, livestock_keeper, farmer_group, landowner]
         invitation_token: { type: string }
         region: { type: string }
     AuthInvitationCreate:
@@ -1529,8 +1564,10 @@ components:
         user_id: { type: string }
         name: { type: string }
         role: { type: string }
+        persona_id: { type: string }
         region: { type: string }
         trust_score: { type: number }
+        avatar_url: { type: string, nullable: true }
 
     FarmCreate:
       type: object

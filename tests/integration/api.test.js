@@ -10,6 +10,7 @@ const SpaceRentalService = require('../../api/services/SpaceRentalService');
 describe('AGRI-NEST API integration', () => {
   const methods = [
     [AuthService, 'getSessionUser'],
+    [AuthService, 'setFarmerPersona'],
     [FarmService, 'createFarm'],
     [FarmService, 'getFarmById'],
     [ListingService, 'createListing'],
@@ -87,6 +88,24 @@ describe('AGRI-NEST API integration', () => {
   it('returns the authenticated account', async () => {
     const response = await authenticatedRequest('get', '/auth/me').expect(200);
     expect(response.body.user.user_id).to.equal(user.user_id);
+  });
+
+  it('switches persona within the authenticated farmer core role', async () => {
+    let updatedUserId;
+    let requestedPersonaId;
+    AuthService.setFarmerPersona = async ({ userId, personaId }) => {
+      updatedUserId = userId;
+      requestedPersonaId = personaId;
+      return { ...user, role: 'farmer', persona_id: personaId };
+    };
+
+    const response = await authenticatedRequest('put', '/auth/persona')
+      .send({ persona_id: 'livestock_keeper' })
+      .expect(200);
+
+    expect(updatedUserId).to.equal(user.user_id);
+    expect(requestedPersonaId).to.equal('livestock_keeper');
+    expect(response.body.user).to.include({ role: 'farmer', persona_id: 'livestock_keeper' });
   });
 
   it('requires authentication to create a farm', async () => {

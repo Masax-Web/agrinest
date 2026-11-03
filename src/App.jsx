@@ -24,13 +24,13 @@ import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import { personas } from '../shared/personas.json';
+import roleModel from '../shared/role-model.json';
 
 const personaById = new Map(personas.map((persona) => [persona.id, persona]));
-const personaGroups = [
-  { id: 'field', label: 'Farm & Field' },
-  { id: 'steward', label: 'Agricultural Services' },
-  { id: 'enterprise', label: 'Organizations & Platform Staff' },
-];
+const coreRoleById = new Map(roleModel.coreRoles.map((coreRole) => [coreRole.id, coreRole]));
+const coreRoleByPersonaId = new Map(roleModel.coreRoles.flatMap((coreRole) => (
+  coreRole.personas.map((personaId) => [personaId, coreRole.id])
+)));
 
 function clearLegacyAuthTokens() {
   window.localStorage.removeItem('agrinest-auth-token');
@@ -40,10 +40,10 @@ function clearLegacyAuthTokens() {
 function AdminDashboardWithSecurity({ user, onLogout, onImpersonate }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <>
+    <DashboardWithSecurity user={user} onLogout={onLogout} journeyRole="admin">
       <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} onImpersonate={onImpersonate} />
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
-    </>
+    </DashboardWithSecurity>
   );
 }
 
@@ -64,8 +64,13 @@ function getPersonaDashboard(personaId) {
   })[persona.dashboard] || persona.id;
 }
 
-function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation }) {
+function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation, onFarmerPersonaChange, journeyRole }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [personaError, setPersonaError] = useState('');
+  const [isChangingPersona, setIsChangingPersona] = useState(false);
+  const [isJourneyOpen, setIsJourneyOpen] = useState(false);
+  const [activeJourneyModule, setActiveJourneyModule] = useState('');
+  const journey = roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.journey || [];
   useEffect(() => {
     if (!impersonationInfo) return undefined;
     document.body.classList.add('admin-impersonation-active');
@@ -78,7 +83,72 @@ function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, im
         <div><strong><span className="material-symbols-outlined">switch_account</span>Acting as {user?.name || user?.email || 'user'}</strong><span>Changes affect this account · session ends {new Date(impersonationInfo.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>{impersonationError && <span className="admin-impersonation-error">{impersonationError}</span>}</div>
         <button type="button" onClick={onEndImpersonation}><span className="material-symbols-outlined">undo</span>Return to super admin</button>
       </div>}
-      {children}
+      {activeJourneyModule ? (
+        <section className="role-journey-active">
+          <button type="button" className="role-journey-return" onClick={() => setActiveJourneyModule('')}>
+            <span className="material-symbols-outlined">arrow_back</span>Return to dashboard
+          </button>
+          <RoleDashboard
+            key={`${user?.user_id}-${user?.persona_id}-${activeJourneyModule}`}
+            role={journeyRole}
+            persona={personaById.get(user?.persona_id)}
+            user={user}
+            initialView={activeJourneyModule}
+            onLogout={onLogout}
+          />
+        </section>
+      ) : children}
+      {journey.length > 0 && !impersonationInfo && <button
+        type="button"
+        className="role-journey-launch"
+        onClick={() => setIsJourneyOpen(true)}
+      >
+        <span className="material-symbols-outlined">route</span>My journey
+      </button>}
+      {isJourneyOpen && <div className="role-journey-overlay" role="presentation" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) setIsJourneyOpen(false);
+      }}>
+        <section className="role-journey-dialog" role="dialog" aria-modal="true" aria-labelledby="role-journey-title">
+          <header><div><span>AGRI-NEST</span><h2 id="role-journey-title">{roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.label} journey</h2><p>Choose a step to open its workspace. Saved forms are local records, not connected transactions.</p></div><button type="button" aria-label="Close journey" onClick={() => setIsJourneyOpen(false)}><span className="material-symbols-outlined">close</span></button></header>
+          <div className="role-journey-steps">{journey.map((step, index) => <button key={`${step.module}-${index}`} type="button" onClick={() => {
+            setActiveJourneyModule(step.module);
+            setIsJourneyOpen(false);
+          }}>
+            <span className="material-symbols-outlined">{step.icon}</span>
+            <span><strong>{step.label}</strong><small>{step.description}</small></span>
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </button>)}</div>
+        </section>
+      </div>}
+      {user?.role === 'farmer' && !impersonationInfo && <label className="farmer-persona-switcher">
+        <span>Farmer account type</span>
+        <select
+          aria-label="Farmer account type"
+          value={user.persona_id}
+          disabled={isChangingPersona}
+          onChange={async (event) => {
+            setIsChangingPersona(true);
+            setPersonaError('');
+            try {
+              await onFarmerPersonaChange(event.target.value);
+            } catch (error) {
+              setPersonaError(error.message || 'Could not change your account type.');
+            } finally {
+              setIsChangingPersona(false);
+            }
+          }}
+        >
+          {!roleModel.coreRoles.find((coreRole) => coreRole.id === 'farmer').personas
+            .some((personaId) => personaId === user.persona_id && personaById.get(personaId)?.registration === 'self')
+            && <option value={user.persona_id} disabled>Current: {personaById.get(user.persona_id)?.label || user.persona_id}</option>}
+          {roleModel.coreRoles.find((coreRole) => coreRole.id === 'farmer').personas
+            .filter((personaId) => personaById.get(personaId)?.registration === 'self')
+            .map((personaId) => (
+            <option key={personaId} value={personaId}>{personaById.get(personaId)?.label || personaId}</option>
+          ))}
+        </select>
+        {personaError && <small role="alert">{personaError}</small>}
+      </label>}
       {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
@@ -90,6 +160,8 @@ function getAuthErrorMessage(code) {
     account_already_exists: 'An account with that phone or email already exists.',
     account_pending_approval: 'Your registration is awaiting approval. We will notify you when it is ready.',
     invalid_credentials: 'The phone/email or password is incorrect.',
+    persona_core_role_mismatch: 'Choose a persona that belongs to the selected core role.',
+    farmer_persona_requires_review: 'This farmer account type requires administrator approval. Register or contact support to request it.',
     staff_account_required: 'Staff Access is only available to invited AGRI-NEST staff accounts.',
     invalid_or_expired_invitation: 'That invitation is invalid or has expired.',
     invitation_required_for_persona: 'This persona requires an invitation from an administrator.',
@@ -509,6 +581,7 @@ function getInitialSidebarState() {
 
 function App() {
   const [activeTab, setActiveTab] = useState('signin');
+  const [selectedCoreRole, setSelectedCoreRole] = useState('farmer');
   const [selectedRole, setSelectedRole] = useState('smallholder_farmer');
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeDashboard, setActiveDashboard] = useState('smallholder');
@@ -547,8 +620,9 @@ function App() {
           }
           clearLegacyAuthTokens();
           setAuthUser(result.user);
-          setSelectedRole(result.user.role);
-          setActiveDashboard(getPersonaDashboard(result.user.role));
+          setSelectedCoreRole(result.user.role);
+          setSelectedRole(result.user.persona_id || result.user.role);
+          setActiveDashboard(getPersonaDashboard(result.user.persona_id || result.user.role));
           setImpersonationInfo(null);
           setLoggedIn(true);
         })
@@ -561,7 +635,7 @@ function App() {
     api.getAuthUser()
       .then(({ user, impersonation }) => {
         setAuthUser(user);
-        setActiveDashboard(getPersonaDashboard(user.role));
+        setActiveDashboard(getPersonaDashboard(user.persona_id || user.role));
         setImpersonationInfo(impersonation || null);
         setLoggedIn(true);
       })
@@ -572,8 +646,9 @@ function App() {
     clearLegacyAuthTokens();
     setAuthPinChallenge(null);
     setAuthUser(user);
-    setSelectedRole(user.role);
-    setActiveDashboard(getPersonaDashboard(user.role));
+    setSelectedCoreRole(user.role);
+    setSelectedRole(user.persona_id || user.role);
+    setActiveDashboard(getPersonaDashboard(user.persona_id || user.role));
     setImpersonationInfo(null);
     setImpersonationError('');
     setLoggedIn(true);
@@ -609,8 +684,14 @@ function App() {
     setAuthMessage('');
     const form = new FormData(event.currentTarget);
     const password = String(form.get('password') || '');
+    const personaCoreRole = coreRoleByPersonaId.get(selectedRole);
     if (password !== form.get('confirm_password')) {
       setAuthMessage('The passwords do not match.');
+      setAuthBusy(false);
+      return;
+    }
+    if (personaCoreRole !== selectedCoreRole) {
+      setAuthMessage('Choose an account type that belongs to the selected core role.');
       setAuthBusy(false);
       return;
     }
@@ -620,6 +701,7 @@ function App() {
         phone: form.get('phone'),
         email: form.get('email'),
         password,
+        core_role: personaCoreRole,
         persona_id: selectedRole,
         invitation_token: form.get('invitation_token') || undefined,
       });
@@ -650,8 +732,14 @@ function App() {
   const handleGoogleRegistration = () => {
     const form = registrationFormRef.current;
     if (!form) return;
+    const personaCoreRole = coreRoleByPersonaId.get(selectedRole);
+    if (personaCoreRole !== selectedCoreRole) {
+      setAuthMessage('Choose an account type that belongs to the selected core role.');
+      return;
+    }
     const values = new FormData(form);
     handleGoogleSignIn({
+      core_role: personaCoreRole,
       persona_id: selectedRole,
       phone: values.get('phone'),
       invitation_token: values.get('invitation_token') || undefined,
@@ -662,8 +750,9 @@ function App() {
     try {
       const { user } = await api.endAdminImpersonation();
       setAuthUser(user);
-      setSelectedRole(user.role);
-      setActiveDashboard(getPersonaDashboard(user.role));
+      setSelectedCoreRole(user.role);
+      setSelectedRole(user.persona_id || user.role);
+      setActiveDashboard(getPersonaDashboard(user.persona_id || user.role));
       setImpersonationInfo(null);
       setImpersonationError('');
     } catch (error) {
@@ -672,11 +761,19 @@ function App() {
     }
   };
 
+  const handleFarmerPersonaChange = async (personaId) => {
+    const { user } = await api.setFarmerPersona(personaId);
+    setAuthUser(user);
+    setSelectedCoreRole(user.role);
+    setSelectedRole(user.persona_id);
+    setActiveDashboard(getPersonaDashboard(user.persona_id));
+  };
+
   const handleStartImpersonation = async (account) => {
     setImpersonationError('');
     const result = await api.startAdminImpersonation(account.user_id);
     setAuthUser(result.user);
-    setActiveDashboard(getPersonaDashboard(result.user.role));
+    setActiveDashboard(getPersonaDashboard(result.user.persona_id || result.user.role));
     setImpersonationInfo(result.impersonation);
     setLoggedIn(true);
   };
@@ -729,32 +826,32 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'buyer') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><BuyerDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><BuyerDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><InstitutionalDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><StudentDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'transporter') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'bank') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><LenderDashboard user={authUser} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><LenderDashboard user={authUser} persona={personaById.get(authUser?.persona_id)} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && ['commercial', 'coop', 'expert'].includes(activeDashboard)) {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn) {
-    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><RoleDashboard role={activeDashboard} persona={personaById.get(authUser?.role)} onLogout={handleLogout} /></DashboardWithSecurity>;
+    if (activeDashboard === 'smallholder') return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><SmallholderDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} onFarmerPersonaChange={handleFarmerPersonaChange} journeyRole={activeDashboard}><RoleDashboard key={`${authUser?.user_id}-${authUser?.persona_id}`} role={activeDashboard} persona={personaById.get(authUser?.persona_id)} user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   return (
@@ -894,15 +991,29 @@ function App() {
 
             <form ref={registrationFormRef} className="register-box" onSubmit={handleRegister}>
               <label className="persona-select-label">
+                <span>Core role</span>
+                <select value={selectedCoreRole} onChange={(event) => {
+                  const nextCoreRole = coreRoleById.get(event.target.value);
+                  const nextPersonaId = nextCoreRole?.personas.find((personaId) => personaId !== 'super_admin') || '';
+                  setSelectedCoreRole(event.target.value);
+                  setSelectedRole(nextPersonaId);
+                  setAuthMessage('');
+                }}>
+                  {roleModel.coreRoles.map((coreRole) => (
+                    <option key={coreRole.id} value={coreRole.id}>{coreRole.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="persona-select-label">
                 <span>Account type</span>
                 <select value={selectedRole} onChange={(event) => { setSelectedRole(event.target.value); setAuthMessage(''); }}>
-                  {personaGroups.map((group) => (
-                    <optgroup key={group.id} label={group.label}>
-                      {personas.filter((persona) => persona.tier === group.id && persona.id !== 'super_admin').map((persona) => (
-                        <option key={persona.id} value={persona.id}>{persona.label}</option>
-                      ))}
-                    </optgroup>
-                  ))}
+                  {(coreRoleById.get(selectedCoreRole)?.personas || [])
+                    .filter((personaId) => personaId !== 'super_admin')
+                    .map((personaId) => personaById.get(personaId))
+                    .filter(Boolean)
+                    .map((persona) => (
+                      <option key={persona.id} value={persona.id}>{persona.label}</option>
+                    ))}
                 </select>
               </label>
               <div className="register-row two-up">
@@ -919,9 +1030,7 @@ function App() {
               <p className="persona-registration-note">
                 {personaById.get(selectedRole)?.registration === 'invite'
                   ? 'This staff persona is invitation-only.'
-                  : selectedRole === 'financial_institution'
-                    ? 'Institution accounts require administrator approval before activation. Sign in with an approved financial-institution account to open the lender portal.'
-                    : personaById.get(selectedRole)?.registration === 'review'
+                  : personaById.get(selectedRole)?.registration === 'review'
                       ? 'Your account will be activated after an administrator reviews your registration.'
                       : 'You can sign in as soon as your account is created.'}
               </p>
@@ -2917,16 +3026,18 @@ function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, f
         setRegisteredPeople(publicUsers
           .filter((user) => user.user_id && typeof user.name === 'string' && user.name.trim())
           .map((user) => {
-            const role = String(user.role || 'farmer').toLowerCase();
-            const isFarmer = ['farmer', 'smallholder', 'smallholder farmer'].includes(role);
+            const role = String(user.role || 'user').toLowerCase();
+            const persona = personaById.get(user.persona_id);
+            const isFarmer = role === 'farmer';
+            const roleLabel = persona?.label || role.replace(/[_-]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
             return {
               id: `registered-user-${user.user_id}`,
               name: user.name,
-              role: isFarmer ? 'Smallholder Farmer' : role.replace(/[_-]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+              role: roleLabel,
               avatar: user.avatar_url || null,
               icon: isFarmer ? 'agriculture' : 'person',
               location: user.region || 'Tanzania',
-              summary: isFarmer ? 'Smallholder farmer on AGRI-NEST.' : `${role} account on AGRI-NEST.`,
+              summary: `${roleLabel} account on AGRI-NEST.`,
               details: [
                 ...(user.region ? [['Region', user.region]] : []),
                 ...(user.trust_score !== null && user.trust_score !== undefined ? [['Profile score', `${user.trust_score} / 1000`]] : []),
@@ -3797,7 +3908,7 @@ function BuyerDashboard({ user, onLogout }) {
           />
           <div className="buyer-profile-meta">
             <div className="buyer-profile-name">{user?.name || 'Buyer'}</div>
-              <div className="buyer-role">Procurement · {user?.role || 'Buyer'}</div>
+              <div className="buyer-role">Procurement · {personaById.get(user?.persona_id)?.label || 'Buyer'}</div>
           </div>
         </div>
 

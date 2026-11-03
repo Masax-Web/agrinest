@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const knex = require('../db');
 const { personas } = require('../../shared/personas.json');
+const roleModel = require('../../shared/role-model.json');
 
 const scryptAsync = promisify(crypto.scrypt);
 const passwordKeyLength = 64;
@@ -15,10 +16,14 @@ const farmerProfileFields = new Set([
   'longitude', 'bankAccounts', 'avatar', 'coverPhoto', 'farmRecords',
 ]);
 const personasById = new Map(personas.map((persona) => [persona.id, persona]));
+const coreRoleIds = new Set(roleModel.coreRoles.map((coreRole) => coreRole.id));
+const coreRoleByPersonaId = new Map(roleModel.coreRoles.flatMap((coreRole) => (
+  coreRole.personas.map((personaId) => [personaId, coreRole.id])
+)));
+const defaultPersonaByCoreRole = new Map(roleModel.coreRoles.map((coreRole) => [coreRole.id, coreRole.defaultPersona]));
 const legacyPersonaIds = {
-  smallholder: 'smallholder_farmer', farmer: 'smallholder_farmer', commercial: 'commercial_farmer',
-  buyer: 'local_buyer', bank: 'financial_institution', gov: 'government_agency', student: 'agri_student',
-  transporter: 'transport_provider', coop: 'farmer_group', expert: 'agricultural_expert',
+  ...roleModel.legacyPersonaAliases,
+  ...Object.fromEntries(roleModel.coreRoles.map((coreRole) => [coreRole.id, coreRole.defaultPersona])),
 };
 
 class AuthError extends Error {
@@ -38,6 +43,20 @@ function normalizePersonaId(value) {
   return legacyPersonaIds[normalized] || normalized;
 }
 
+function getPersonaId(user) {
+  return normalizePersonaId(user?.persona_id || user?.role);
+}
+
+function getCoreRole(user) {
+  const personaId = getPersonaId(user);
+  return coreRoleByPersonaId.get(personaId)
+    || (coreRoleIds.has(user?.role) ? user.role : 'user');
+}
+
+function isSuperAdmin(user) {
+  return getPersonaId(user) === 'super_admin';
+}
+
 function normalizePhone(value) {
   return String(value || '').trim().replace(/[^\d+]/g, '');
 }
@@ -52,19 +71,22 @@ function hashToken(token) {
 }
 
 function publicUser(user) {
+  const personaId = getPersonaId(user);
+  const coreRole = getCoreRole(user);
   return {
     user_id: user.user_id,
     name: user.name,
     email: user.email || null,
     phone: user.phone || null,
     avatar_url: user.avatar_url || null,
-    role: normalizePersonaId(user.role),
+    role: coreRole,
+    persona_id: personaId,
     role_status: user.role_status || 'active',
     region: user.region || null,
     trust_score: Number(user.trust_score || 0),
     pin_enabled: Boolean(user.pin_hash),
     password_enabled: Boolean(user.password_hash),
-    is_admin: normalizePersonaId(user.role) === 'super_admin',
+    is_admin: personaId === 'super_admin',
   };
 }
 
@@ -186,11 +208,14 @@ async function registerUser(input = {}) {
   const email = normalizeEmail(input.email);
   const personaId = normalizePersonaId(input.persona_id || input.role);
   const persona = personasById.get(personaId);
+  const coreRole = coreRoleByPersonaId.get(personaId);
 
   if (name.length < 2 || name.length > 120) fail('name_must_be_2_to_120_characters', 400);
   if (!/^\+?[0-9]{9,15}$/.test(phone)) fail('valid_phone_required', 400);
   if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) fail('valid_email_required', 400);
   if (!persona) fail('unknown_persona', 400);
+  if (!coreRole) fail('persona_core_role_unmapped', 500);
+  if (input.core_role && input.core_role !== coreRole) fail('persona_core_role_mismatch', 400);
   if (persona.id === 'super_admin') fail('persona_not_available_for_registration', 403);
   const passwordHash = await hashPassword(input.password);
 
@@ -219,11 +244,12 @@ async function registerUser(input = {}) {
       phone,
       email,
       name,
-      role: persona.id,
+      role: coreRole,
+      persona_id: persona.id,
       role_status: roleStatus,
       password_hash: passwordHash,
       trust_score: 0,
-    }).returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+    }).returning(['user_id', 'phone', 'email', 'name', 'role', 'persona_id', 'role_status', 'region', 'trust_score', 'password_hash']);
 
     if (invitation) {
       await transaction('auth_invitations').where({ token_hash: invitation.token_hash }).update({ consumed_at: new Date() });
@@ -251,7 +277,7 @@ async function loginUser({ identifier, phone, password, staff_access: staffAcces
     fail('invalid_credentials', 401);
   }
   if (user.role_status && user.role_status !== 'active') fail('account_pending_approval', 403);
-  if (staffAccess && personasById.get(normalizePersonaId(user.role))?.registration !== 'invite') fail('staff_account_required', 403);
+  if (staffAccess && personasById.get(getPersonaId(user))?.registration !== 'invite') fail('staff_account_required', 403);
   await clearLoginFailures(limitKey);
   if (user.pin_hash) return makePinChallenge(user, knex, rememberMe === true);
   const lifetime = rememberMe === true ? 30 * 24 * 60 * 60 * 1000 : sessionLifetimeMs;
@@ -301,6 +327,11 @@ async function findOrCreateGoogleUser({ sub, email, name, picture, registration 
   const requestedPersonaId = normalizePersonaId(registration?.persona_id || 'smallholder_farmer');
   const requestedPersona = personasById.get(requestedPersonaId);
   if (!requestedPersona || requestedPersona.id === 'super_admin') fail('unknown_persona', 400);
+  const requestedCoreRole = coreRoleByPersonaId.get(requestedPersonaId);
+  if (!requestedCoreRole) fail('persona_core_role_unmapped', 500);
+  if (registration?.core_role && registration.core_role !== requestedCoreRole) {
+    fail('persona_core_role_mismatch', 400);
+  }
   const requestedPhone = registration ? normalizePhone(registration.phone) : null;
   if (registration && !/^\+?[0-9]{9,15}$/.test(requestedPhone || '')) fail('valid_phone_required', 400);
 
@@ -313,7 +344,8 @@ async function findOrCreateGoogleUser({ sub, email, name, picture, registration 
       if (user?.google_subject && user.google_subject !== sub) fail('google_identity_already_linked', 409);
 
       if (!user) {
-        let role = requestedPersona.id;
+        let role = coreRoleByPersonaId.get(requestedPersona.id);
+        let personaId = requestedPersona.id;
         let roleStatus = requestedPersona.registration === 'review' ? 'pending' : 'active';
         let invitation = null;
         if (requestedPersona.registration === 'invite') {
@@ -327,9 +359,10 @@ async function findOrCreateGoogleUser({ sub, email, name, picture, registration 
           if (!invitation) fail('invalid_or_expired_invitation', 403);
         }
         if (bootstrapEmail === verifiedEmail) {
-          const admin = await transaction('users').where({ role: 'super_admin' }).first();
+          const admin = await transaction('users').where({ role: 'admin', persona_id: 'super_admin' }).first();
           if (!admin) {
-            role = 'super_admin';
+            role = 'admin';
+            personaId = 'super_admin';
             roleStatus = 'active';
             invitation = null;
           }
@@ -345,6 +378,7 @@ async function findOrCreateGoogleUser({ sub, email, name, picture, registration 
           name: String(name || verifiedEmail).slice(0, 120),
           phone: requestedPhone,
           role,
+          persona_id: personaId,
           role_status: roleStatus,
           trust_score: 0,
         }).returning('*');
@@ -373,14 +407,16 @@ async function findOrCreateGoogleUser({ sub, email, name, picture, registration 
       fail('account_pending_approval', 403);
     }
 
-    if (bootstrapEmail === verifiedEmail && user.role !== 'super_admin') {
-      const admin = await transaction('users').where({ role: 'super_admin' }).forUpdate().first();
+    if (bootstrapEmail === verifiedEmail && !isSuperAdmin(user)) {
+      const admin = await transaction('users').where({ role: 'admin', persona_id: 'super_admin' }).forUpdate().first();
       if (!admin) {
         await transaction('users').where({ user_id: user.user_id }).update({
-          role: 'super_admin',
+          role: 'admin',
+          persona_id: 'super_admin',
           updated_at: new Date(),
         });
-        user.role = 'super_admin';
+        user.role = 'admin';
+        user.persona_id = 'super_admin';
       }
     }
     return user;
@@ -462,7 +498,7 @@ async function getSessionUser(token) {
     .where('sessions.token_hash', hashToken(token))
     .whereNull('sessions.revoked_at')
     .andWhere('sessions.expires_at', '>', new Date())
-    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.avatar_url', 'users.role', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.session_id', 'sessions.created_at as session_created_at')
+    .select('users.user_id', 'users.name', 'users.email', 'users.phone', 'users.avatar_url', 'users.role', 'users.persona_id', 'users.role_status', 'users.region', 'users.trust_score', 'users.pin_hash', 'users.password_hash', 'sessions.session_id', 'sessions.created_at as session_created_at')
     .first();
   if (!row || (row.role_status && row.role_status !== 'active')) return null;
   return { user: publicUser(row), sessionCreatedAt: row.session_created_at, sessionId: row.session_id };
@@ -547,7 +583,7 @@ async function startAdminImpersonation({ actorId, actorSessionId, targetId } = {
   const expiresAt = new Date(Date.now() + adminImpersonationLifetimeMs);
   return knex.transaction(async (transaction) => {
     const actor = await transaction('users').where({ user_id: actorId }).forUpdate().first();
-    if (!actor || normalizePersonaId(actor.role) !== 'super_admin' || actor.role_status !== 'active') {
+    if (!actor || !isSuperAdmin(actor) || actor.role_status !== 'active') {
       fail('admin_access_required', 403);
     }
     if (actorId === targetId) fail('cannot_impersonate_self', 400);
@@ -560,7 +596,7 @@ async function startAdminImpersonation({ actorId, actorSessionId, targetId } = {
     if (!actorSession) fail('session_invalid_or_expired', 401);
 
     const target = await transaction('users').where({ user_id: targetId }).forUpdate().first();
-    if (!target || target.role_status !== 'active' || normalizePersonaId(target.role) === 'super_admin') {
+    if (!target || target.role_status !== 'active' || isSuperAdmin(target)) {
       fail('impersonation_target_unavailable', 404);
     }
 
@@ -577,7 +613,7 @@ async function startAdminImpersonation({ actorId, actorSessionId, targetId } = {
       actor_user_id: actorId,
       target_user_id: targetId,
       action: 'admin.impersonation_started',
-      details: { session_id: sessionId, target_role: normalizePersonaId(target.role), expires_at: expiresAt.toISOString() },
+      details: { session_id: sessionId, target_role: getPersonaId(target), expires_at: expiresAt.toISOString() },
     });
     return { token, sessionId, expiresAt: expiresAt.toISOString(), user: publicUser(target), admin: publicUser(actor) };
   });
@@ -605,6 +641,7 @@ async function getAdminImpersonation(token) {
         'actors.email as actor_email',
         'actors.phone as actor_phone',
         'actors.role as actor_role',
+        'actors.persona_id as actor_persona_id',
         'actors.region as actor_region',
         'actors.trust_score as actor_trust_score',
         'actors.pin_hash as actor_pin_hash',
@@ -615,6 +652,7 @@ async function getAdminImpersonation(token) {
         'targets.email',
         'targets.phone',
         'targets.role',
+        'targets.persona_id',
         'targets.role_status',
         'targets.region',
         'targets.trust_score',
@@ -625,11 +663,11 @@ async function getAdminImpersonation(token) {
     if (!row) return null;
 
     const expired = new Date(row.expires_at) <= new Date();
-    const actorUnavailable = normalizePersonaId(row.actor_role) !== 'super_admin'
+    const actorUnavailable = getPersonaId({ role: row.actor_role, persona_id: row.actor_persona_id }) !== 'super_admin'
       || row.actor_status !== 'active'
       || row.actor_session_revoked_at
       || new Date(row.actor_session_expires_at) <= new Date();
-    const targetUnavailable = row.role_status !== 'active' || normalizePersonaId(row.role) === 'super_admin';
+    const targetUnavailable = row.role_status !== 'active' || isSuperAdmin({ role: row.role, persona_id: row.persona_id });
     if (expired || actorUnavailable || targetUnavailable) {
       const endReason = expired ? 'expired'
         : actorUnavailable ? 'administrator_session_unavailable'
@@ -648,15 +686,16 @@ async function getAdminImpersonation(token) {
       return null;
     }
 
-    const { user_id: _userId, name, email, phone, role, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash } = row;
+    const { user_id: _userId, name, email, phone, role, persona_id: personaId, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash } = row;
     return {
-      user: publicUser({ user_id: row.user_id, name, email, phone, role, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash }),
+      user: publicUser({ user_id: row.user_id, name, email, phone, role, persona_id: personaId, role_status: roleStatus, region, trust_score: trustScore, pin_hash: pinHash, password_hash: passwordHash }),
       actor: publicUser({
         user_id: row.actor_user_id,
         name: row.actor_name,
         email: row.actor_email,
         phone: row.actor_phone,
         role: row.actor_role,
+        persona_id: row.actor_persona_id,
         role_status: row.actor_status,
         region: row.actor_region,
         trust_score: row.actor_trust_score,
@@ -719,15 +758,15 @@ async function createInvitation({ personaId, createdBy, expiresInDays = 7 }) {
 async function approvePersona(userId) {
   const [user] = await knex('users')
     .where({ user_id: userId, role_status: 'pending' })
-    .whereNot('role', 'super_admin')
+    .where((query) => query.whereNot('role', 'admin').orWhereNot('persona_id', 'super_admin'))
     .update({ role_status: 'active', approved_at: new Date(), updated_at: new Date() })
-    .returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+    .returning(['user_id', 'phone', 'email', 'name', 'role', 'persona_id', 'role_status', 'region', 'trust_score', 'password_hash']);
   if (!user) fail('pending_account_not_found', 404);
   return publicUser(user);
 }
 
 async function listAdminUsers({ query = '', status = '' } = {}) {
-  const usersQuery = knex('users').select('user_id', 'name', 'email', 'phone', 'role', 'role_status', 'created_at', 'pin_hash', 'password_hash');
+  const usersQuery = knex('users').select('user_id', 'name', 'email', 'phone', 'role', 'persona_id', 'role_status', 'created_at', 'pin_hash', 'password_hash');
   if (status) usersQuery.where({ role_status: status });
   if (query.trim()) {
     const search = `%${query.trim().slice(0, 100)}%`;
@@ -752,7 +791,7 @@ async function setUserStatus({ actorId, userId, status }) {
   if (!['active', 'suspended'].includes(status)) fail('invalid_account_status', 400);
   if (actorId === userId) fail('cannot_change_own_account_status', 400);
   const user = await knex('users').where({ user_id: userId }).first();
-  if (!user || normalizePersonaId(user.role) === 'super_admin') fail('user_not_found_or_protected', 404);
+  if (!user || isSuperAdmin(user)) fail('user_not_found_or_protected', 404);
   await knex.transaction(async (transaction) => {
     await transaction('users').where({ user_id: userId }).update({ role_status: status, updated_at: new Date() });
     if (status === 'suspended') {
@@ -773,15 +812,38 @@ async function setUserPersona({ actorId, userId, personaId }) {
   const persona = personasById.get(normalizePersonaId(personaId));
   if (!persona || persona.id === 'super_admin') fail('invalid_persona_assignment', 400);
   const user = await knex('users').where({ user_id: userId }).first();
-  if (!user || normalizePersonaId(user.role) === 'super_admin') fail('user_not_found_or_protected', 404);
+  if (!user || isSuperAdmin(user)) fail('user_not_found_or_protected', 404);
   await knex.transaction(async (transaction) => {
-    await transaction('users').where({ user_id: userId }).update({ role: persona.id, updated_at: new Date() });
+    await transaction('users').where({ user_id: userId }).update({
+      role: coreRoleByPersonaId.get(persona.id),
+      persona_id: persona.id,
+      updated_at: new Date(),
+    });
     await transaction('auth_audit_log').insert({
       audit_id: crypto.randomUUID(), actor_user_id: actorId, target_user_id: userId,
       action: 'user.persona_changed', details: { persona_id: persona.id },
     });
   });
-  return { user_id: userId, role: persona.id };
+  return { user_id: userId, role: coreRoleByPersonaId.get(persona.id), persona_id: persona.id };
+}
+
+async function setFarmerPersona({ userId, personaId }) {
+  const persona = personasById.get(normalizePersonaId(personaId));
+  if (!persona || coreRoleByPersonaId.get(persona.id) !== 'farmer') fail('farmer_persona_required', 400);
+  if (persona.registration !== 'self') fail('farmer_persona_requires_review', 403);
+  const user = await knex('users').where({ user_id: userId }).first();
+  if (!user || getCoreRole(user) !== 'farmer') fail('farmer_account_required', 403);
+  await knex.transaction(async (transaction) => {
+    await transaction('users').where({ user_id: userId }).update({ persona_id: persona.id, updated_at: new Date() });
+    await transaction('auth_audit_log').insert({
+      audit_id: crypto.randomUUID(),
+      actor_user_id: userId,
+      target_user_id: userId,
+      action: 'user.farmer_persona_changed',
+      details: { persona_id: persona.id },
+    });
+  });
+  return publicUser({ ...user, persona_id: persona.id });
 }
 
 async function listAdminAuditLog(limit = 100) {
@@ -798,17 +860,18 @@ async function bootstrapSuperAdmin({ name, phone, email, password }) {
   const normalizedPhone = normalizePhone(phone);
   if (!name || !/^\+?[0-9]{9,15}$/.test(normalizedPhone)) fail('bootstrap_name_and_phone_required', 400);
   const passwordHash = await hashPassword(password);
-  const existingAdmin = await knex('users').where({ role: 'super_admin' }).first();
+  const existingAdmin = await knex('users').where({ role: 'admin', persona_id: 'super_admin' }).first();
   if (existingAdmin) fail('super_admin_already_exists', 409);
   const [user] = await knex('users').insert({
     name: String(name).trim(),
     phone: normalizedPhone,
     email: normalizeEmail(email),
-    role: 'super_admin',
+    role: 'admin',
+    persona_id: 'super_admin',
     role_status: 'active',
     password_hash: passwordHash,
     trust_score: 0,
-  }).returning(['user_id', 'phone', 'email', 'name', 'role', 'role_status', 'region', 'trust_score', 'password_hash']);
+  }).returning(['user_id', 'phone', 'email', 'name', 'role', 'persona_id', 'role_status', 'region', 'trust_score', 'password_hash']);
   return publicUser(user);
 }
 
@@ -840,6 +903,7 @@ module.exports = {
   revokeSession,
   saveFarmerProfile,
   setPin,
+  setFarmerPersona,
   startAdminImpersonation,
   setUserPersona,
   setUserStatus,

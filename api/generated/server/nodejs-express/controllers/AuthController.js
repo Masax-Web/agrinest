@@ -17,6 +17,7 @@ const publicGoogleErrorCodes = new Set([
   'google_identity_mismatch',
   'google_oauth_not_configured',
   'google_oauth_unavailable',
+  'persona_core_role_mismatch',
   'unknown_persona',
   'valid_phone_required',
 ]);
@@ -178,6 +179,19 @@ router.put('/profile', authenticate, async (req, res) => {
     return res.json(await AuthService.saveFarmerProfile(req.authUser.user_id, req.body.profile));
   } catch (err) {
     return sendAuthError(res, err, 'saveFarmerProfile');
+  }
+});
+
+router.put('/persona', authenticate, async (req, res) => {
+  if (req.authImpersonation) return res.status(403).json({ error: 'persona_change_unavailable_during_impersonation' });
+  try {
+    const user = await AuthService.setFarmerPersona({
+      userId: req.authUser.user_id,
+      personaId: req.body.persona_id,
+    });
+    return res.json({ user });
+  } catch (err) {
+    return sendAuthError(res, err, 'setFarmerPersona');
   }
 });
 

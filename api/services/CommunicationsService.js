@@ -123,7 +123,8 @@ function registerUssdUser({ phone, name, location, crop }) {
 
 async function notifyAdmins(event, payload) {
   const message = `${event} event recorded for AGRI-NEST: ${JSON.stringify(payload)}`;
-  const admins = await knex('users').select('email', 'phone').where({ role: 'super_admin', role_status: 'active' });
+  const admins = await knex('users').select('email', 'phone')
+    .where({ role: 'admin', persona_id: 'super_admin', role_status: 'active' });
   const emails = admins.map((admin) => admin.email).filter(Boolean);
   const phones = admins.map((admin) => admin.phone).filter(Boolean);
   const notifications = [];

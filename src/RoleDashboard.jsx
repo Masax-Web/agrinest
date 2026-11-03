@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import RoleWorkspace from './RoleWorkspace';
+import roleModel from '../shared/role-model.json';
 
 const dashboards = {
   commercial: {
@@ -32,16 +33,18 @@ const dashboards = {
   },
 };
 
-function loadRecords(role) {
+function loadRecords(storageKey) {
   try {
-    const records = JSON.parse(window.localStorage.getItem(`agrinest-${role}-workspace-records`) || '[]');
+    const records = JSON.parse(window.localStorage.getItem(storageKey) || '[]');
     return Array.isArray(records) ? records : [];
   } catch {
     return [];
   }
 }
 
-export default function RoleDashboard({ role, persona, onLogout }) {
+export default function RoleDashboard({ role, persona, user, onLogout, initialView = 'overview' }) {
+  const recordsStorageKey = `agrinest-${role}-workspace-records:${user?.user_id || 'anonymous'}:${persona?.id || 'unknown'}`;
+  const journey = roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.journey || [];
   const personaDashboard = persona ? {
     title: persona.label,
     greeting: `${persona.label} Workspace`,
@@ -49,15 +52,23 @@ export default function RoleDashboard({ role, persona, onLogout }) {
     navigation: persona.modules.map(({ id, label, icon }) => [id, icon, label]),
     metrics: persona.modules.slice(0, 4).map(({ id, label, icon }) => [id, icon, label]),
   } : null;
-  const dashboard = dashboards[role] || personaDashboard || {
+  const baseDashboard = dashboards[role] || personaDashboard || {
     title: 'AGRI-NEST Workspace',
     greeting: 'Workspace',
     summary: 'Manage your AGRI-NEST records and follow-ups.',
     navigation: [['records', 'task_alt', 'Records']],
     metrics: [['records', 'task_alt', 'Records']],
   };
-  const [activeView, setActiveView] = useState('overview');
-  const [records, setRecords] = useState(() => loadRecords(role));
+  const journeyNavigation = journey.map(({ module, label, icon }) => [module, icon, label]);
+  const dashboard = {
+    ...baseDashboard,
+    navigation: [
+      ...baseDashboard.navigation,
+      ...journeyNavigation.filter(([view]) => !baseDashboard.navigation.some(([existingView]) => existingView === view)),
+    ],
+  };
+  const [activeView, setActiveView] = useState(initialView);
+  const [records, setRecords] = useState(() => loadRecords(recordsStorageKey));
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -92,7 +103,15 @@ export default function RoleDashboard({ role, persona, onLogout }) {
             <section className="role-dashboard-quick-links"><div><span>WORKSPACES</span><h2>Recent records</h2></div>{visibleRecords.length ? visibleRecords.slice(0, 5).map((record) => <button type="button" key={record.id} onClick={() => setActiveView(record.module)}><span className="material-symbols-outlined">{dashboard.navigation.find(([view]) => view === record.module)?.[1] || 'task_alt'}</span><span><strong>{record.title || record.name || record.module}</strong><small>{record.details || 'Open saved record'}</small></span></button>) : <p>{records.length ? 'No records match this search.' : 'No records yet. Open a workspace to add the first one.'}</p>}</section>
           </>
         ) : (
-          <RoleWorkspace role={role} persona={persona} page={activeView} onBack={() => setActiveView('overview')} onSaved={setRecords} />
+          <RoleWorkspace
+            role={role}
+            persona={persona}
+            page={activeView}
+            storageKey={recordsStorageKey}
+            journeyStep={journey.find((step) => step.module === activeView)}
+            onBack={() => setActiveView('overview')}
+            onSaved={setRecords}
+          />
         )}
       </main>
     </div>

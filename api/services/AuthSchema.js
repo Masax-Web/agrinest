@@ -1,3 +1,26 @@
+const { personas } = require('../../shared/personas.json');
+const roleModel = require('../../shared/role-model.json');
+
+const personaById = new Map(personas.map((persona) => [persona.id, persona]));
+const coreRoleByPersona = new Map(roleModel.coreRoles.flatMap((coreRole) => (
+  coreRole.personas.map((personaId) => [personaId, coreRole.id])
+)));
+const defaultPersonaByCoreRole = new Map(roleModel.coreRoles.map((coreRole) => [coreRole.id, coreRole.defaultPersona]));
+const personaAliases = roleModel.legacyPersonaAliases;
+
+function resolveRoleIdentity(role, existingPersonaId = null) {
+  const roleValue = String(role || 'community_member').trim().toLowerCase();
+  const personaId = existingPersonaId
+    || personaAliases[roleValue]
+    || (personaById.has(roleValue) ? roleValue : defaultPersonaByCoreRole.get(roleValue));
+  const coreRole = coreRoleByPersona.get(personaId)
+    || (!existingPersonaId && personaId === defaultPersonaByCoreRole.get(roleValue) ? roleValue : null);
+  if (!personaId || !coreRole) {
+    throw new Error(`Cannot migrate account with unrecognized role "${roleValue}".`);
+  }
+  return { role: coreRole, persona_id: personaId };
+}
+
 async function ensureAuthSchema(knex) {
   await knex.raw('CREATE EXTENSION IF NOT EXISTS pgcrypto');
   await knex.raw(`CREATE TABLE IF NOT EXISTS users (
@@ -17,6 +40,7 @@ async function ensureAuthSchema(knex) {
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT');
   await knex.raw("ALTER TABLE users ADD COLUMN IF NOT EXISTS role_status TEXT NOT NULL DEFAULT 'active'");
+  await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS persona_id TEXT');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ');
   await knex.raw('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ');
   await knex.raw('CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (LOWER(email)) WHERE email IS NOT NULL');
@@ -109,6 +133,18 @@ async function ensureAuthSchema(knex) {
     applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`);
   await knex.transaction(async (transaction) => {
+    const [roleMigration] = await transaction('auth_schema_migrations')
+      .insert({ migration_id: 'core_role_persona_v1' })
+      .onConflict('migration_id')
+      .ignore()
+      .returning('migration_id');
+    if (roleMigration) {
+      const users = await transaction('users').select('user_id', 'role', 'persona_id');
+      for (const user of users) {
+        const identity = resolveRoleIdentity(user.role, user.persona_id);
+        await transaction('users').where({ user_id: user.user_id }).update(identity);
+      }
+    }
     const [sessionMigration] = await transaction('auth_schema_migrations')
       .insert({ migration_id: 'revoke_legacy_sessions_v1' })
       .onConflict('migration_id')
@@ -120,4 +156,4 @@ async function ensureAuthSchema(knex) {
   });
 }
 
-module.exports = { ensureAuthSchema };
+module.exports = { ensureAuthSchema, resolveRoleIdentity };

@@ -81,7 +81,10 @@ async function authenticateAdminSession(request, response, next) {
 function requirePersona(...allowedPersonas) {
   return (request, response, next) => {
     if (!request.authUser) return response.status(401).json({ error: 'authentication_required' });
-    if (!allowedPersonas.includes(request.authUser.role)) return response.status(403).json({ error: 'persona_not_authorized' });
+    if (!allowedPersonas.includes(request.authUser.persona_id)
+      && !allowedPersonas.includes(request.authUser.role)) {
+      return response.status(403).json({ error: 'persona_not_authorized' });
+    }
     return next();
   };
 }

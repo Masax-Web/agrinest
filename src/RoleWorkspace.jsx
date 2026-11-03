@@ -138,8 +138,9 @@ function readWorkspaceRecords(storageKey) {
   }
 }
 
-export default function RoleWorkspace({ role, persona, page, onBack, onSaved }) {
-  const [records, setRecords] = useState(() => readWorkspaceRecords(`agrinest-${role}-workspace-records`));
+export default function RoleWorkspace({ role, persona, page, storageKey, journeyStep, onBack, onSaved }) {
+  const recordsStorageKey = storageKey || `agrinest-${role}-workspace-records`;
+  const [records, setRecords] = useState(() => readWorkspaceRecords(recordsStorageKey));
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
   const personaModule = persona?.modules.find((module) => module.id === page);
@@ -163,7 +164,7 @@ export default function RoleWorkspace({ role, persona, page, onBack, onSaved }) 
     const nextRecords = [{ ...draft, module: page, id: globalThis.crypto?.randomUUID?.() || `record-${Date.now()}`, savedAt: new Date().toISOString() }, ...records];
     setRecords(nextRecords);
     try {
-      window.localStorage.setItem(`agrinest-${role}-workspace-records`, JSON.stringify(nextRecords));
+      window.localStorage.setItem(recordsStorageKey, JSON.stringify(nextRecords));
       onSaved?.(nextRecords);
       setNotice('Saved on this device.');
     } catch {
@@ -176,7 +177,12 @@ export default function RoleWorkspace({ role, persona, page, onBack, onSaved }) 
     <main className="role-workspace">
       <header className="role-workspace-header">
         <button type="button" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Back to dashboard</button>
-        <div><span>{role.toUpperCase()} WORKSPACE</span><h1><span className="material-symbols-outlined">{icon}</span>{title}</h1><p>{description}</p></div>
+        <div>
+          <span>{role.toUpperCase()} WORKSPACE</span>
+          <h1><span className="material-symbols-outlined">{icon}</span>{title}</h1>
+          <p>{journeyStep?.description || description}</p>
+          <p className="role-workspace-local-note">Records are saved in this browser for this account only. They do not submit transactions, approvals, payments, or third-party verification. Older shared workspace records are not imported automatically.</p>
+        </div>
       </header>
       {notice && <div className="role-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
       <section className="role-workspace-form">

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const AuthService = require('./AuthService');
 const knex = require('../db');
+const roleModel = require('../../shared/role-model.json');
 
 function getOAuthConfig() {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env;
@@ -27,6 +28,13 @@ function normalizeRegistrationIntent(registration) {
     error.code = 'unknown_persona';
     throw error;
   }
+  const coreRole = roleModel.coreRoles.find((entry) => entry.personas.includes(persona.id));
+  if (!coreRole || (registration.core_role && registration.core_role !== coreRole.id)) {
+    const error = new Error(coreRole ? 'persona_core_role_mismatch' : 'unknown_persona');
+    error.status = 400;
+    error.code = error.message;
+    throw error;
+  }
   const phone = String(registration.phone || '').trim().replace(/[^\d+]/g, '');
   if (!/^\+?[0-9]{9,15}$/.test(phone)) {
     const error = new Error('valid_phone_required');
@@ -42,6 +50,7 @@ function normalizeRegistrationIntent(registration) {
     throw error;
   }
   return {
+    core_role: coreRole.id,
     persona_id: persona.id,
     phone,
     invitation_token_hash: invitationToken ? hashState(invitationToken) : null,

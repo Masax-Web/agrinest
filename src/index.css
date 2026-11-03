@@ -6349,6 +6349,194 @@ body.admin-impersonation-active #root {
 .role-dashboard-nav .material-symbols-outlined {
   font-size: 1.1rem;
 }
+.role-journey-launch,
+.account-security-launch {
+  position: fixed;
+  z-index: 1200;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.65rem;
+  border: 0;
+  border-radius: 999px;
+  background: #174b37;
+  box-shadow: 0 5px 18px rgba(16, 40, 29, 0.2);
+  color: #fff;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.role-journey-launch {
+  left: 1rem;
+}
+.account-security-launch {
+  right: 1rem;
+  background: #4a524c;
+}
+.role-journey-launch .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+.role-journey-overlay {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  background: rgba(15, 25, 19, 0.58);
+  padding: 1rem;
+}
+.role-journey-dialog {
+  display: grid;
+  width: min(100%, 48rem);
+  max-height: min(90vh, 52rem);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #dfe7df;
+  border-radius: 0.9rem;
+  background: #fbfdfb;
+  box-shadow: 0 1.5rem 4rem rgba(10, 20, 14, 0.28);
+}
+.role-journey-dialog > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e6ece7;
+  padding: 1.1rem 1.25rem;
+}
+.role-journey-dialog > header > div > span {
+  color: #54705e;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.role-journey-dialog h2 {
+  margin: 0.25rem 0;
+  color: #183c2b;
+  font: 700 1.4rem/1.2 'Syne', 'DM Sans', sans-serif;
+}
+.role-journey-dialog > header p {
+  max-width: 38rem;
+  margin: 0;
+  color: #66736a;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.role-journey-dialog > header > button {
+  display: grid;
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid #dce5dd;
+  border-radius: 50%;
+  background: #fff;
+  color: #3d5948;
+  cursor: pointer;
+}
+.role-journey-steps {
+  display: grid;
+  gap: 0.55rem;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.25rem;
+}
+.role-journey-steps > button {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 1.25rem;
+  align-items: start;
+  gap: 0.7rem;
+  border: 1px solid #e2e9e3;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #294536;
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+.role-journey-steps > button:hover {
+  border-color: #9ab7a0;
+  background: #f3f8f3;
+}
+.role-journey-steps > button > .material-symbols-outlined {
+  color: #24744d;
+}
+.role-journey-steps > button > span:nth-child(2) {
+  display: grid;
+  gap: 0.25rem;
+}
+.role-journey-steps strong {
+  font-size: 0.75rem;
+}
+.role-journey-steps small {
+  color: #68756c;
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+.role-journey-active {
+  min-height: 100vh;
+  background: #f5f7f4;
+  padding-top: 0.75rem;
+}
+.role-journey-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  margin: 0 0.8rem 0.65rem;
+  border: 1px solid #d8e2d9;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #294536;
+  padding: 0.45rem 0.7rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.farmer-persona-switcher {
+  position: fixed;
+  z-index: 1200;
+  right: 1rem;
+  bottom: 4.1rem;
+  display: grid;
+  width: min(15rem, calc(100vw - 2rem));
+  gap: 0.3rem;
+  border: 1px solid #dce5dd;
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(16, 40, 29, 0.12);
+  color: #334b3c;
+  padding: 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+.farmer-persona-switcher select {
+  min-height: 2.25rem;
+  border: 1px solid #d5dfd6;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #263d2e;
+  padding: 0.4rem;
+  font: inherit;
+  font-weight: 500;
+}
+.farmer-persona-switcher small {
+  color: #a03f29;
+  font-size: 0.62rem;
+}
+.role-workspace-local-note {
+  margin-top: 0.55rem !important;
+  border-left: 3px solid #b68b49;
+  background: #f8f4eb;
+  color: #66583b !important;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.65rem !important;
+  line-height: 1.45;
+}
 .role-dashboard-sidebar.collapsed {
   display: none;
 }

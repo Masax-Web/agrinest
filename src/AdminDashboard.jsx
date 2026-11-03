@@ -62,8 +62,9 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
 
   const handleImpersonate = async (account) => {
     const accountLabel = account.name || account.email || account.phone || 'this account';
+    const personaLabel = personas.find((persona) => persona.id === account.persona_id)?.label || account.persona_id || account.role;
     const confirmed = window.confirm(
-      `Temporarily access ${accountLabel} as ${account.role} for up to 15 minutes? Actions will apply to this account and the session will be recorded in the audit log.`,
+      `Temporarily access ${accountLabel} as ${personaLabel} for up to 15 minutes? Actions will apply to this account and the session will be recorded in the audit log.`,
     );
     if (!confirmed) return;
     setBusy(true);
@@ -125,9 +126,9 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
                     <tr key={account.user_id}>
                       <td><strong>{account.name || 'Unnamed account'}</strong><small>{account.email || account.phone || account.user_id}</small></td>
                       <td>
-                        <select value={account.role} disabled={busy || account.is_admin} aria-label={`Persona for ${account.email || account.name}`} onChange={(event) => runAction(() => api.setAdminUserPersona(account.user_id, event.target.value))}>
+                        <select value={account.persona_id} disabled={busy || account.is_admin} aria-label={`Persona for ${account.email || account.name}`} onChange={(event) => runAction(() => api.setAdminUserPersona(account.user_id, event.target.value))}>
                           {adminPersonas.map((persona) => <option key={persona.id} value={persona.id}>{persona.label}</option>)}
-                          {account.is_admin && <option value={account.role}>{account.role}</option>}
+                          {account.is_admin && <option value={account.persona_id}>{personas.find((persona) => persona.id === account.persona_id)?.label || account.persona_id}</option>}
                         </select>
                       </td>
                       <td><span className={`admin-status ${account.role_status}`}>{account.role_status}</span></td>
