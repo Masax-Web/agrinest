@@ -1,0 +1,1314 @@
+body.expert-booking-active {
+  overflow-x: hidden;
+}
+
+body.expert-booking-active .account-security-launch {
+  display: none;
+}
+
+.expert-booking-app {
+  --expert-primary: #022717;
+  --expert-primary-container: #1a3d2b;
+  --expert-secondary: #116c4a;
+  --expert-secondary-soft: #a1f4c8;
+  --expert-surface: #f7f9ff;
+  --expert-surface-low: #eff4fc;
+  --expert-surface-high: #e3e9f0;
+  --expert-text: #161c22;
+  --expert-muted: #54615d;
+  --expert-outline: #c1c8c1;
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 12.25rem minmax(0, 1fr);
+  background: var(--expert-surface);
+  color: var(--expert-text);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-size: 0.875rem;
+}
+
+.expert-booking-app,
+.expert-booking-app * {
+  box-sizing: border-box;
+}
+
+.expert-booking-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  min-height: 38rem;
+  flex-direction: column;
+  border-right: 1px solid rgba(80, 105, 94, 0.13);
+  background: var(--expert-surface-low);
+  box-shadow: 0 2px 6px rgba(17, 28, 44, 0.08);
+  padding: 1.15rem 0.7rem 1rem;
+}
+
+.expert-booking-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.75rem;
+  border: 0;
+  background: transparent;
+  color: #23322d;
+  padding: 0.15rem 0.7rem;
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expert-booking-brand .material-symbols-outlined {
+  color: var(--expert-primary);
+  font-size: 1.45rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.expert-booking-sidebar nav,
+.expert-booking-sidebar-bottom {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.expert-booking-sidebar nav button,
+.expert-booking-sidebar-bottom button {
+  display: flex;
+  min-height: 2.85rem;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #48554f;
+  padding: 0.65rem 0.7rem;
+  font: inherit;
+  font-size: 0.65rem;
+  letter-spacing: 0.025em;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.expert-booking-sidebar nav button:hover,
+.expert-booking-sidebar-bottom button:hover {
+  background: var(--expert-surface-high);
+  transform: translateX(2px);
+}
+
+.expert-booking-sidebar nav button.active {
+  background: var(--expert-secondary-soft);
+  color: #1b724f;
+}
+
+.expert-booking-sidebar nav .material-symbols-outlined,
+.expert-booking-sidebar-bottom .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.expert-booking-sidebar-bottom {
+  margin-top: auto;
+}
+
+.expert-booking-main {
+  width: min(100%, 90rem);
+  min-width: 0;
+  margin: 0 auto;
+  padding: 1.7rem clamp(1.3rem, 3vw, 2.5rem) 2rem;
+}
+
+.expert-booking-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+
+.expert-booking-back,
+.expert-network-header > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  background: transparent;
+  color: #52615b;
+  padding: 0 0 0.35rem;
+  font: inherit;
+  font-size: 0.62rem;
+  cursor: pointer;
+}
+
+.expert-booking-back:hover,
+.expert-network-header > button:hover {
+  color: var(--expert-secondary);
+}
+
+.expert-booking-back .material-symbols-outlined,
+.expert-network-header > button .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.expert-booking-page-header h1,
+.expert-network-header h1 {
+  margin: 0;
+  color: var(--expert-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 2.2vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+}
+
+.expert-booking-protection {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  background: var(--expert-secondary-soft);
+  color: #1b724f;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+}
+
+.expert-booking-protection .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.expert-booking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(16rem, 0.95fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.expert-booking-left,
+.expert-booking-right {
+  display: grid;
+  min-width: 0;
+  gap: 0.95rem;
+}
+
+.expert-profile-card,
+.expert-booking-card {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.83);
+  box-shadow: 0 4px 20px rgba(26, 61, 43, 0.08);
+}
+
+.expert-profile-card {
+  position: relative;
+  display: flex;
+  min-height: 9.5rem;
+  align-items: center;
+  gap: 1.15rem;
+  overflow: hidden;
+  padding: 1.25rem;
+}
+
+.expert-profile-card::after {
+  position: absolute;
+  top: -4rem;
+  right: -3rem;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 50%;
+  background: rgba(161, 244, 200, 0.22);
+  content: '';
+  filter: blur(1.8rem);
+}
+
+.expert-profile-card > img {
+  position: relative;
+  z-index: 1;
+  width: 5.3rem;
+  height: 5.3rem;
+  flex: 0 0 5.3rem;
+  border: 2px solid rgba(2, 39, 23, 0.12);
+  border-radius: 0.65rem;
+  background: var(--expert-surface-high);
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.expert-profile-info {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+}
+
+.expert-profile-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.expert-profile-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0 0 0.25rem;
+  color: var(--expert-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.expert-profile-heading h2 .material-symbols-outlined {
+  color: var(--expert-secondary);
+  font-size: 1rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.expert-profile-heading > div:first-child > p {
+  margin: 0 0 0.65rem;
+  color: #495650;
+  font-size: 0.72rem;
+}
+
+.expert-profile-rating {
+  flex: 0 0 auto;
+  color: #41340d;
+  text-align: right;
+}
+
+.expert-profile-rating > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.expert-profile-rating > div .material-symbols-outlined {
+  color: #473600;
+  font-size: 1rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.expert-profile-rating small {
+  display: block;
+  margin-top: 0.15rem;
+  color: #58645e;
+  font-size: 0.55rem;
+  line-height: 1.35;
+}
+
+.expert-booking-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.expert-booking-tags > span {
+  border-radius: 999px;
+  background: var(--expert-surface-high);
+  color: #47544f;
+  padding: 0.3rem 0.62rem;
+  font-size: 0.57rem;
+}
+
+.expert-bio-reviews {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.expert-booking-card {
+  min-width: 0;
+  padding: 1.05rem;
+}
+
+.expert-booking-card > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.8rem;
+  color: var(--expert-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.expert-booking-card > h2 .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.expert-bio-card > p,
+.expert-education > p {
+  margin: 0;
+  color: #4a5651;
+  font-size: 0.67rem;
+  line-height: 1.55;
+}
+
+.expert-education {
+  margin-top: 0.8rem;
+  border-top: 1px solid rgba(193, 200, 193, 0.35);
+  padding-top: 0.65rem;
+}
+
+.expert-education > strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #263d30;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.expert-reviews-card blockquote {
+  margin: 0 0 0.65rem;
+}
+
+.expert-reviews-card blockquote:last-child {
+  margin-bottom: 0;
+}
+
+.expert-booking-stars {
+  display: inline-flex;
+  color: #624900;
+}
+
+.expert-booking-stars .material-symbols-outlined {
+  font-size: 0.82rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.expert-reviews-card blockquote p {
+  margin: 0.1rem 0;
+  color: #4a5651;
+  font-size: 0.66rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.expert-reviews-card blockquote cite {
+  color: #304337;
+  font-size: 0.58rem;
+  font-style: normal;
+}
+
+.expert-service-card {
+  padding: 1.05rem;
+}
+
+.expert-service-options {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.expert-service-option {
+  display: grid;
+  min-height: 4.2rem;
+  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid rgba(114, 121, 115, 0.18);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.expert-service-option.selected {
+  border: 1.5px solid var(--expert-secondary);
+  background: rgba(17, 108, 74, 0.045);
+}
+
+.expert-service-option > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.expert-service-option:focus-within {
+  outline: 2px solid var(--expert-secondary);
+  outline-offset: 2px;
+}
+
+.expert-service-icon {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: var(--expert-surface-high);
+  color: var(--expert-primary);
+  font-size: 1.1rem;
+}
+
+.expert-service-copy,
+.expert-service-price {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.expert-service-copy strong {
+  color: var(--expert-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.expert-service-copy small,
+.expert-service-price small {
+  color: #58645e;
+  font-size: 0.57rem;
+}
+
+.expert-service-price {
+  text-align: right;
+}
+
+.expert-service-price strong {
+  color: var(--expert-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.expert-calendar-card {
+  padding: 1.05rem;
+}
+
+.expert-calendar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.expert-calendar-heading h2,
+.expert-order-summary > h2 {
+  margin: 0;
+  color: #25372f;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.expert-calendar-heading > div {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.expert-calendar-heading button {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #35453e;
+  cursor: pointer;
+}
+
+.expert-calendar-heading button:hover:not(:disabled) {
+  background: var(--expert-surface-high);
+}
+
+.expert-calendar-heading button:disabled {
+  color: #bbc1bf;
+  cursor: not-allowed;
+}
+
+.expert-calendar-heading .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.expert-calendar-month {
+  min-height: 1rem;
+  margin: 0.25rem 0 0.4rem;
+  color: #6a756f;
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+.expert-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.15rem;
+}
+
+.expert-weekday {
+  display: grid;
+  height: 1.4rem;
+  place-items: center;
+  color: #748078;
+  font-size: 0.53rem;
+  font-weight: 600;
+}
+
+.expert-calendar-grid > button {
+  display: grid;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: #25332d;
+  font: inherit;
+  font-size: 0.62rem;
+  cursor: pointer;
+}
+
+.expert-calendar-grid > button:hover:not(:disabled) {
+  border-color: rgba(17, 108, 74, 0.3);
+  background: rgba(17, 108, 74, 0.08);
+}
+
+.expert-calendar-grid > button.outside-month,
+.expert-calendar-grid > button.past-date {
+  color: #a7afab;
+}
+
+.expert-calendar-grid > button:disabled {
+  cursor: not-allowed;
+}
+
+.expert-calendar-grid > button.selected {
+  background: var(--expert-secondary);
+  color: #fff;
+}
+
+.expert-available-slots {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.expert-available-slots h3 {
+  margin: 0;
+  color: #53605a;
+  font-size: 0.57rem;
+  font-weight: 600;
+}
+
+.expert-calendar-hint {
+  margin: 0;
+  color: #77817c;
+  font-size: 0.57rem;
+}
+
+.expert-slot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.expert-slot-grid button {
+  min-height: 2rem;
+  border: 1px solid var(--expert-outline);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #24352e;
+  font: inherit;
+  font-size: 0.61rem;
+  cursor: pointer;
+}
+
+.expert-slot-grid button:hover:not(:disabled) {
+  border-color: var(--expert-secondary);
+  color: var(--expert-secondary);
+}
+
+.expert-slot-grid button.selected {
+  border-color: var(--expert-secondary);
+  background: var(--expert-secondary);
+  color: #fff;
+}
+
+.expert-slot-grid button:disabled {
+  background: #f3f5f6;
+  color: #a0a9a4;
+  cursor: not-allowed;
+}
+
+.expert-order-summary {
+  border-radius: 0.7rem;
+  background: var(--expert-primary-container);
+  box-shadow: 0 8px 22px rgba(13, 47, 31, 0.16);
+  color: #d3eadc;
+  padding: 1.05rem;
+}
+
+.expert-order-summary > h2 {
+  margin-bottom: 0.9rem;
+  color: #a9d0b6;
+  letter-spacing: 0.14em;
+}
+
+.expert-fee-row,
+.expert-fee-total {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.expert-fee-row {
+  margin-bottom: 0.55rem;
+  color: #c5d9cd;
+  font-size: 0.65rem;
+}
+
+.expert-fee-row strong {
+  color: #c5d9cd;
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+
+.expert-fee-total {
+  align-items: center;
+  margin-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  padding-top: 0.65rem;
+}
+
+.expert-fee-total > span {
+  color: #b7d1c1;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.expert-fee-total > strong {
+  color: #fff;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.expert-transport-fee {
+  margin: -0.2rem 0 0.55rem;
+  color: #b7d1c1;
+  font-size: 0.57rem;
+  text-align: right;
+}
+
+.expert-escrow-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+  border-radius: 0.45rem;
+  background: rgba(17, 108, 74, 0.34);
+  padding: 0.6rem;
+}
+
+.expert-escrow-notice > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #a1f4c8;
+  font-size: 0.95rem;
+}
+
+.expert-escrow-notice p {
+  margin: 0;
+  color: #e0eee6;
+  font-size: 0.57rem;
+  line-height: 1.4;
+}
+
+.expert-selected-appointment {
+  margin: 0 0 0.55rem;
+  color: #cde2d4;
+  font-size: 0.62rem;
+  text-align: center;
+}
+
+.expert-confirm-button {
+  display: flex;
+  width: 100%;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: var(--expert-secondary-soft);
+  color: #002113;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.expert-confirm-button:hover {
+  background: #8fe6b8;
+  transform: translateY(-1px);
+}
+
+.expert-confirm-button .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.expert-cancellation-note {
+  margin: 0.55rem 0 0;
+  color: #a9c5b4;
+  font-size: 0.54rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.expert-concierge-card {
+  display: flex;
+  min-height: 3.8rem;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid rgba(114, 121, 115, 0.2);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.45);
+  color: #27382f;
+  padding: 0.65rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expert-concierge-card:hover {
+  background: #fff;
+}
+
+.expert-concierge-card > .material-symbols-outlined {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--expert-surface-high);
+  font-size: 1.1rem;
+}
+
+.expert-concierge-card > span:last-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.expert-concierge-card strong {
+  font-size: 0.62rem;
+}
+
+.expert-concierge-card small {
+  color: #5b6861;
+  font-size: 0.57rem;
+}
+
+.expert-network-header {
+  margin-bottom: 1.2rem;
+}
+
+.expert-network-header > .expert-booking-eyebrow {
+  display: block;
+  margin-top: 1.1rem;
+}
+
+.expert-booking-eyebrow {
+  color: #718078;
+  font-size: 0.59rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.expert-network-header > p {
+  margin: 0.4rem 0 0;
+  color: #56635d;
+  font-size: 0.78rem;
+}
+
+.expert-network-card {
+  display: grid;
+  max-width: 58rem;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.83);
+  box-shadow: 0 4px 20px rgba(26, 61, 43, 0.08);
+  padding: 1.3rem;
+}
+
+.expert-network-card > img {
+  width: 10rem;
+  height: 12rem;
+  border-radius: 0.65rem;
+  background: var(--expert-surface-high);
+  object-fit: cover;
+}
+
+.expert-network-card-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.6rem;
+}
+
+.expert-network-card-copy h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--expert-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.35rem;
+}
+
+.expert-network-card-copy h2 .material-symbols-outlined {
+  color: var(--expert-secondary);
+  font-size: 1rem;
+}
+
+.expert-network-card-copy > p {
+  margin: -0.35rem 0 0;
+  color: #53605a;
+  font-size: 0.78rem;
+}
+
+.expert-network-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #53605a;
+  font-size: 0.7rem;
+}
+
+.expert-network-rating > strong {
+  color: #483900;
+  font-size: 0.9rem;
+}
+
+.expert-network-rating > span:last-child {
+  font-size: 0.62rem;
+}
+
+.expert-booking-primary {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--expert-primary);
+  color: #fff;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expert-booking-primary:hover {
+  background: var(--expert-secondary);
+}
+
+.expert-network-info {
+  max-width: 58rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(114, 121, 115, 0.16);
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1.1rem 1.3rem;
+}
+
+.expert-network-info h2 {
+  margin: 0 0 0.35rem;
+  color: var(--expert-primary);
+  font-size: 0.9rem;
+}
+
+.expert-network-info > p {
+  max-width: 48rem;
+  margin: 0;
+  color: #53605a;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.expert-network-request-count {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  color: #54635a;
+  font-size: 0.65rem;
+}
+
+.expert-network-request-count .material-symbols-outlined {
+  color: var(--expert-secondary);
+  font-size: 1rem;
+}
+
+.expert-network-request-count strong {
+  color: var(--expert-primary);
+}
+
+.expert-support-toggle {
+  min-height: 2.45rem;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(17, 108, 74, 0.45);
+  border-radius: 0.45rem;
+  background: #fff;
+  color: var(--expert-secondary);
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expert-support-toggle:hover {
+  background: var(--expert-surface-low);
+}
+
+.expert-support-form {
+  display: grid;
+  max-width: 38rem;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.expert-support-form label {
+  display: grid;
+  gap: 0.3rem;
+  color: #53605a;
+  font-size: 0.63rem;
+  font-weight: 600;
+}
+
+.expert-support-form input,
+.expert-support-form textarea {
+  width: 100%;
+  min-height: 2.55rem;
+  border: 1px solid var(--expert-outline);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--expert-text);
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  font-size: 0.7rem;
+}
+
+.expert-support-form textarea {
+  resize: vertical;
+}
+
+.expert-support-form > button {
+  width: fit-content;
+}
+
+.expert-saved-help-requests {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.expert-saved-help-requests h3 {
+  margin: 0;
+  color: var(--expert-primary);
+  font-size: 0.73rem;
+}
+
+.expert-saved-help-requests article {
+  border-top: 1px solid rgba(193, 200, 193, 0.5);
+  padding-top: 0.55rem;
+}
+
+.expert-saved-help-requests article strong {
+  color: #293d32;
+  font-size: 0.68rem;
+}
+
+.expert-saved-help-requests article p {
+  margin: 0.2rem 0;
+  color: #53605a;
+  font-size: 0.65rem;
+}
+
+.expert-saved-help-requests article small {
+  color: #758079;
+  font-size: 0.56rem;
+}
+
+.expert-booking-toast {
+  position: fixed;
+  z-index: 80;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  max-width: min(32rem, calc(100vw - 2rem));
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: 0.55rem;
+  background: var(--expert-primary);
+  box-shadow: 0 6px 24px rgba(17, 28, 44, 0.2);
+  color: #fff;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.expert-booking-toast > button {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 1.5rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.expert-booking-modal-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(13, 29, 21, 0.52);
+  padding: 1rem;
+}
+
+.expert-booking-confirmation {
+  width: min(100%, 28rem);
+  border: 1px solid #d5e0d8;
+  border-radius: 0.8rem;
+  background: #fff;
+  box-shadow: 0 1.5rem 4rem rgba(10, 20, 14, 0.25);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.expert-booking-confirmation > .material-symbols-outlined {
+  color: var(--expert-secondary);
+  font-size: 2.1rem;
+}
+
+.expert-booking-confirmation h2 {
+  margin: 0.55rem 0;
+  color: var(--expert-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.25rem;
+}
+
+.expert-booking-confirmation p {
+  margin: 0 0 1rem;
+  color: #53605a;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.expert-booking-confirmation > button {
+  min-height: 2.6rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: var(--expert-primary);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 1500px) {
+  .expert-booking-main {
+    padding-right: 2.5rem;
+    padding-left: 2.5rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .expert-booking-app {
+    grid-template-columns: 10.5rem minmax(0, 1fr);
+  }
+
+  .expert-booking-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expert-booking-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .expert-concierge-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .expert-booking-app {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .expert-booking-sidebar {
+    position: sticky;
+    z-index: 10;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(80, 105, 94, 0.13);
+    padding: 0.4rem 0.55rem;
+  }
+
+  .expert-booking-brand {
+    margin: 0;
+    padding: 0.25rem 0.5rem 0.45rem;
+  }
+
+  .expert-booking-sidebar nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.2rem;
+  }
+
+  .expert-booking-sidebar nav button {
+    min-height: 2.5rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.12rem;
+    padding: 0.25rem;
+    font-size: 0.48rem;
+    text-align: center;
+  }
+
+  .expert-booking-sidebar nav button .material-symbols-outlined {
+    font-size: 0.95rem;
+  }
+
+  .expert-booking-sidebar-bottom {
+    display: none;
+  }
+
+  .expert-booking-main {
+    padding: 1rem 0.85rem 1.5rem;
+  }
+
+  .expert-booking-page-header {
+    align-items: flex-start;
+  }
+
+  .expert-booking-page-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .expert-booking-protection {
+    max-width: 8rem;
+    font-size: 0.53rem;
+  }
+
+  .expert-profile-card {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem;
+  }
+
+  .expert-profile-card > img {
+    width: 4.2rem;
+    height: 4.6rem;
+    flex-basis: 4.2rem;
+  }
+
+  .expert-profile-heading {
+    gap: 0.3rem;
+  }
+
+  .expert-profile-heading h2 {
+    font-size: 0.88rem;
+  }
+
+  .expert-profile-heading > div:first-child > p {
+    font-size: 0.63rem;
+  }
+
+  .expert-profile-rating small {
+    font-size: 0.48rem;
+  }
+
+  .expert-booking-tags > span {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.49rem;
+  }
+
+  .expert-bio-reviews,
+  .expert-booking-right {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .expert-service-option {
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    gap: 0.45rem;
+    padding: 0.5rem;
+  }
+
+  .expert-service-copy strong {
+    font-size: 0.62rem;
+  }
+
+  .expert-service-copy small,
+  .expert-service-price small {
+    font-size: 0.52rem;
+  }
+
+  .expert-service-price strong {
+    font-size: 0.72rem;
+  }
+
+  .expert-network-card {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.8rem;
+    padding: 0.9rem;
+  }
+
+  .expert-network-card > img {
+    width: 5.5rem;
+    height: 7rem;
+  }
+
+  .expert-network-card-copy h2 {
+    font-size: 0.95rem;
+  }
+
+  .expert-network-card-copy > p {
+    font-size: 0.64rem;
+  }
+
+  .expert-network-rating {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .expert-network-rating > span:last-child {
+    flex: 0 0 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .expert-profile-card {
+    flex-direction: column;
+  }
+
+  .expert-profile-card > img {
+    width: 4.5rem;
+    height: 4.5rem;
+    flex-basis: 4.5rem;
+  }
+
+  .expert-profile-info {
+    width: 100%;
+  }
+}

@@ -24,6 +24,7 @@ import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import VerifiedActivityArchive from './VerifiedActivityArchive';
+import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import { personas } from '../shared/personas.json';
 import roleModel from '../shared/role-model.json';
 
@@ -487,10 +488,10 @@ const initialJichoScans = [
   { id: 'scan-coffee', diagnosis: 'Coffee Berry Borer', confidence: 0.91, farm: 'Highland Sector', time: 'Oct 24', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=180&q=80', severity: 'high' },
 ];
 
-function useNavScrollLock(isSidebarOpen) {
+function useNavScrollLock(isSidebarOpen, isStandalonePage = false) {
   useEffect(() => {
     const updateBodyScroll = () => {
-      const shouldLockScroll = window.innerWidth <= 980 && isSidebarOpen;
+      const shouldLockScroll = window.innerWidth <= 980 && isSidebarOpen && !isStandalonePage;
       document.body.style.overflow = shouldLockScroll ? 'hidden' : '';
       document.body.style.touchAction = shouldLockScroll ? 'none' : '';
     };
@@ -503,7 +504,7 @@ function useNavScrollLock(isSidebarOpen) {
       document.body.style.touchAction = '';
       window.removeEventListener('resize', updateBodyScroll);
     };
-  }, [isSidebarOpen]);
+  }, [isSidebarOpen, isStandalonePage]);
 }
 
 function getInitialSidebarState() {
@@ -1771,7 +1772,7 @@ function SmallholderDashboard({ user, onLogout }) {
   const [weatherLocationStatus, setWeatherLocationStatus] = useState('Finding your farm location…');
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
-  useNavScrollLock(isSidebarOpen);
+  useNavScrollLock(isSidebarOpen, activeView === 'experts');
 
   useEffect(() => {
     let active = true;
@@ -2116,6 +2117,16 @@ function SmallholderDashboard({ user, onLogout }) {
         ? 'cloud'
         : 'clear';
   const localClock = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (activeView === 'experts') {
+    return <ExpertBookingWorkspace
+      user={user}
+      records={farmerRecords}
+      onRecordsChange={updateFarmerRecords}
+      onBack={() => setActiveView('dashboard')}
+      onNavigate={setActiveView}
+    />;
+  }
 
   return (
     <div className="smallholder-shell">
