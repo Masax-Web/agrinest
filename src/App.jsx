@@ -8,6 +8,7 @@ import FarmerWorkspace from './FarmerWorkspace';
 import FinanceHub from './FinanceHub';
 import CrowdfundingWorkspace from './CrowdfundingWorkspace';
 import CarbonCreditsWorkspace from './CarbonCreditsWorkspace';
+import SustainabilityWorkspace from './SustainabilityWorkspace';
 import GroupsDashboard from './GroupsDashboard';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
@@ -1660,6 +1661,7 @@ function normalizeFarmerRecords(records = {}) {
     expenses: collection(records.expenses),
     crowdfunding: collection(records.crowdfunding).length ? collection(records.crowdfunding) : legacyCampaigns,
     carbon: collection(records.carbon),
+    sustainability: collection(records.sustainability),
     livestock: collection(records.livestock),
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
@@ -1920,7 +1922,7 @@ function SmallholderDashboard({ user, onLogout }) {
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
     'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
-    'Rent Equipment': 'agrishop', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Crowdfunding: 'crowdfunding',
+    'Rent Equipment': 'agrishop', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Sustainability: 'sustainability', Crowdfunding: 'crowdfunding',
     'AGRI-NEST Foundation': 'foundation',
   };
   const farmerActionViews = {
@@ -2057,6 +2059,7 @@ function SmallholderDashboard({ user, onLogout }) {
     {
       heading: 'Green & Impact',
       items: [
+        { label: 'Sustainability', icon: 'eco' },
         { label: 'Carbon Credits', icon: 'eco' },
         { label: 'Crowdfunding', icon: 'volunteer_activism' },
         { label: 'AGRI-NEST Foundation', icon: 'groups_2' },
@@ -2575,6 +2578,14 @@ function SmallholderDashboard({ user, onLogout }) {
             fields={farmerRecords.fields}
             onRecordsChange={(carbonRecords) => updateFarmerRecords('carbon', carbonRecords)}
             onNavigate={setActiveView}
+          />
+        ) : activeView === 'sustainability' ? (
+          <SustainabilityWorkspace
+            records={farmerRecords.sustainability}
+            fields={farmerRecords.fields}
+            carbonRecords={farmerRecords.carbon}
+            activities={farmerRecords.activities}
+            onRecordsChange={(sustainabilityRecords) => updateFarmerRecords('sustainability', sustainabilityRecords)}
           />
         ) : activeView === 'groups' ? (
           <GroupsDashboard

@@ -15161,3 +15161,144 @@ body.admin-impersonation-active #root {
   .carbon-activity-list time { grid-column: 2; }
   .carbon-form-row { grid-template-columns: minmax(0, 1fr); }
 }
+
+.sustainability-hub {
+  --sustainability-ink: #27170d;
+  --sustainability-muted: #6d5f56;
+  min-height: calc(100vh - 4rem);
+  padding: clamp(1rem, 3vw, 2rem);
+  background: #fff8f5;
+  color: #1d1b1a;
+}
+
+.sustainability-hub button,
+.sustainability-dialog button,
+.sustainability-dialog input,
+.sustainability-dialog select { font: inherit; }
+.sustainability-hub button { cursor: pointer; }
+.sustainability-hub button:focus-visible,
+.sustainability-dialog button:focus-visible,
+.sustainability-dialog input:focus-visible,
+.sustainability-dialog select:focus-visible { outline: 2px solid #a03f29; outline-offset: 2px; }
+.sustainability-heading,
+.sustainability-disclaimer,
+.sustainability-overview-grid,
+.sustainability-data-grid { width: min(100%, 94rem); margin-right: auto; margin-left: auto; }
+.sustainability-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.sustainability-eyebrow { color: #a03f29; font-size: 0.59rem; font-weight: 800; letter-spacing: 0.12em; }
+.sustainability-heading h1 { margin: 0.3rem 0 0.4rem; color: var(--sustainability-ink); font: 700 clamp(1.5rem, 2.8vw, 2.2rem)/1.16 'Syne', sans-serif; letter-spacing: -0.045em; }
+.sustainability-heading p { max-width: 54rem; margin: 0; color: var(--sustainability-muted); font-size: 0.78rem; line-height: 1.55; }
+.sustainability-primary-button,
+.sustainability-secondary-button { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 0.8rem; border: 1px solid transparent; border-radius: 0.45rem; font-size: 0.66rem; font-weight: 800; }
+.sustainability-primary-button { background: #3d2b1f; color: #fff8f0; box-shadow: 0 3px 8px rgba(61, 43, 31, 0.1); }
+.sustainability-primary-button:hover { background: #573a29; }
+.sustainability-primary-button:disabled { cursor: not-allowed; opacity: 0.55; }
+.sustainability-secondary-button { border-color: #e2d5ce; background: #fff; color: #523c2f; }
+.sustainability-secondary-button:hover { background: #faf3ef; }
+.sustainability-primary-button .material-symbols-outlined,
+.sustainability-secondary-button .material-symbols-outlined { font-size: 0.95rem; }
+.sustainability-disclaimer { display: flex; align-items: flex-start; gap: 0.45rem; margin-bottom: 0.9rem; padding: 0.65rem 0.75rem; border: 1px solid #f0dfc9; border-radius: 0.5rem; background: #fff7eb; color: #705430; font-size: 0.63rem; line-height: 1.45; }
+.sustainability-disclaimer .material-symbols-outlined { flex: 0 0 auto; font-size: 0.95rem; }
+.sustainability-overview-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.85fr); gap: 0.9rem; margin-bottom: 0.9rem; }
+.sustainability-card { min-width: 0; padding: 1rem; border: 1px solid rgba(129, 117, 110, 0.12); border-radius: 0.7rem; background: #fff; box-shadow: 0 4px 13px rgba(61, 43, 31, 0.045); }
+.sustainability-rating-card { display: grid; grid-template-columns: 8.7rem minmax(0, 1fr); align-items: center; gap: 1.1rem; min-height: 12rem; }
+.sustainability-rating-ring { display: grid; width: 7.7rem; aspect-ratio: 1; place-items: center; padding: 0.58rem; border-radius: 50%; transform: rotate(-90deg); }
+.sustainability-rating-ring strong { display: grid; width: 100%; height: 100%; align-content: center; justify-items: center; border-radius: 50%; background: #fff; color: #173c34; font: 700 2rem/1 'Syne', sans-serif; transform: rotate(90deg); }
+.sustainability-rating-ring small { display: block; margin-top: 0.16rem; color: #786b64; font: 500 0.62rem 'Syne', sans-serif; text-align: center; }
+.sustainability-rating-card h2,
+.sustainability-card-title h2,
+.sustainability-carbon-card h2 { margin: 0; color: #2b211b; font: 600 0.96rem/1.35 'Syne', sans-serif; }
+.sustainability-rating-card p { margin: 0.4rem 0 0.65rem; color: #6d625a; font-size: 0.68rem; line-height: 1.5; }
+.sustainability-rating-card > div:last-child > small { display: block; margin-top: 0.36rem; color: #756a62; font-size: 0.55rem; line-height: 1.4; }
+.sustainability-meter { height: 0.38rem; overflow: hidden; border-radius: 99px; background: #e9e1dc; }
+.sustainability-meter > span { display: block; height: 100%; border-radius: inherit; background: #24483f; transition: width 180ms ease; }
+.sustainability-card-title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.sustainability-card-title > .material-symbols-outlined { color: #a03f29; font-size: 1.1rem; }
+.sustainability-cert-card > p,
+.sustainability-biodiversity-card > p { margin: 0.4rem 0 0.7rem; color: #6d625a; font-size: 0.63rem; line-height: 1.45; }
+.sustainability-evidence-list { display: grid; gap: 0.48rem; margin: 0.8rem 0; padding: 0; list-style: none; }
+.sustainability-evidence-list li { display: grid; grid-template-columns: 1rem minmax(0, 1fr) auto; align-items: center; gap: 0.35rem; color: #54473f; font-size: 0.59rem; }
+.sustainability-evidence-list li > .material-symbols-outlined { color: #a88b78; font-size: 0.95rem; }
+.sustainability-evidence-list li.complete > .material-symbols-outlined { color: #315248; }
+.sustainability-evidence-list li > small { color: #83756c; font-size: 0.52rem; white-space: nowrap; }
+.sustainability-full-button { width: 100%; min-height: 2.1rem; }
+.sustainability-not-certified { display: block; margin-top: 0.4rem; color: #82756e; font-size: 0.52rem; text-align: center; }
+.sustainability-data-grid { display: grid; grid-template-columns: minmax(13rem, 0.8fr) minmax(0, 1.8fr); gap: 0.9rem; }
+.sustainability-carbon-card { grid-row: span 2; }
+.sustainability-icon-tile { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; margin-bottom: 0.7rem; border-radius: 0.5rem; background: #f2ebe7; color: #62473a; }
+.sustainability-icon-tile .material-symbols-outlined { font-size: 1.2rem; }
+.sustainability-card-subtitle { margin: 0.25rem 0 0.7rem; color: #766b64; font-size: 0.6rem; }
+.sustainability-large-number { display: block; margin: 0.4rem 0 0.8rem; color: #2b211b; font: 700 2rem/1.1 'Syne', sans-serif; }
+.sustainability-large-number small { color: #7b6e65; font: 500 0.68rem 'DM Sans', sans-serif; }
+.sustainability-activity-list,
+.sustainability-sighting-list { display: grid; gap: 0.45rem; margin: 0.8rem 0; padding: 0; list-style: none; }
+.sustainability-activity-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.35rem; padding: 0.48rem 0; border-top: 1px solid #f0e9e5; color: #4a3c33; font-size: 0.59rem; }
+.sustainability-activity-list li small { color: #83766e; font-size: 0.54rem; }
+.sustainability-method-note,
+.sustainability-empty-note { color: #766b64; font-size: 0.59rem; line-height: 1.5; }
+.sustainability-carbon-card .sustainability-method-note { margin: 0.9rem 0 0; padding-top: 0.6rem; border-top: 1px solid #f0e9e5; }
+.sustainability-water-card { min-height: 13.5rem; }
+.sustainability-water-card .sustainability-card-title p { margin: 0.2rem 0 0; color: #766b64; font-size: 0.59rem; }
+.sustainability-water-chart { display: grid; gap: 0.7rem; margin-top: 1.2rem; }
+.sustainability-water-row { display: grid; grid-template-columns: minmax(4.5rem, 0.55fr) minmax(4rem, 1fr) auto; align-items: center; gap: 0.65rem; }
+.sustainability-water-row > span { overflow: hidden; color: #584a41; font-size: 0.61rem; text-overflow: ellipsis; white-space: nowrap; }
+.sustainability-water-track { height: 0.52rem; overflow: hidden; border-radius: 99px; background: #eee7e2; }
+.sustainability-water-track > span { display: block; height: 100%; border-radius: inherit; background: #315248; }
+.sustainability-water-row > strong { color: #41352d; font-size: 0.6rem; white-space: nowrap; }
+.sustainability-water-chart > small { margin-top: 0.2rem; color: #82766e; font-size: 0.53rem; line-height: 1.45; }
+.sustainability-empty-state { display: grid; justify-items: center; gap: 0.3rem; padding: 1rem 0.5rem 0.2rem; text-align: center; }
+.sustainability-empty-state > .material-symbols-outlined { color: #9e887c; font-size: 1.3rem; }
+.sustainability-empty-state p { margin: 0; color: #766b64; font-size: 0.6rem; }
+.sustainability-text-button { display: inline-flex; align-items: center; justify-content: center; margin-top: 0.65rem; padding: 0.3rem; border: 0; background: transparent; color: #a03f29; font-size: 0.61rem; font-weight: 800; }
+.sustainability-soil-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; margin: 1.1rem 0 0.65rem; }
+.sustainability-soil-stats > div { display: grid; gap: 0.15rem; }
+.sustainability-soil-stats strong { color: #25483f; font: 600 1.2rem 'Syne', sans-serif; }
+.sustainability-soil-stats span { color: #74685f; font-size: 0.56rem; }
+.sustainability-soil-card > small { color: #877970; font-size: 0.53rem; }
+.sustainability-biodiversity-summary { display: flex; align-items: baseline; gap: 0.45rem; margin: 0.6rem 0; }
+.sustainability-biodiversity-summary strong { color: #315248; font: 600 1.4rem 'Syne', sans-serif; }
+.sustainability-biodiversity-summary span { color: #766b64; font-size: 0.56rem; }
+.sustainability-sighting-list li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: 0.45rem; align-items: center; padding: 0.45rem; border-radius: 0.4rem; background: #faf4f1; }
+.sustainability-sighting-list li > .material-symbols-outlined { color: #a4543d; font-size: 0.95rem; }
+.sustainability-sighting-list li > div { display: grid; gap: 0.12rem; }
+.sustainability-sighting-list li strong { color: #45372f; font-size: 0.59rem; }
+.sustainability-sighting-list li small { color: #83766e; font-size: 0.52rem; }
+.sustainability-dialog-backdrop { position: fixed; z-index: 2000; inset: 0; display: grid; overflow-y: auto; place-items: center; padding: 1rem; background: rgba(23, 18, 14, 0.55); }
+.sustainability-dialog { display: grid; width: min(100%, 32rem); max-height: min(92vh, 42rem); gap: 0.8rem; overflow-y: auto; padding: 1.15rem; border: 1px solid #eadbd3; border-radius: 0.8rem; background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24); }
+.sustainability-dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.7rem; }
+.sustainability-dialog-heading h2 { margin: 0.2rem 0 0; color: var(--sustainability-ink); font: 600 1.15rem 'Syne', sans-serif; }
+.sustainability-dialog-heading > button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid #eadbd3; border-radius: 50%; background: #fff; color: #53443a; }
+.sustainability-dialog form { display: grid; gap: 0.7rem; }
+.sustainability-dialog form > label,
+.sustainability-form-row > label { display: grid; min-width: 0; gap: 0.3rem; color: #44352c; font-size: 0.63rem; font-weight: 750; }
+.sustainability-dialog form > label > span,
+.sustainability-form-row > label > span { color: #81736b; font-weight: 400; }
+.sustainability-dialog input,
+.sustainability-dialog select { width: 100%; min-height: 2.4rem; padding: 0.52rem 0.62rem; border: 1px solid #e1d5ce; border-radius: 0.42rem; background: #fff; color: #2a211c; font-size: 0.7rem; }
+.sustainability-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+.sustainability-dialog-note { margin: 0; padding: 0.6rem; border-radius: 0.4rem; background: #fff7eb; color: #715733; font-size: 0.6rem; line-height: 1.5; }
+.sustainability-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.45rem; }
+.sustainability-requirements { display: grid; gap: 0.55rem; margin: 0; padding-left: 1.1rem; color: #55473e; font-size: 0.63rem; line-height: 1.5; }
+
+@media (max-width: 760px) {
+  .sustainability-overview-grid { grid-template-columns: minmax(0, 1.2fr) minmax(14rem, 0.8fr); }
+  .sustainability-rating-card { grid-template-columns: 6rem minmax(0, 1fr); gap: 0.8rem; }
+  .sustainability-rating-ring { width: 5.7rem; padding: 0.45rem; }
+  .sustainability-data-grid { grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 1.2fr); }
+}
+@media (max-width: 620px) {
+  .sustainability-hub { padding: 1rem; }
+  .sustainability-heading { align-items: flex-start; flex-direction: column; }
+  .sustainability-heading > .sustainability-primary-button { width: 100%; }
+  .sustainability-overview-grid,
+  .sustainability-data-grid { grid-template-columns: minmax(0, 1fr); }
+  .sustainability-carbon-card { grid-row: auto; }
+}
+@media (max-width: 440px) {
+  .sustainability-hub { padding: 0.75rem; }
+  .sustainability-rating-card { grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.65rem; padding: 0.75rem; }
+  .sustainability-rating-ring { width: 4.2rem; padding: 0.35rem; }
+  .sustainability-rating-ring strong { font-size: 1.5rem; }
+  .sustainability-rating-card h2 { font-size: 0.83rem; }
+  .sustainability-form-row { grid-template-columns: minmax(0, 1fr); }
+}
