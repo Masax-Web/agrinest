@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AccountSecurityEntry from './AccountSecurityEntry';
 
 const roleScreens = {
   buyer: {
@@ -138,7 +139,7 @@ function readWorkspaceRecords(storageKey) {
   }
 }
 
-export default function RoleWorkspace({ role, persona, page, storageKey, journeyStep, onBack, onSaved }) {
+export default function RoleWorkspace({ role, persona, page, storageKey, journeyStep, onBack, onSaved, onOpenSecurity }) {
   const recordsStorageKey = storageKey || `agrinest-${role}-workspace-records`;
   const [records, setRecords] = useState(() => readWorkspaceRecords(recordsStorageKey));
   const [draft, setDraft] = useState({});
@@ -196,6 +197,7 @@ export default function RoleWorkspace({ role, persona, page, storageKey, journey
         <div><span>WORKSPACE HISTORY</span><h2>Saved records</h2></div>
         {records.length ? records.map((record) => <article key={record.id}><span className="material-symbols-outlined">{icon}</span><div><strong>{record.title || record.commodity || record.order || record.name || record.opportunity || record.job || record.trip || record.vehicle || record.origin || title}</strong><p>{record.details || record.route || record.region || record.delivery || record.quantity || record.amount || 'Saved record'}</p></div><small>{new Date(record.savedAt).toLocaleDateString()}</small></article>) : <p className="role-workspace-empty">No saved records yet.</p>}
       </section>
+      {page === 'settings' && onOpenSecurity && <AccountSecurityEntry onOpenSecurity={onOpenSecurity} />}
     </main>
   );
 }

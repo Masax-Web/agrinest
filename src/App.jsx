@@ -30,6 +30,7 @@ import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import TransporterFleetWorkspace from './TransporterFleetWorkspace';
 import TransporterRouteWorkspace from './TransporterRouteWorkspace';
 import FloatingAgriChat from './FloatingAgriChat';
+import AccountSecurityEntry from './AccountSecurityEntry';
 import { personas } from '../shared/personas.json';
 import roleModel from '../shared/role-model.json';
 
@@ -45,13 +46,13 @@ function clearLegacyAuthTokens() {
 }
 
 function AdminDashboardWithSecurity({ user, onLogout, onImpersonate }) {
-  const [isOpen, setIsOpen] = useState(false);
   return (
-    <DashboardWithSecurity user={user} onLogout={onLogout}>
-      <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} onImpersonate={onImpersonate} />
-      {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
+    <>
+      <DashboardWithSecurity user={user} onLogout={onLogout}>
+        <AdminDashboard user={user} onLogout={onLogout} onImpersonate={onImpersonate} />
+      </DashboardWithSecurity>
       <FloatingAgriChat user={user} farmerProfile={readStoredFarmerProfile(user?.user_id, user)} CommunityChat={CommunityChat} />
-    </DashboardWithSecurity>
+    </>
   );
 }
 
@@ -72,9 +73,9 @@ function getPersonaDashboard(personaId) {
   })[persona.dashboard] || persona.id;
 }
 
-function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation, injectSecurityOpener = false }) {
+function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation }) {
   const [isOpen, setIsOpen] = useState(false);
-  const secureChildren = injectSecurityOpener && children && typeof children.type === 'function'
+  const secureChildren = children && typeof children.type === 'function'
     ? cloneElement(children, { onOpenSecurity: () => setIsOpen(true) })
     : children;
   useEffect(() => {
@@ -91,7 +92,6 @@ function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, im
       </div>}
       {secureChildren}
       {!user?.is_admin && <FloatingAgriChat user={user} farmerProfile={readStoredFarmerProfile(user?.user_id, user)} CommunityChat={CommunityChat} />}
-      {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
   );
@@ -764,7 +764,7 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} injectSecurityOpener><FoundationInstitutionalDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><FoundationInstitutionalDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
@@ -1740,7 +1740,7 @@ function readStoredFarmerRecords(userId) {
   }
 }
 
-function SmallholderDashboard({ user, onLogout }) {
+function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState('dashboard');
@@ -1970,7 +1970,7 @@ function SmallholderDashboard({ user, onLogout }) {
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
     'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
     'Rent Equipment': 'equipment-rent', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Sustainability: 'sustainability', Crowdfunding: 'crowdfunding',
-    'AGRI-NEST Foundation': 'foundation',
+    'AGRI-NEST Foundation': 'foundation', Settings: 'settings',
   };
   const farmerActionViews = {
     'Sell Produce': 'marketplace', 'Scan Crop': 'jicho', 'Get Expert': 'experts',
@@ -2115,6 +2115,10 @@ function SmallholderDashboard({ user, onLogout }) {
         { label: 'Crowdfunding', icon: 'volunteer_activism' },
         { label: 'AGRI-NEST Foundation', icon: 'groups_2' },
       ],
+    },
+    {
+      heading: 'Account',
+      items: [{ label: 'Settings', icon: 'settings' }],
     },
   ];
 
@@ -2308,7 +2312,14 @@ function SmallholderDashboard({ user, onLogout }) {
           </div>
         </header>
 
-        {activeView === 'profile' ? (
+        {activeView === 'settings' ? (
+          <main className="account-settings-page">
+            <span className="farmer-workspace-eyebrow">YOUR ACCOUNT</span>
+            <h1>Settings</h1>
+            <p>Manage your AGRI-NEST account and sign-in security.</p>
+            <AccountSecurityEntry onOpenSecurity={onOpenSecurity} />
+          </main>
+        ) : activeView === 'profile' ? (
           <ProfileSettingsPage
             profile={farmerProfile}
             isEditing={isProfileEditing}
@@ -3272,7 +3283,7 @@ function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, f
   );
 }
 
-function TransporterDashboard({ onLogout }) {
+function TransporterDashboard({ onLogout, onOpenSecurity }) {
   const [activeView, setActiveView] = useState('home');
   const [tripProgress, setTripProgress] = useState(70);
   const [wallet, setWallet] = useState(240000);
@@ -3305,7 +3316,7 @@ function TransporterDashboard({ onLogout }) {
         <div className="transporter-brand"><span className="transporter-avatar">FM</span><div><strong>Fleet Dashboard</strong><small>Logistic Service Provider</small></div></div>
         <button type="button" className="transporter-post-button" onClick={() => setActiveView('availability')}>Post Availability</button>
         {[['dashboard', 'Home', 'home'], ['work_history', 'Open Jobs', 'jobs'], ['distance', 'Active Trips', 'trips'], ['local_shipping', 'Fleet Management', 'fleet'], ['account_balance_wallet', 'Earnings', 'earnings'], ['map', 'Route Intelligence', 'route'], ['forum', 'Community', 'community']].map(([icon, label, id]) => <button type="button" key={id} className={activeView === id ? 'transporter-nav-item active' : 'transporter-nav-item'} onClick={() => setActiveView(id)}><span className="material-symbols-outlined">{icon}</span>{label}</button>)}
-        <div className="transporter-nav-bottom"><button type="button" className="transporter-nav-item" onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button><button type="button" className="transporter-nav-item" onClick={onLogout}><span className="material-symbols-outlined">logout</span>Log Out</button></div>
+        <div className="transporter-nav-bottom"><button type="button" className={activeView === 'settings' ? 'transporter-nav-item active' : 'transporter-nav-item'} onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button><button type="button" className="transporter-nav-item" onClick={onLogout}><span className="material-symbols-outlined">logout</span>Log Out</button></div>
       </nav>
       <main className="transporter-main">
         <header className="transporter-topbar"><h1>Agri-Nest Logistics</h1><div><button type="button" aria-label="Notifications" onClick={() => setActiveView('notifications')}><span className="material-symbols-outlined">notifications</span></button><button type="button" aria-label="Fleet support" onClick={() => setActiveView('support')}><span className="material-symbols-outlined">support</span></button><span className="transporter-mini-avatar">JK</span></div></header>
@@ -3320,13 +3331,13 @@ function TransporterDashboard({ onLogout }) {
           <section className="transporter-heading"><div><h2>Habari za asubuhi, James! 🚛</h2><p>Road conditions to Dar es Salaam are clear. You have <b>3 active bids</b> and <b>1 trip in progress</b>.</p></div></section>
           <section className="transporter-stats"><article><span className="material-symbols-outlined">account_balance_wallet</span><small>Wallet Balance</small><strong>TZS {wallet.toLocaleString()}</strong><button type="button" onClick={() => setActiveView('earnings')}>Withdraw</button></article><article><span className="material-symbols-outlined">route</span><small>Trips Done</small><strong>156</strong><p>Historical Total</p></article><article><span className="material-symbols-outlined">star</span><small>Avg Rating</small><strong>4.8 <em>★</em></strong><p className="transporter-badge">Verified Top Rated</p></article><article className="transporter-active-job"><small>Active Job</small><strong>Iringa →<br />Dar es Salaam</strong><span>Maize • In Transit</span></article></section>
           <section className="transporter-dashboard-grid"><article className="transporter-route-card"><div className="transporter-card-heading"><h3><span className="material-symbols-outlined">route</span>Active Route Overview</h3><span>ID: TRP-9284</span></div><div className="transporter-map"><div><small>DESTINATION</small><strong>Kariakoo Market</strong></div><span className="material-symbols-outlined">navigation</span></div><div className="transporter-route-details"><div><small>Status</small><strong>{tripProgress}% Complete</strong><p>ETA 2h 15m</p><span>📦 Cargo<br /><b>5,000kg Maize</b></span><span>👤 Client<br /><b>Mkulima Co-op</b></span></div><div><button type="button" onClick={() => action('Calling Mkulima Co-op...')}>☎ Contact Client</button><button type="button" onClick={() => setTripProgress((progress) => Math.min(100, progress + 10))}>↻ Update Status</button></div></div></article><aside className="transporter-right-column"><article className="transporter-jobs"><div className="transporter-card-heading"><h3>Open Jobs</h3><button type="button" onClick={() => setActiveView('jobs')}>View All</button></div>{jobs.map((job) => <div className="transporter-job" key={job.id}><div><strong>{job.route}</strong><span>{job.distance}</span></div><p>{job.cargo} • <b>👍 {job.trust} Trust</b></p><div><button type="button" onClick={() => action(`Quick bid started for ${job.route}.`)}>Quick Bid</button><button type="button" onClick={() => action(`${job.route}: ${job.cargo}`)}>Details</button></div></div>)}</article><article className="transporter-earnings"><div className="transporter-card-heading"><h3>Weekly Earnings</h3><small>This Week</small></div><div className="transporter-bars">{[30, 50, 90, 40, 60, 10, 5].map((height, index) => <i className={index === 2 ? 'peak' : ''} style={{ height: `${height}%` }} key={index} />)}</div></article><article className="transporter-alerts"><h3><span className="material-symbols-outlined">warning</span>Road Alerts</h3><button type="button" onClick={() => action('Route alert opened: heavy rain in Morogoro.')}><b>☁ Heavy rain in Morogoro</b><small>Expect 30m delays. Reported 1h ago.</small></button><button type="button" onClick={() => action('Route alert opened: weighbridge delay at Mikumi.')}><b>⚠ Weighbridge delay at Mikumi</b><small>Long queue. Reported 15m ago.</small></button></article></aside></section>
-        </> : <RoleWorkspace role="transporter" page={activeView} onBack={() => setActiveView('home')} />}
+        </> : <RoleWorkspace role="transporter" page={activeView} onBack={() => setActiveView('home')} onOpenSecurity={onOpenSecurity} />}
       </main>
     </div>
   );
 }
 
-function StudentDashboard({ onLogout }) {
+function StudentDashboard({ onLogout, onOpenSecurity }) {
   const [activeView, setActiveView] = useState('dashboard');
   const [dashboard, setDashboard] = useState(null);
   const [assignment, setAssignment] = useState(null);
@@ -3377,7 +3388,7 @@ function StudentDashboard({ onLogout }) {
       <nav className="student-sidebar">
         <div className="student-brand"><span className="material-symbols-outlined">agriculture</span><strong>AGRI-NEST</strong></div>
         {[['dashboard', 'Dashboard'], ['school', 'Learning Path'], ['work', 'Internships'], ['science', 'Research Hub'], ['forum', 'Community']].map(([icon, label]) => <button type="button" className={activeView === label.toLowerCase().replace(' ', '-') ? 'student-nav-item active' : 'student-nav-item'} key={label} onClick={() => setActiveView(label === 'Dashboard' ? 'dashboard' : label.toLowerCase().replace(' ', '-'))}><span className="material-symbols-outlined">{icon}</span>{label}</button>)}
-        <button type="button" className="student-nav-item" onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button>
+        <button type="button" className={activeView === 'settings' ? 'student-nav-item active' : 'student-nav-item'} onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button>
         <div className="student-user"><span className="student-avatar">DK</span><span><strong>{dashboard.name}</strong><small>{dashboard.programme}</small></span></div>
       </nav>
       <main className="student-main">
@@ -3390,7 +3401,7 @@ function StudentDashboard({ onLogout }) {
         ) : activeView === 'dashboard' ? <>
           <section className="student-top-grid"><div className="student-progress-card"><h2>Academic Progress</h2><p>{dashboard.programme} - {dashboard.year}</p><div className="student-metric-grid">{[['school', dashboard.metrics.credits, 'Credits Earned'], ['workspace_premium', dashboard.metrics.certifications, 'Certifications'], ['science', dashboard.metrics.field_hours, 'Field Hours'], ['star', dashboard.metrics.trust_score, 'Trust Score']].map(([icon, value, label]) => <div key={label}><span className="material-symbols-outlined">{icon}</span><strong>{value}</strong><small>{label}</small></div>)}</div></div><div className="student-focus-card"><div><div className="student-focus-title"><h2>Current Focus</h2><span>{dashboard.focus.status}</span></div><h3>{dashboard.focus.title}</h3><p>{dashboard.focus.description}</p></div><button type="button" onClick={() => setActiveView('workspace')}>Open Workspace <span className="material-symbols-outlined">arrow_forward</span></button></div></section>
           <div className="student-content-grid"><div className="student-left-column"><section><div className="student-section-heading"><h2>Learning Path</h2><button type="button" onClick={() => setActiveView('learning-path')}>View All Courses</button></div><div className="student-course-list">{dashboard.courses.map((course) => <div className="student-course-card" key={course.id}><span className="student-course-icon material-symbols-outlined">{course.id === 'soil-science' ? 'grass' : 'water_drop'}</span><div><div className="student-course-title"><h3>{course.title}</h3><span>{course.progress}%</span></div><p>{course.module}</p><div className="student-course-track"><i style={{ width: `${course.progress}%` }} /></div></div><button type="button" onClick={() => updateProgress(course)} aria-label={`Continue ${course.title}`}><span className="material-symbols-outlined">play_arrow</span></button></div>)}</div></section><section><div className="student-section-heading"><h2>Research Hub</h2><button type="button" onClick={() => setNotice('New research paper workspace created.')}>+ New Paper</button></div><div className="student-research-grid"><article><span>Under Review</span><h3>Impact of Organic Mulching on Moisture Retention in Arid Regions</h3><p>Submitted to East African Journal of Agronomy.</p><small>◉ 12 &nbsp; ◌ 2 Peer Reviews</small></article><article><span>Draft</span><h3>Comparative Study of Local Seed Varieties vs GMO Yields</h3><p>Initial data collection phase completed.</p><small>Edited 2d ago</small></article></div></section></div><aside className="student-right-column"><section className="student-opportunities"><h2><span className="material-symbols-outlined">work</span>Opportunities</h2>{dashboard.opportunities.map((opportunity) => <article key={opportunity.id}><div><strong>{opportunity.title}</strong><p>{opportunity.organization} • {opportunity.location}</p></div><div>{opportunity.tags.map((tag) => <span key={tag}>{tag}</span>)}</div><button type="button" disabled={dashboard.applications.some((item) => item.opportunity_id === opportunity.id)} onClick={() => applyNow(opportunity)}>{dashboard.applications.some((item) => item.opportunity_id === opportunity.id) ? 'Applied' : 'Apply Now'}</button></article>)}<button type="button" className="student-view-all" onClick={() => setNotice('Showing all available postings.')}>View All 14 Postings</button></section><section className="student-forum"><h2>Community Forum</h2><p>Answer questions to earn trust points.</p>{['What is the most organic way to handle aphids on young tomato shoots?', 'Seeking advice on setting up low-cost drip systems for a 1-acre plot.'].map((question) => <button type="button" key={question} onClick={() => setActiveView('community')}><span>Pest Control</span><strong>{question}</strong><small>Asked by Farmer Jane • +15 Trust Pts</small></button>)}</section></aside></div>
-        </> : <RoleWorkspace role="student" page={activeView} onBack={() => setActiveView('dashboard')} />}
+        </> : <RoleWorkspace role="student" page={activeView} onBack={() => setActiveView('dashboard')} onOpenSecurity={onOpenSecurity} />}
         <button type="button" className="student-logout" onClick={onLogout}>Sign out</button>
       </main>
     </div>
@@ -3875,7 +3886,7 @@ function InstitutionalDashboard({ user, onLogout }) {
   );
 }
 
-function BuyerDashboard({ user, onLogout }) {
+function BuyerDashboard({ user, onLogout, onOpenSecurity }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(getInitialSidebarState);
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -4165,7 +4176,7 @@ function BuyerDashboard({ user, onLogout }) {
         ) : activeView === 'procurement' ? (
           <ProcurementWorkspace user={user} profile={{ name: user?.name, region: user?.region }} />
         ) : (
-          <RoleWorkspace role="buyer" page={activeView} onBack={() => setActiveView('dashboard')} />
+          <RoleWorkspace role="buyer" page={activeView} onBack={() => setActiveView('dashboard')} onOpenSecurity={onOpenSecurity} />
         )}
       </main>
     </div>

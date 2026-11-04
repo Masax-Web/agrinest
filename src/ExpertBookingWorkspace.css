@@ -2,10 +2,6 @@ body.expert-booking-active {
   overflow-x: hidden;
 }
 
-body.expert-booking-active .account-security-launch {
-  display: none;
-}
-
 .expert-booking-app {
   --expert-primary: #022717;
   --expert-primary-container: #1a3d2b;

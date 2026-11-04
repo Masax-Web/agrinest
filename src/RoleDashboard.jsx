@@ -2,6 +2,7 @@ import { useState } from 'react';
 import RoleWorkspace from './RoleWorkspace';
 import LabourWorkspace from './LabourWorkspace';
 import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
+import AccountSecurityEntry from './AccountSecurityEntry';
 import roleModel from '../shared/role-model.json';
 
 const dashboards = {
@@ -57,7 +58,7 @@ function loadLabourRecords(storageKey) {
   }
 }
 
-export default function RoleDashboard({ role, persona, user, onLogout, initialView = 'overview' }) {
+export default function RoleDashboard({ role, persona, user, onLogout, onOpenSecurity, initialView = 'overview' }) {
   const recordsStorageKey = `agrinest-${role}-workspace-records:${user?.user_id || 'anonymous'}:${persona?.id || 'unknown'}`;
   const labourStorageKey = `agrinest-commercial-labour-records:${user?.user_id || 'anonymous'}`;
   const journey = roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.journey || [];
@@ -76,12 +77,15 @@ export default function RoleDashboard({ role, persona, user, onLogout, initialVi
     metrics: [['records', 'task_alt', 'Records']],
   };
   const journeyNavigation = journey.map(({ module, label, icon }) => [module, icon, label]);
+  const dashboardNavigation = [
+    ...baseDashboard.navigation,
+    ...journeyNavigation.filter(([view]) => !baseDashboard.navigation.some(([existingView]) => existingView === view)),
+  ];
   const dashboard = {
     ...baseDashboard,
-    navigation: [
-      ...baseDashboard.navigation,
-      ...journeyNavigation.filter(([view]) => !baseDashboard.navigation.some(([existingView]) => existingView === view)),
-    ],
+    navigation: dashboardNavigation.some(([view]) => view === 'settings')
+      ? dashboardNavigation
+      : [...dashboardNavigation, ['settings', 'settings', 'Settings']],
   };
   const [activeView, setActiveView] = useState(initialView);
   const [records, setRecords] = useState(() => loadRecords(recordsStorageKey));
@@ -151,8 +155,20 @@ export default function RoleDashboard({ role, persona, user, onLogout, initialVi
             onBack={() => setActiveView('overview')}
             onNavigate={setActiveView}
           />
-        ) : (
-          <RoleWorkspace
+        ) : activeView === 'settings' ? (
+            <>
+              <RoleWorkspace
+                role={role}
+                persona={persona}
+                page={activeView}
+                storageKey={recordsStorageKey}
+                journeyStep={journey.find((step) => step.module === activeView)}
+                onBack={() => setActiveView('overview')}
+                onSaved={setRecords}
+              />
+              <AccountSecurityEntry onOpenSecurity={onOpenSecurity} />
+            </>
+          ) : <RoleWorkspace
             role={role}
             persona={persona}
             page={activeView}
@@ -160,8 +176,7 @@ export default function RoleDashboard({ role, persona, user, onLogout, initialVi
             journeyStep={journey.find((step) => step.module === activeView)}
             onBack={() => setActiveView('overview')}
             onSaved={setRecords}
-          />
-        )}
+          />}
       </main>
     </div>
   );

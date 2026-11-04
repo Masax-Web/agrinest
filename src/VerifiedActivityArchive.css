@@ -20,10 +20,6 @@
   box-sizing: border-box;
 }
 
-body.verified-archive-active .account-security-launch {
-  display: none;
-}
-
 .archive-topbar {
   position: fixed;
   z-index: 20;

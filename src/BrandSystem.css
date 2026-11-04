@@ -63,13 +63,13 @@ body,
   font-size: var(--agri-text-caption);
 }
 
-#root :is(.account-security-launch, .farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']) {
+#root :is(.farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']) {
   border-color: var(--agri-forest);
   background-color: var(--agri-forest);
   color: var(--agri-white);
 }
 
-#root :is(.account-security-launch, .farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']):hover {
+#root :is(.farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']):hover {
   background-color: var(--agri-green);
 }
 
@@ -82,11 +82,6 @@ body,
 #root :is(button, input, select, textarea, a):focus-visible {
   outline: 3px solid var(--agri-yellow);
   outline-offset: 2px;
-}
-
-.account-security-launch {
-  right: 1rem;
-  background: var(--agri-forest);
 }
 
 .marketplace-listing-image-preview {

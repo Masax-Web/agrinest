@@ -487,10 +487,6 @@
   text-align: center;
 }
 
-.agri-floating-chat + .account-security-launch {
-  bottom: 5.2rem;
-}
-
 .agri-floating-chat :is(button, input, textarea):focus-visible {
   outline: 3px solid #e9c46a;
   outline-offset: 2px;

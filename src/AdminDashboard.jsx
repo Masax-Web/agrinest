@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from './lib/api';
 import { personas } from '../shared/personas.json';
+import AccountSecurityEntry from './AccountSecurityEntry';
 
 const adminPersonas = personas.filter((persona) => persona.id !== 'super_admin');
 const invitationalPersonas = personas.filter((persona) => persona.registration === 'invite' && persona.id !== 'super_admin');
@@ -82,6 +83,7 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
     ['moderation', 'forum', 'Moderation'],
     ['integrations', 'tune', 'Integrations'],
     ['audit', 'history', 'Audit log'],
+    ['settings', 'settings', 'Settings'],
   ];
 
   return (
@@ -90,7 +92,6 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
         <div><strong>AGRI-NEST</strong><span>Platform administration</span></div>
         <div className="admin-console-actions">
           <span>{user?.email || user?.name || 'Administrator'}</span>
-          <button type="button" onClick={onOpenSecurity}>Security</button>
           <button type="button" onClick={onLogout}>Sign out</button>
         </div>
       </header>
@@ -189,6 +190,8 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
               ))}
             </div>
           )}
+
+          {section === 'settings' && <AccountSecurityEntry onOpenSecurity={onOpenSecurity} />}
         </main>
       </div>
     </div>

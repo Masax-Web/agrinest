@@ -14,10 +14,6 @@
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
-.foundation-portal + .account-security-launch {
-  display: none;
-}
-
 .foundation-portal *,
 .foundation-portal *::before,
 .foundation-portal *::after {

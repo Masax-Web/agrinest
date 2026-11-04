@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import AccountSecurityEntry from './AccountSecurityEntry';
 import './LenderDashboard.css';
 
 const navigation = [
@@ -163,7 +164,7 @@ function MetricCard({ icon, label, value, detail, tone }) {
   );
 }
 
-export default function LenderDashboard({ user, persona, onLogout }) {
+export default function LenderDashboard({ user, persona, onLogout, onOpenSecurity }) {
   const storageKey = user?.user_id ? `agrinest-lender-workspace:v1:${user.user_id}` : '';
   const [workspace, setWorkspace] = useState(() => readWorkspace(storageKey));
   const [activePage, setActivePage] = useState('overview');
@@ -544,6 +545,7 @@ export default function LenderDashboard({ user, persona, onLogout }) {
               <div className="lender-section-heading"><div><span className="lender-eyebrow">ACCOUNT CONTEXT</span><h2>Workspace settings</h2><p>Identity and access are managed by AGRI-NEST authentication and your institution administrator.</p></div></div>
               <div className="lender-settings-list"><div><span>Institution account</span><strong>{institution}</strong></div><div><span>Signed-in account</span><strong>{user?.email || user?.phone || userName}</strong></div><div><span>Access role</span><strong>{persona?.label || 'Financial Institution'}</strong></div><div><span>Regional format</span><strong>Tanzania · TZS</strong></div><div><span>Record storage</span><strong>This browser · account-scoped</strong></div></div>
               <div className="lender-model-note"><span className="material-symbols-outlined">security</span><p>Only authorized institutional users should access lender workspaces. This demo stores records locally and does not provide production role audit, encryption-at-rest guarantees, or inter-institution data isolation.</p></div>
+              <AccountSecurityEntry onOpenSecurity={onOpenSecurity} />
               <button type="button" className="lender-secondary-button" onClick={onLogout}>Sign out of lender workspace</button>
             </section>
           )}
