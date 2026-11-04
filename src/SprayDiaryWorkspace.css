@@ -1,0 +1,956 @@
+.spray-diary-page {
+  --spray-ink: #26170c;
+  --spray-muted: #71655f;
+  --spray-line: #eee5e0;
+  --spray-surface: #fff8f5;
+  --spray-secondary: #a03f29;
+  min-width: 0;
+  max-width: 100%;
+  min-height: calc(100vh - 4.5rem);
+  overflow: hidden;
+  background: var(--spray-surface);
+  color: #1d1b1a;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.spray-diary-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--spray-line);
+  background: rgba(255, 250, 248, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.spray-diary-topbar > button,
+.spray-diary-top-actions button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #5e514a;
+  cursor: pointer;
+}
+
+.spray-diary-topbar button:hover {
+  background: #f0e8e4;
+}
+
+.spray-diary-topbar .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.spray-diary-brand {
+  color: var(--spray-ink);
+  font: 700 0.75rem 'Syne', sans-serif;
+}
+
+.spray-diary-top-actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.spray-diary-content {
+  display: grid;
+  width: min(100%, 88rem);
+  gap: 0.85rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.8vw, 2rem);
+}
+
+.spray-diary-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.spray-diary-eyebrow {
+  color: #84766f;
+  font-size: 0.53rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.spray-diary-heading h1 {
+  margin: 0.18rem 0 0.2rem;
+  color: var(--spray-ink);
+  font: 700 clamp(1.45rem, 2.4vw, 2rem)/1.2 'Syne', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.spray-diary-heading p {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--spray-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.spray-diary-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.spray-diary-export,
+.spray-diary-primary,
+.spray-diary-modal-actions > button {
+  display: inline-flex;
+  min-height: 2.15rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 1px solid #d5c7bf;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--spray-ink);
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+  font: 700 0.58rem 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+
+.spray-diary-export:hover,
+.spray-diary-modal-actions > button:first-child:hover {
+  background: #f5eeeb;
+}
+
+.spray-diary-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spray-diary-primary,
+.spray-diary-modal-actions > button[type='submit'] {
+  border-color: var(--spray-ink);
+  background: var(--spray-ink);
+  color: #fff;
+}
+
+.spray-diary-primary:hover,
+.spray-diary-modal-actions > button[type='submit']:hover {
+  background: #493426;
+}
+
+.spray-diary-primary .material-symbols-outlined,
+.spray-diary-export .material-symbols-outlined,
+.spray-diary-modal-actions .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.spray-diary-safety-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0;
+  color: #705b50;
+  font-size: 0.54rem;
+  line-height: 1.45;
+}
+
+.spray-diary-safety-note .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #9c4a34;
+  font-size: 0.85rem;
+}
+
+.spray-diary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.spray-diary-stats > article {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 5.4rem;
+  align-content: space-between;
+  gap: 0.22rem;
+  overflow: hidden;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(129, 117, 110, 0.14);
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(61, 43, 31, 0.04);
+}
+
+.spray-diary-stats > article.is-alert::after {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 0.25rem;
+  background: var(--spray-secondary);
+  content: '';
+}
+
+.spray-diary-stats > article > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.spray-diary-stats > article > div > span:first-child {
+  color: #645953;
+  font-size: 0.5rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.spray-diary-stats > article > div > .material-symbols-outlined {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.35rem;
+  background: #f7f1ee;
+  color: var(--spray-ink);
+  font-size: 0.9rem;
+}
+
+.spray-diary-stats > article.is-alert > div > .material-symbols-outlined {
+  background: #fae7e2;
+  color: var(--spray-secondary);
+}
+
+.spray-diary-stats > article > strong {
+  overflow: hidden;
+  color: var(--spray-ink);
+  font: 700 clamp(1.25rem, 2.4vw, 1.8rem)/1.1 'Syne', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spray-diary-stats > article:last-child > strong {
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+}
+
+.spray-diary-stats > article > small {
+  overflow: hidden;
+  color: var(--spray-muted);
+  font-size: 0.49rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spray-diary-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(14rem, 0.95fr);
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.spray-diary-log,
+.spray-diary-weather,
+.spray-diary-alerts {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(129, 117, 110, 0.15);
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(61, 43, 31, 0.035);
+}
+
+.spray-diary-log {
+  min-height: 22rem;
+}
+
+.spray-diary-log > header {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(8rem, 1.25fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid var(--spray-line);
+  background: #fffaf8;
+}
+
+.spray-diary-log > header h2,
+.spray-diary-weather h2,
+.spray-diary-alerts h2 {
+  margin: 0;
+  color: var(--spray-ink);
+  font: 600 0.85rem/1.35 'Syne', sans-serif;
+}
+
+.spray-diary-log > header p {
+  margin: 0.1rem 0 0;
+  color: var(--spray-muted);
+  font-size: 0.5rem;
+}
+
+.spray-diary-search {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.38rem 0.45rem;
+  border: 1px solid #eee6e2;
+  border-radius: 0.35rem;
+  color: #756a63;
+}
+
+.spray-diary-search > .material-symbols-outlined,
+.spray-diary-filter > .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+}
+
+.spray-diary-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #332720;
+  font: 400 0.52rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #645953;
+}
+
+.spray-diary-filter select {
+  max-width: 7rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #493c34;
+  font: 500 0.52rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.spray-diary-table-wrap table {
+  width: 100%;
+  min-width: 39rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.spray-diary-table-wrap th {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid #eee5e0;
+  background: #fffaf8;
+  color: #746760;
+  font-size: 0.46rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.spray-diary-table-wrap td {
+  padding: 0.6rem 0.65rem;
+  border-bottom: 1px solid #f0e9e5;
+  color: #41362f;
+  font-size: 0.53rem;
+  vertical-align: middle;
+}
+
+.spray-diary-table-wrap tbody tr:hover {
+  background: #fffaf8;
+}
+
+.spray-diary-table-wrap td > strong,
+.spray-diary-table-wrap td > small {
+  display: block;
+}
+
+.spray-diary-table-wrap td > strong {
+  color: #30251f;
+  font-weight: 500;
+}
+
+.spray-diary-table-wrap td > small {
+  margin-top: 0.12rem;
+  color: #766b64;
+  font-size: 0.47rem;
+  line-height: 1.35;
+}
+
+.spray-diary-phi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  border: 1px solid #d5d9d6;
+  border-radius: 99px;
+  background: #eef1ef;
+  color: #3c4941;
+  padding: 0.18rem 0.38rem;
+  font-size: 0.46rem;
+  white-space: nowrap;
+}
+
+.spray-diary-phi-badge .material-symbols-outlined {
+  font-size: 0.68rem;
+}
+
+.spray-diary-phi-badge.waiting,
+.spray-diary-phi-badge.today {
+  border-color: #e6c1b6;
+  background: #fbece7;
+  color: #9a3e2d;
+}
+
+.spray-diary-phi-badge.elapsed {
+  border-color: #cbd9d0;
+  background: #edf4ef;
+  color: #41664e;
+}
+
+.spray-diary-clear-date {
+  max-width: 11rem;
+}
+
+.spray-diary-view-more {
+  display: block;
+  width: 100%;
+  min-height: 1.8rem;
+  border: 0;
+  border-top: 1px solid #f0e9e5;
+  background: #fffaf8;
+  color: #4a3c33;
+  cursor: pointer;
+  font: 500 0.5rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-view-more:hover {
+  background: #f7eeea;
+}
+
+.spray-diary-empty {
+  display: grid;
+  min-height: 15rem;
+  justify-items: center;
+  align-content: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  color: var(--spray-muted);
+  text-align: center;
+}
+
+.spray-diary-empty > .material-symbols-outlined {
+  color: #8d5a48;
+  font-size: 1.5rem;
+}
+
+.spray-diary-empty strong {
+  color: #3e3129;
+  font-size: 0.7rem;
+}
+
+.spray-diary-empty p {
+  margin: 0 0 0.3rem;
+  font-size: 0.55rem;
+}
+
+.spray-diary-sidebar {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.spray-diary-weather {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.75rem;
+}
+
+.spray-diary-weather h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.spray-diary-weather h2 .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.spray-diary-weather-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem;
+  border-radius: 0.4rem;
+  background: #f7f2ef;
+}
+
+.spray-diary-weather-status > .material-symbols-outlined {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9e2df;
+  color: #625248;
+  font-size: 1rem;
+}
+
+.spray-diary-weather-status > div {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.spray-diary-weather-status strong {
+  color: #342820;
+  font-size: 0.56rem;
+}
+
+.spray-diary-weather-status small {
+  overflow: hidden;
+  color: #756960;
+  font-size: 0.48rem;
+  text-overflow: ellipsis;
+}
+
+.spray-diary-weather-reading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.spray-diary-weather-reading > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #665b54;
+  font-size: 0.51rem;
+}
+
+.spray-diary-weather-reading .material-symbols-outlined {
+  font-size: 0.78rem;
+}
+
+.spray-diary-weather-reading strong {
+  color: #41362f;
+  font-size: 0.5rem;
+  font-weight: 500;
+}
+
+.spray-diary-weather > p {
+  margin: 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid #eee7e3;
+  color: #77685f;
+  font-size: 0.48rem;
+  line-height: 1.45;
+}
+
+.spray-diary-weather-updated {
+  color: #8a7b72;
+  font-size: 0.46rem;
+}
+
+.spray-diary-alerts {
+  border-color: #ecd7d1;
+}
+
+.spray-diary-alerts > header {
+  padding: 0.7rem;
+  border-top: 0.2rem solid #b5402c;
+}
+
+.spray-diary-alerts h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.spray-diary-alerts h2 .material-symbols-outlined {
+  color: #b5402c;
+  font-size: 0.95rem;
+}
+
+.spray-diary-alerts > header p {
+  margin: 0.2rem 0 0;
+  color: #766a63;
+  font-size: 0.49rem;
+  line-height: 1.4;
+}
+
+.spray-diary-alert-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.7rem 0.7rem;
+}
+
+.spray-diary-alert-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.3rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid #f0e5e1;
+}
+
+.spray-diary-alert-list article > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.spray-diary-alert-list article > div:first-child strong {
+  overflow: hidden;
+  color: #3d3029;
+  font-size: 0.52rem;
+  text-overflow: ellipsis;
+}
+
+.spray-diary-alert-list article > div:first-child small,
+.spray-diary-harvest-date {
+  color: #766b64;
+  font-size: 0.47rem;
+}
+
+.spray-diary-alert-list article > span {
+  color: #a23f2b;
+  font: 700 0.78rem 'Syne', sans-serif;
+  white-space: nowrap;
+}
+
+.spray-diary-alert-list article > span small {
+  color: #6f625b;
+  font: 400 0.48rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-progress {
+  grid-column: 1 / -1;
+  height: 0.28rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #f0e8e4;
+}
+
+.spray-diary-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #b64430;
+}
+
+.spray-diary-harvest-date {
+  grid-column: 1 / -1;
+  text-align: right;
+}
+
+.spray-diary-no-alerts {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0 0.7rem 0.7rem;
+  color: #5b6d60;
+}
+
+.spray-diary-no-alerts .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+}
+
+.spray-diary-no-alerts p {
+  margin: 0;
+  color: #6f716a;
+  font-size: 0.49rem;
+  line-height: 1.45;
+}
+
+.spray-diary-fields-link {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #e6d9d2;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #4c3a2f;
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  font: 700 0.55rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-fields-link > .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.spray-diary-fields-link > .material-symbols-outlined:last-child {
+  margin-left: auto;
+}
+
+.spray-diary-fields-link:hover {
+  background: #f7eeea;
+}
+
+.spray-diary-notice {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 30;
+  display: flex;
+  max-width: min(32rem, calc(100vw - 2rem));
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #d5c7bf;
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #42342c;
+  box-shadow: 0 8px 30px rgba(61, 43, 31, 0.14);
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.spray-diary-notice button {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.spray-diary-notice .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.spray-diary-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1rem;
+  background: rgba(35, 26, 21, 0.58);
+}
+
+.spray-diary-modal {
+  display: grid;
+  width: min(100%, 42rem);
+  max-height: min(92vh, 48rem);
+  gap: 0.8rem;
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid #e8dad3;
+  border-radius: 0.75rem;
+  background: #fffaf8;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.spray-diary-modal > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.spray-diary-modal > header h2 {
+  margin: 0.15rem 0 0;
+  color: var(--spray-ink);
+  font: 600 1.2rem 'Syne', sans-serif;
+}
+
+.spray-diary-modal > header button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid #e3d8d1;
+  border-radius: 50%;
+  background: #fff;
+  color: #4d3e35;
+  cursor: pointer;
+}
+
+.spray-diary-modal > header button .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.spray-diary-form-error {
+  margin: 0;
+  border: 1px solid #e3b7ae;
+  border-radius: 0.4rem;
+  background: #fff0ed;
+  color: #8d3023;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.62rem;
+}
+
+.spray-diary-modal form {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.spray-diary-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.spray-diary-form-grid label {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  color: #554840;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.spray-diary-form-grid label.spray-diary-wide {
+  grid-column: 1 / -1;
+}
+
+.spray-diary-form-grid input,
+.spray-diary-form-grid select,
+.spray-diary-form-grid textarea {
+  width: 100%;
+  min-height: 2.15rem;
+  border: 1px solid #e1d7d1;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #32271f;
+  padding: 0.45rem 0.5rem;
+  font: 400 0.62rem 'DM Sans', sans-serif;
+}
+
+.spray-diary-form-grid textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.spray-diary-form-grid input:focus,
+.spray-diary-form-grid select:focus,
+.spray-diary-form-grid textarea:focus,
+.spray-diary-search input:focus,
+.spray-diary-filter select:focus {
+  border-color: #a36a52;
+  outline: 2px solid rgba(160, 63, 41, 0.12);
+}
+
+.spray-diary-form-note {
+  margin: 0;
+  color: #79675d;
+  font-size: 0.54rem;
+  line-height: 1.45;
+}
+
+.spray-diary-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.spray-diary-modal-actions > button {
+  min-width: 5rem;
+}
+
+.spray-diary-page button:focus-visible {
+  outline: 2px solid #a36a52;
+  outline-offset: 2px;
+}
+
+@media (max-width: 920px) {
+  .spray-diary-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spray-diary-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .spray-diary-fields-link {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 650px) {
+  .spray-diary-content {
+    padding: 0.85rem;
+  }
+
+  .spray-diary-heading {
+    flex-direction: column;
+  }
+
+  .spray-diary-heading-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .spray-diary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .spray-diary-log > header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .spray-diary-log > header > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .spray-diary-search {
+    grid-column: 1;
+  }
+
+  .spray-diary-filter {
+    grid-column: 2;
+  }
+
+  .spray-diary-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spray-diary-fields-link {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .spray-diary-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .spray-diary-form-grid label.spray-diary-wide {
+    grid-column: auto;
+  }
+
+  .spray-diary-heading-actions > button {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spray-diary-page *,
+  .spray-diary-page *::before,
+  .spray-diary-page *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

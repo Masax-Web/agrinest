@@ -16,6 +16,7 @@ import LivestockWorkspace from './LivestockWorkspace';
 import ProductionProfileWorkspace from './ProductionProfileWorkspace';
 import RamaniMapPage from './RamaniMapPage';
 import SpaceRentalWorkspace from './SpaceRentalWorkspace';
+import SprayDiaryWorkspace from './SprayDiaryWorkspace';
 
 const workspaceDetails = {
   fields: { title: 'Digital Farm', icon: 'agriculture', description: 'Register fields and keep their crop and area records together.', recordType: 'fields', submitLabel: 'Add field', fields: [['name', 'Field name', 'text'], ['crop', 'Crop', 'text'], ['area', 'Area (acres)', 'number']] },
@@ -476,6 +477,18 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       fields={records.fields}
       onRecordsChange={onRecordsChange}
       onBack={onBack}
+    />;
+  }
+
+  if (page === 'spray-diary') {
+    return <SprayDiaryWorkspace
+      records={records.activities}
+      fields={records.fields}
+      weather={weather}
+      weatherStatus={weatherStatus}
+      onRecordsChange={onRecordsChange}
+      onBack={onBack}
+      onNavigate={onNavigate}
     />;
   }
 
