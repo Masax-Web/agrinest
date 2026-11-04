@@ -114,7 +114,7 @@ function formatWorkshopDate(date) {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
 }
 
-export default function LearningTrainingWorkspace({ accountId, profile }) {
+export default function LearningTrainingWorkspace({ accountId, profile, embedded = false }) {
   const loaded = useMemo(() => readLearningState(accountId), [accountId]);
   const [learningState, setLearningState] = useState(loaded.state);
   const [notice, setNotice] = useState(loaded.warning);
@@ -211,12 +211,14 @@ export default function LearningTrainingWorkspace({ accountId, profile }) {
       : 'Workshop reminder saved on this browser. This does not reserve a place with the host.');
   };
 
+  const AcademyContainer = embedded ? 'section' : 'main';
+
   return (
-    <main className="learning-academy" aria-label="Mafunzo learning and training">
+    <AcademyContainer className={`learning-academy${embedded ? ' learning-academy-embedded' : ''}`} aria-label="Mafunzo learning and training">
       <header className="learning-academy-heading">
         <div>
-          <span className="learning-academy-eyebrow">MAFUNZO ACADEMY</span>
-          <h1>Mafunzo — Learning &amp; Training</h1>
+          <span className="learning-academy-eyebrow">MAFUNZO · LEARNING &amp; TRAINING</span>
+          {embedded ? <h2>Mafunzo Academy</h2> : <h1>Mafunzo — Learning &amp; Training</h1>}
           <p>Build practical skills with guided lessons, expert workshops, and a learning record that grows with your farm.</p>
         </div>
         {profile?.name && <span className="learning-academy-welcome">Learning for {profile.name}</span>}
@@ -321,6 +323,6 @@ export default function LearningTrainingWorkspace({ accountId, profile }) {
           {completedCourseIds.includes(activeCourse.id) && <div className="learning-course-complete" role="status"><span className="material-symbols-outlined">workspace_premium</span><span><strong>Course complete</strong><small>Your local course completion record is available under My certificates.</small></span></div>}
         </section>
       </div>}
-    </main>
+    </AcademyContainer>
   );
 }

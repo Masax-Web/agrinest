@@ -57,6 +57,13 @@
   gap: 1rem;
 }
 
+.export-hub-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
 .export-hub-eyebrow {
   color: #8d5c4a;
   font-size: 0.62rem;
@@ -159,9 +166,22 @@
 
 .export-hub-grid {
   display: grid;
-  grid-template-columns: minmax(13rem, 0.82fr) minmax(0, 1.75fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
+}
+
+.export-hub-export-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 0.9fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.export-hub-dossier-column {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
 }
 
 .export-hub-card {
@@ -171,6 +191,258 @@
   background: #fff;
   padding: 1.15rem;
   box-shadow: 0 0.3rem 1.35rem rgba(61, 43, 31, 0.045);
+}
+
+.export-hub-inspection-card,
+.export-hub-certifications {
+  grid-column: 1 / -1;
+}
+
+.export-hub-stage-progress {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 0.08rem;
+  color: #777067;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+}
+
+.export-hub-stage-progress strong {
+  color: #286440;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.2rem;
+}
+
+.export-hub-progress-track {
+  height: 0.42rem;
+  overflow: hidden;
+  margin: 0.95rem 0 0.2rem;
+  border-radius: 99px;
+  background: #e9eee8;
+}
+
+.export-hub-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #387c51;
+  transition: width 180ms ease;
+}
+
+.export-hub-inspection-list {
+  display: grid;
+}
+
+.export-hub-inspection-step {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0ebe8;
+}
+
+.export-hub-inspection-step:last-child {
+  border-bottom: 0;
+  padding-bottom: 0.4rem;
+}
+
+.export-hub-step-number {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 1px solid #e8dfd9;
+  border-radius: 50%;
+  color: #786c64;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.export-hub-step-number.complete {
+  border-color: #c9e2cd;
+  background: #e8f4e9;
+  color: #286440;
+}
+
+.export-hub-step-number .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.export-hub-step-content {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.export-hub-step-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.export-hub-step-heading > .material-symbols-outlined {
+  color: #805340;
+  font-size: 1rem;
+}
+
+.export-hub-step-heading h3 {
+  flex: 1 1 10rem;
+  margin: 0;
+  color: #30241b;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+}
+
+.export-hub-step-content > p,
+.export-hub-gap-card > p {
+  margin: 0;
+  color: #766b64;
+  font-size: 0.63rem;
+  line-height: 1.5;
+}
+
+.export-hub-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 0.1rem;
+}
+
+.export-hub-step-actions .export-hub-text-action {
+  font-size: 0.61rem;
+}
+
+.export-hub-dossier-icon,
+.export-hub-gap-icon {
+  color: #36734a;
+  font-size: 1.4rem;
+}
+
+.export-hub-batch-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.export-hub-batch-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.export-hub-batch-summary > div > span {
+  color: #81766e;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.export-hub-batch-summary strong {
+  overflow-wrap: anywhere;
+  color: #2f251c;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+}
+
+.export-hub-batch-summary small {
+  color: #35734a;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.export-hub-batch-qr {
+  width: 5.2rem;
+  height: 5.2rem;
+  flex: 0 0 auto;
+  border: 1px solid #eee8e4;
+  border-radius: 0.4rem;
+  padding: 0.2rem;
+}
+
+.export-hub-batch-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 0.8rem;
+  margin: 0.9rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid #f0ebe8;
+}
+
+.export-hub-batch-details > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.export-hub-batch-details dt {
+  color: #81766e;
+  font-size: 0.57rem;
+}
+
+.export-hub-batch-details dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #473b32;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.export-hub-dossier-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.export-hub-dossier-actions .export-hub-button {
+  min-height: 2.2rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.62rem;
+}
+
+.export-hub-batch-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.export-hub-batch-empty > .material-symbols-outlined {
+  color: #877368;
+}
+
+.export-hub-batch-empty strong {
+  color: #42342a;
+  font-size: 0.73rem;
+}
+
+.export-hub-batch-empty p {
+  margin: 0;
+  color: #766b64;
+  font-size: 0.63rem;
+  line-height: 1.45;
+}
+
+.export-hub-batch-empty .export-hub-button {
+  margin-top: 0.2rem;
+}
+
+.export-hub-gap-card {
+  display: grid;
+  justify-items: start;
+  gap: 0.55rem;
+}
+
+.export-hub-gap-card .export-hub-section-title {
+  width: 100%;
+}
+
+.export-hub-certifications {
+  grid-column: 1 / -1;
 }
 
 .export-hub-section-title {
@@ -384,7 +656,6 @@
 
 .export-hub-logs {
   grid-column: 1;
-  grid-row: 2;
 }
 
 .export-hub-log-actions {
@@ -481,7 +752,6 @@
 
 .export-hub-vault {
   grid-column: 2;
-  grid-row: 2;
 }
 
 .export-hub-add-document {
@@ -767,8 +1037,18 @@
 }
 
 @media (max-width: 850px) {
+  .export-hub-export-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .export-hub-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-hub-logs,
+  .export-hub-vault {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .export-hub-logs,
@@ -790,6 +1070,11 @@
 
   .export-hub-title-row > .export-hub-button {
     width: 100%;
+  }
+
+  .export-hub-header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .export-hub-card {
@@ -817,6 +1102,10 @@
   }
 
   .export-hub-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-hub-batch-details {
     grid-template-columns: minmax(0, 1fr);
   }
 }

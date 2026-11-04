@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import './CommunityLearningPortal.css';
+import LearningTrainingWorkspace from './LearningTrainingWorkspace';
 
 const discussionPrompts = [
   { category: 'Crops', title: 'What field signs help distinguish nutrient stress from water stress?', icon: 'grass' },
@@ -9,7 +10,7 @@ const discussionPrompts = [
 
 const createId = () => globalThis.crypto?.randomUUID?.() || `learning-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-export default function CommunityLearningPortal({ profile, records, onRecordsChange, onNavigate }) {
+export default function CommunityLearningPortal({ accountId, profile, records, onRecordsChange, onNavigate }) {
   const [showLearningForm, setShowLearningForm] = useState(false);
   const [learningDraft, setLearningDraft] = useState({ title: '', details: '' });
   const [notice, setNotice] = useState('');
@@ -42,12 +43,12 @@ export default function CommunityLearningPortal({ profile, records, onRecordsCha
   };
 
   return (
-    <main className="community-learning-portal" aria-label="Community and learning portal">
+    <section className="community-learning-portal" aria-label="Wanafunzi learning and community hub">
       <header className="community-learning-heading">
         <div>
-          <span className="community-learning-eyebrow">FARMER COMMUNITY</span>
-          <h1>Community &amp; Learning Portal</h1>
-          <p>Find farmer groups, connect with support, and keep your learning activities together.</p>
+          <span className="community-learning-eyebrow">MAFUNZO · COMMUNITY · OPPORTUNITIES</span>
+          <h1>Wanafunzi Hub</h1>
+          <p>Learn at your pace, keep your progress and notes together, and connect with your agricultural community.</p>
         </div>
         <button type="button" className="community-learning-primary" onClick={() => setShowLearningForm((open) => !open)}>
           <span className="material-symbols-outlined">{showLearningForm ? 'close' : 'add'}</span>{showLearningForm ? 'Cancel' : 'New Learning Note'}
@@ -72,6 +73,8 @@ export default function CommunityLearningPortal({ profile, records, onRecordsCha
         ].map(([icon, value, label, key]) => <article key={key}><span className="material-symbols-outlined">{icon}</span><div><strong>{value}</strong><small>{label}</small></div></article>)}
       </section>
 
+      <LearningTrainingWorkspace embedded accountId={accountId} profile={profile} />
+
       <div className="community-learning-grid">
         <section className="community-learning-panel community-learning-experts">
           <div className="community-learning-section-heading"><div><span className="community-learning-eyebrow">MSHAURI EXPERT HUB</span><h2>Expert support</h2><p>Explore the sample profile or save a general support request.</p></div><button type="button" className="community-learning-link" onClick={() => onNavigate('experts')}>Open expert hub<span className="material-symbols-outlined">arrow_forward</span></button></div>
@@ -90,7 +93,7 @@ export default function CommunityLearningPortal({ profile, records, onRecordsCha
         </section>
 
         <section className="community-learning-panel community-learning-academy">
-          <div className="community-learning-section-heading"><div><span className="community-learning-eyebrow">MAFUNZO ACADEMY</span><h2>Your learning notes</h2><p>Your notes stay with your farmer records; course progress and completion records are saved separately on this browser.</p></div><button type="button" className="community-learning-link" onClick={() => onNavigate('training')}>Open learning workspace<span className="material-symbols-outlined">arrow_forward</span></button></div>
+          <div className="community-learning-section-heading"><div><span className="community-learning-eyebrow">YOUR STUDY JOURNAL</span><h2>Learning notes</h2><p>Keep field observations and lesson takeaways with your farmer account.</p></div><button type="button" className="community-learning-link" onClick={() => setShowLearningForm(true)}>Add a note<span className="material-symbols-outlined">add</span></button></div>
           {learningNotes.length ? <div className="community-learning-note-list">{learningNotes.slice(0, 3).map((note) => <article key={note.id}><span className="material-symbols-outlined">menu_book</span><div><strong>{note.title || note.course || 'Learning note'}</strong><p>{note.details || note.date || 'Saved to your farmer records'}</p></div></article>)}</div> : <div className="community-learning-empty"><span className="material-symbols-outlined">school</span><strong>Start your learning journal</strong><p>Save notes from a training, handbook, or lesson to keep them with your farmer records.</p><button type="button" className="community-learning-outline" onClick={() => setShowLearningForm(true)}>Add a learning note</button></div>}
         </section>
 
@@ -99,16 +102,7 @@ export default function CommunityLearningPortal({ profile, records, onRecordsCha
           <div className="community-learning-prompt-list">{discussionPrompts.map((prompt) => <button type="button" key={prompt.title} onClick={() => onNavigate('community')}><span className="community-learning-prompt-top"><span className="material-symbols-outlined">{prompt.icon}</span><small>{prompt.category} · Prompt</small></span><strong>{prompt.title}</strong><span className="community-learning-open-prompt">Discuss in community chat<span className="material-symbols-outlined">arrow_forward</span></span></button>)}</div>
         </section>
 
-        <section className="community-learning-panel community-learning-student">
-          <div className="community-learning-section-heading"><div><span className="community-learning-eyebrow">WANAFUNZI STUDENT HUB</span><h2>Learning &amp; opportunities</h2><p>Student internship, research, and grant listings are not currently connected.</p></div></div>
-          <div className="community-learning-resources">
-            <article><span className="material-symbols-outlined">work</span><div><strong>Internship opportunities</strong><p>No verified listings are available here. Check with participating institutions.</p></div></article>
-            <article><span className="material-symbols-outlined">science</span><div><strong>Research &amp; field learning</strong><p>Use your learning notes to keep study topics and field observations together.</p></div></article>
-            <article><span className="material-symbols-outlined">workspace_premium</span><div><strong>Grants &amp; scholarships</strong><p>Grant availability and eligibility are not verified in this workspace.</p></div></article>
-          </div>
-          <button type="button" className="community-learning-outline" onClick={() => onNavigate('training')}>Open learning workspace</button>
-        </section>
       </div>
-    </main>
+    </section>
   );
 }

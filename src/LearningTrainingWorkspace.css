@@ -16,6 +16,20 @@
   box-sizing: border-box;
 }
 
+.learning-academy-embedded {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.learning-academy-embedded > .learning-academy-heading h2 {
+  margin: 0.2rem 0 0.35rem;
+  color: var(--learning-ink);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  line-height: 1.25;
+}
+
 .learning-academy button,
 .learning-academy input {
   font: inherit;
