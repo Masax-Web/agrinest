@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import WorkforceMarketplace from './WorkforceMarketplace';
 
 const skills = ['Harvesting', 'Weeding', 'Spraying', 'Irrigation', 'Management', 'Planting', 'Livestock care'];
 const requestModules = {
@@ -29,7 +30,7 @@ function localDateKey(value) {
   return date.toISOString().slice(0, 10);
 }
 
-function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNavigate }) {
+function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNavigate, user }) {
   const [mode, setMode] = useState(page === 'payroll' ? 'payroll' : 'tasks');
   const [query, setQuery] = useState('');
   const [activeSkill, setActiveSkill] = useState('');
@@ -351,6 +352,10 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
         {dialog === 'payment' && <div className="digital-farm-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}><section className="digital-farm-dialog labour-dialog" role="dialog" aria-modal="true" aria-labelledby="labour-dialog-title"><div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">AGRIOS PAYROLL</span><h2 id="labour-dialog-title">Record worker payment</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div><form onSubmit={savePayment}><label>Active contract<select required value={paymentDraft.contractId} onChange={(event) => setPaymentDraft((current) => ({ ...current, contractId: event.target.value }))}><option value="">Select a worker</option>{activeContracts.map((contract) => <option key={contract.id} value={contract.id}>{contract.workerName} · {contract.skill}</option>)}</select></label><label>Amount paid (TZS)<input required type="number" min="1" step="1" value={paymentDraft.amount} onChange={(event) => setPaymentDraft((current) => ({ ...current, amount: event.target.value }))} /></label><label>Units / days<input required type="number" min="0.25" step="0.25" value={paymentDraft.units} onChange={(event) => setPaymentDraft((current) => ({ ...current, units: event.target.value }))} /></label><label>Payment date<input required type="date" value={paymentDraft.date} onChange={(event) => setPaymentDraft((current) => ({ ...current, date: event.target.value }))} /></label><label>Payment method<select value={paymentDraft.method} onChange={(event) => setPaymentDraft((current) => ({ ...current, method: event.target.value }))}><option>Cash</option><option>Mobile money</option><option>Bank transfer</option><option>Other</option></select></label><label>Reference (optional)<input value={paymentDraft.reference} onChange={(event) => setPaymentDraft((current) => ({ ...current, reference: event.target.value }))} /></label><label>Notes<textarea value={paymentDraft.notes} onChange={(event) => setPaymentDraft((current) => ({ ...current, notes: event.target.value }))} /></label><p className="digital-farm-dialog-note">This records a payment you made; it does not initiate a transfer or prove receipt by the worker.</p><button type="submit" className="farmer-workspace-submit">Save payment record</button></form></section></div>}
       </main>
     );
+  }
+
+  if (page === 'labour' && mode === 'find') {
+    return <WorkforceMarketplace mode="farmer" user={user} profile={profile} onBack={() => setMode('tasks')} />;
   }
 
   return (

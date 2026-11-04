@@ -85,7 +85,7 @@ function ExpertStars({ value = 5 }) {
   );
 }
 
-export default function ExpertBookingWorkspace({ user, records, onRecordsChange, onBack, onNavigate }) {
+export default function ExpertBookingWorkspace({ user, records, onRecordsChange, onBack }) {
   const today = useMemo(() => {
     const date = new Date();
     date.setHours(0, 0, 0, 0);
@@ -153,18 +153,6 @@ export default function ExpertBookingWorkspace({ user, records, onRecordsChange,
     }
   };
 
-  const navigate = (destination) => {
-    if (destination === 'experts') {
-      setPage('network');
-      return;
-    }
-    if (destination === 'profile') {
-      onNavigate('profile');
-      return;
-    }
-    onNavigate(destination);
-  };
-
   const saveExpertHelpRequest = (event) => {
     event.preventDefault();
     const savedRequests = records?.requests || [];
@@ -186,27 +174,17 @@ export default function ExpertBookingWorkspace({ user, records, onRecordsChange,
 
   return (
     <div className="expert-booking-app">
-      <aside className="expert-booking-sidebar">
-        <button type="button" className="expert-booking-brand" onClick={onBack} aria-label="AGRI-NEST dashboard">
-          <span className="material-symbols-outlined">agriculture</span><span>AgriOS</span>
+      <header className="expert-booking-shell-header">
+        <button type="button" onClick={onBack} aria-label="Return to AGRI-NEST dashboard">
+          <span className="material-symbols-outlined">arrow_back</span><strong>AGRI-NEST</strong>
         </button>
-        <nav aria-label="Farmer navigation">
-          <button type="button" onClick={() => navigate('dashboard')}><span className="material-symbols-outlined">agriculture</span>Operations</button>
-          <button type="button" onClick={() => navigate('income')}><span className="material-symbols-outlined">payments</span>Finance &amp; Trust</button>
-          <button type="button" onClick={() => navigate('transport')}><span className="material-symbols-outlined">local_shipping</span>Market &amp; Logistics</button>
-          <button type="button" className="active" onClick={() => navigate('experts')}><span className="material-symbols-outlined">groups</span>Community &amp; Learning</button>
-        </nav>
-        <div className="expert-booking-sidebar-bottom">
-          <button type="button" onClick={() => navigate('profile')}><span className="material-symbols-outlined">account_circle</span>Profile</button>
-          <button type="button" onClick={() => setNotice('Contact your AGRI-NEST support team for help with expert requests.')}><span className="material-symbols-outlined">help_outline</span>Help</button>
-        </div>
-      </aside>
+        <span>Expert support</span>
+      </header>
 
       <main className="expert-booking-main">
         {page === 'network' ? (
           <>
             <header className="expert-network-header">
-              <button type="button" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Back to dashboard</button>
               <span className="expert-booking-eyebrow">COMMUNITY &amp; LEARNING</span>
               <h1>Expert Network</h1>
               <p>Find agricultural expertise and prepare a consultation request.</p>

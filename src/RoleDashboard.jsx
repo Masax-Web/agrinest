@@ -3,6 +3,7 @@ import RoleWorkspace from './RoleWorkspace';
 import LabourWorkspace from './LabourWorkspace';
 import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import AccountSecurityEntry from './AccountSecurityEntry';
+import WorkforceMarketplace from './WorkforceMarketplace';
 import roleModel from '../shared/role-model.json';
 
 const dashboards = {
@@ -33,6 +34,13 @@ const dashboards = {
     summary: 'Track farmer consultations, field visits, diagnoses, and follow-up advice.',
     navigation: [['consultations', 'support_agent', 'Consultations'], ['visits', 'map', 'Field Visits'], ['advisory', 'description', 'Advisory Notes'], ['diagnostics', 'biotech', 'Diagnostics'], ['community', 'forum', 'Community'], ['settings', 'settings', 'Settings']],
     metrics: [['consultations', 'support_agent', 'Consultation Records'], ['visits', 'map', 'Field Visits'], ['advisory', 'description', 'Advice Notes'], ['diagnostics', 'biotech', 'Diagnostic Records']],
+  },
+  worker: {
+    title: 'Agricultural Worker',
+    greeting: 'Worker Opportunities',
+    summary: 'Build your profile, find farm jobs, and follow your applications.',
+    navigation: [['jobs', 'work', 'Find Farm Work'], ['applications', 'assignment', 'My Applications'], ['profile', 'account_circle', 'Worker Profile'], ['settings', 'settings', 'Settings']],
+    metrics: [['jobs', 'work', 'Open Jobs'], ['applications', 'assignment', 'Applications'], ['profile', 'account_circle', 'Worker Profile']],
   },
 };
 
@@ -134,11 +142,14 @@ export default function RoleDashboard({ role, persona, user, onLogout, onOpenSec
             <section className="role-dashboard-metrics">{dashboard.metrics.map(([view, icon, label]) => <button type="button" key={view} onClick={() => setActiveView(view)}><span className="material-symbols-outlined">{icon}</span><strong>{recordCounts(view)}</strong><small>{label}</small></button>)}</section>
             <section className="role-dashboard-quick-links"><div><span>WORKSPACES</span><h2>Recent records</h2></div>{visibleRecords.length ? visibleRecords.slice(0, 5).map((record) => <button type="button" key={record.id} onClick={() => setActiveView(record.module)}><span className="material-symbols-outlined">{dashboard.navigation.find(([view]) => view === record.module)?.[1] || 'task_alt'}</span><span><strong>{record.title || record.name || record.module}</strong><small>{record.details || 'Open saved record'}</small></span></button>) : <p>{records.length ? 'No records match this search.' : 'No records yet. Open a workspace to add the first one.'}</p>}</section>
           </>
+        ) : role === 'worker' && ['jobs', 'applications', 'profile'].includes(activeView) ? (
+          <WorkforceMarketplace key={`${user?.user_id}-${activeView}`} user={user} mode="worker" section={activeView} />
         ) : role === 'commercial' && ['workforce', 'payroll'].includes(activeView) ? (
           <>
             {labourState.error && <div className="role-workspace-notice" role="alert">{labourState.error}</div>}
-            <LabourWorkspace
-              page={activeView === 'payroll' ? 'payroll' : 'labour'}
+          <LabourWorkspace
+            page={activeView === 'payroll' ? 'payroll' : 'labour'}
+            user={user}
               profile={{ name: user?.name || 'Farm manager', location: user?.region || '' }}
               records={labourRecords}
               onRecordsChange={updateLabourRecords}

@@ -66,6 +66,7 @@ function getPersonaDashboard(personaId) {
     admin: 'admin',
     student: 'student',
     transporter: 'transporter',
+    worker: 'worker',
     commercial: 'commercial',
     bank: 'bank',
     coop: 'coop',
@@ -772,7 +773,7 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'transporter') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><TransporterDashboard onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><TransporterDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'bank') {
@@ -1968,7 +1969,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
     Experts: 'experts', Groups: 'groups', 'Community & Learning Portal': 'community-learning', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
-    'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
+    'Farm ERP': 'farm-erp', 'Jobs & Workforce': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space',
     'Rent Equipment': 'equipment-rent', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Sustainability: 'sustainability', Crowdfunding: 'crowdfunding',
     'AGRI-NEST Foundation': 'foundation', Settings: 'settings',
   };
@@ -2082,7 +2083,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
         { label: 'Smart Loans', icon: 'payments' },
         { label: 'Loan Spending', icon: 'savings' },
         { label: 'Insurance', icon: 'shield' },
-        { label: 'Payroll & Labour', icon: 'payments' },
+        { label: 'Payroll', icon: 'payments' },
       ],
     },
     {
@@ -2100,9 +2101,8 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
     {
       heading: 'Community',
       items: [
-        { label: 'Rentals & Labour', icon: 'construction' },
+        { label: 'Jobs & Workforce', icon: 'construction' },
         { label: 'Kupanga Nafasi', icon: 'landscape' },
-        { label: 'Hire / Find Work', icon: 'work' },
         { label: 'Rent Equipment', icon: 'agriculture' },
         { label: 'Waste Exchange', icon: 'recycling' },
       ],
@@ -2140,7 +2140,6 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
       records={farmerRecords}
       onRecordsChange={updateFarmerRecords}
       onBack={() => setActiveView('dashboard')}
-      onNavigate={setActiveView}
     />;
   }
 
@@ -3283,16 +3282,9 @@ function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, f
   );
 }
 
-function TransporterDashboard({ onLogout, onOpenSecurity }) {
+function TransporterDashboard({ user, onLogout, onOpenSecurity }) {
   const [activeView, setActiveView] = useState('home');
-  const [tripProgress, setTripProgress] = useState(70);
-  const [wallet, setWallet] = useState(240000);
   const [notice, setNotice] = useState('');
-  const jobs = [
-    { id: 'dodoma-arusha', route: 'Dodoma → Arusha', distance: '120km', cargo: '2,000kg Beans', trust: '98%' },
-    { id: 'mbeya-dar', route: 'Mbeya → Dar', distance: '850km', cargo: '8,000kg Rice', trust: '95%' },
-    { id: 'morogoro-tanga', route: 'Morogoro → Tanga', distance: '340km', cargo: '1,500kg Sisal', trust: '99%' },
-  ];
 
   const action = (message) => {
     const lowerMessage = message.toLowerCase();
@@ -3321,16 +3313,16 @@ function TransporterDashboard({ onLogout, onOpenSecurity }) {
       <main className="transporter-main">
         <header className="transporter-topbar"><h1>Agri-Nest Logistics</h1><div><button type="button" aria-label="Notifications" onClick={() => setActiveView('notifications')}><span className="material-symbols-outlined">notifications</span></button><button type="button" aria-label="Fleet support" onClick={() => setActiveView('support')}><span className="material-symbols-outlined">support</span></button><span className="transporter-mini-avatar">JK</span></div></header>
         {notice && <button type="button" className="transporter-notice" onClick={() => setNotice('')}>{notice}<span className="material-symbols-outlined">close</span></button>}
-        {activeView === 'fleet' ? (
-          <TransporterFleetWorkspace />
+        {activeView === 'fleet' || activeView === 'jobs' ? (
+          <TransporterFleetWorkspace user={user} />
         ) : activeView === 'route' ? (
           <TransporterRouteWorkspace />
         ) : activeView === 'community' ? (
           <CommunityChat onBackToDashboard={() => setActiveView('home')} viewerProfile={{ id: 'transporter-james', name: 'James Kweka', role: 'Transporter', location: 'Tanzania', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' }} farmerProfile={readStoredFarmerProfile()} />
         ) : activeView === 'home' ? <>
           <section className="transporter-heading"><div><h2>Habari za asubuhi, James! 🚛</h2><p>Road conditions to Dar es Salaam are clear. You have <b>3 active bids</b> and <b>1 trip in progress</b>.</p></div></section>
-          <section className="transporter-stats"><article><span className="material-symbols-outlined">account_balance_wallet</span><small>Wallet Balance</small><strong>TZS {wallet.toLocaleString()}</strong><button type="button" onClick={() => setActiveView('earnings')}>Withdraw</button></article><article><span className="material-symbols-outlined">route</span><small>Trips Done</small><strong>156</strong><p>Historical Total</p></article><article><span className="material-symbols-outlined">star</span><small>Avg Rating</small><strong>4.8 <em>★</em></strong><p className="transporter-badge">Verified Top Rated</p></article><article className="transporter-active-job"><small>Active Job</small><strong>Iringa →<br />Dar es Salaam</strong><span>Maize • In Transit</span></article></section>
-          <section className="transporter-dashboard-grid"><article className="transporter-route-card"><div className="transporter-card-heading"><h3><span className="material-symbols-outlined">route</span>Active Route Overview</h3><span>ID: TRP-9284</span></div><div className="transporter-map"><div><small>DESTINATION</small><strong>Kariakoo Market</strong></div><span className="material-symbols-outlined">navigation</span></div><div className="transporter-route-details"><div><small>Status</small><strong>{tripProgress}% Complete</strong><p>ETA 2h 15m</p><span>📦 Cargo<br /><b>5,000kg Maize</b></span><span>👤 Client<br /><b>Mkulima Co-op</b></span></div><div><button type="button" onClick={() => action('Calling Mkulima Co-op...')}>☎ Contact Client</button><button type="button" onClick={() => setTripProgress((progress) => Math.min(100, progress + 10))}>↻ Update Status</button></div></div></article><aside className="transporter-right-column"><article className="transporter-jobs"><div className="transporter-card-heading"><h3>Open Jobs</h3><button type="button" onClick={() => setActiveView('jobs')}>View All</button></div>{jobs.map((job) => <div className="transporter-job" key={job.id}><div><strong>{job.route}</strong><span>{job.distance}</span></div><p>{job.cargo} • <b>👍 {job.trust} Trust</b></p><div><button type="button" onClick={() => action(`Quick bid started for ${job.route}.`)}>Quick Bid</button><button type="button" onClick={() => action(`${job.route}: ${job.cargo}`)}>Details</button></div></div>)}</article><article className="transporter-earnings"><div className="transporter-card-heading"><h3>Weekly Earnings</h3><small>This Week</small></div><div className="transporter-bars">{[30, 50, 90, 40, 60, 10, 5].map((height, index) => <i className={index === 2 ? 'peak' : ''} style={{ height: `${height}%` }} key={index} />)}</div></article><article className="transporter-alerts"><h3><span className="material-symbols-outlined">warning</span>Road Alerts</h3><button type="button" onClick={() => action('Route alert opened: heavy rain in Morogoro.')}><b>☁ Heavy rain in Morogoro</b><small>Expect 30m delays. Reported 1h ago.</small></button><button type="button" onClick={() => action('Route alert opened: weighbridge delay at Mikumi.')}><b>⚠ Weighbridge delay at Mikumi</b><small>Long queue. Reported 15m ago.</small></button></article></aside></section>
+          <section className="transporter-stats"><article><span className="material-symbols-outlined">account_balance_wallet</span><small>Wallet Balance</small><strong>Not connected</strong><p>Payment data unavailable</p></article><article><span className="material-symbols-outlined">route</span><small>Completed Trips</small><strong>Not connected</strong><p>No trip records available</p></article><article><span className="material-symbols-outlined">star</span><small>Carrier Rating</small><strong>Not connected</strong><p>No verified rating available</p></article><article className="transporter-active-job"><small>Active Trip</small><strong>Not connected</strong><span>Live assignments unavailable</span></article></section>
+          <section className="transporter-dashboard-grid"><article className="transporter-route-card"><div className="transporter-card-heading"><h3><span className="material-symbols-outlined">route</span>Active Route Overview</h3><span>Tracking not connected</span></div><div className="transporter-map"><div><small>TRIP STATUS</small><strong>No live trip data</strong></div><span className="material-symbols-outlined">navigation</span></div><div className="transporter-route-details"><div><small>Active trips</small><strong>Not connected</strong><p>Trip assignments and GPS tracking are not available.</p></div><div><button type="button" onClick={() => setActiveView('jobs')}>Browse open requests</button></div></div></article><aside className="transporter-right-column"><article className="transporter-jobs"><div className="transporter-card-heading"><h3>Open Farm Requests</h3><button type="button" onClick={() => setActiveView('jobs')}>Browse</button></div><p>View shared farmer requests and submit a quote from the Open Jobs page.</p><button type="button" onClick={() => setActiveView('jobs')}>Browse open requests</button></article><article className="transporter-earnings"><div className="transporter-card-heading"><h3>Weekly Earnings</h3><small>Not connected</small></div><p>Earnings data is not connected to this account.</p></article><article className="transporter-alerts"><h3><span className="material-symbols-outlined">info</span>Road Alerts</h3><p>Live road and weather alerts are not connected.</p></article></aside></section>
         </> : <RoleWorkspace role="transporter" page={activeView} onBack={() => setActiveView('home')} onOpenSecurity={onOpenSecurity} />}
       </main>
     </div>

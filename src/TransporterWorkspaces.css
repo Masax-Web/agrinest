@@ -94,6 +94,49 @@
   cursor: pointer;
 }
 
+.transporter-workspace-error {
+  margin: 0;
+  border-color: #e6b9b2;
+  background: #fff3f1;
+  color: #842d22;
+}
+
+.transporter-marketplace-layout .transporter-request-action button {
+  min-width: 105px;
+}
+
+.transporter-workspace .transporter-unavailable {
+  border: 1px solid #e8eee9;
+}
+
+.transporter-workspace .transporter-vehicle-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+}
+
+.transporter-workspace .transporter-vehicle-form label {
+  display: grid;
+  gap: 5px;
+  color: #637269;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.transporter-workspace .transporter-vehicle-form input {
+  width: 100%;
+}
+
+.transporter-workspace .transporter-panel-heading h3 {
+  margin-top: 4px;
+}
+
+@media (max-width: 680px) {
+  .transporter-workspace .transporter-vehicle-form {
+    grid-template-columns: 1fr;
+  }
+}
+
 .transporter-fleet-metrics,
 .transporter-route-metrics {
   display: grid;

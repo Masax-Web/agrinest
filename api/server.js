@@ -6,6 +6,7 @@ const knex = require('./db');
 const { ensureAuthSchema } = require('./services/AuthSchema');
 const { ensureProcurementSchema } = require('./services/ProcurementSchema');
 const { ensureSpaceRentalSchema } = require('./services/SpaceRentalService');
+const { ensureCrossRoleWorkflowSchema } = require('./services/CrossRoleWorkflows');
 
 const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, '..', 'dist')));
@@ -17,6 +18,7 @@ async function startServer() {
 	await ensureAuthSchema(knex);
 	await ensureProcurementSchema(knex);
 	await ensureSpaceRentalSchema(knex);
+	await ensureCrossRoleWorkflowSchema(knex);
 	return app.listen(port, () => console.log(`AGRI-NEST API listening on http://localhost:${port}`));
 }
 

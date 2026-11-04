@@ -993,6 +993,188 @@ paths:
       responses:
         '201': { description: Application submitted }
 
+  /workforce/profile:
+    get:
+      summary: Get the signed-in worker profile
+      responses:
+        '200': { description: Worker profile }
+    put:
+      summary: Create or update the signed-in worker profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skills, region, dailyRate, availability]
+              properties:
+                skills: { type: array, minItems: 1, maxItems: 12, items: { type: string, minLength: 1, maxLength: 60 } }
+                region: { type: string, minLength: 1, maxLength: 120 }
+                dailyRate: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                experience: { type: string, maxLength: 300 }
+                bio: { type: string, maxLength: 1000 }
+                availability: { type: string, enum: [available, seasonal, busy] }
+      responses:
+        '200': { description: Saved worker profile }
+        '403': { description: Worker role required }
+
+  /workforce/jobs:
+    get:
+      summary: Browse open farm jobs or list the signed-in farmer's jobs
+      parameters:
+        - in: query
+          name: mine
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { description: Farm job posts }
+    post:
+      summary: Publish a paid farm work opportunity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, skill, location, workersNeeded, dailyRate, startDate, durationDays]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                skill: { type: string, minLength: 1, maxLength: 80 }
+                location: { type: string, minLength: 1, maxLength: 120 }
+                workersNeeded: { type: integer, minimum: 1, maximum: 1000 }
+                dailyRate: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                startDate: { type: string, format: date }
+                durationDays: { type: integer, minimum: 1, maximum: 365 }
+                details: { type: string, maxLength: 2000 }
+      responses:
+        '201': { description: Job published }
+        '403': { description: Farmer role required }
+
+  /workforce/jobs/{jobId}/applications:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: List applications for a farmer-owned job
+      responses:
+        '200': { description: Job applications }
+        '404': { description: Job not found or not owned by the signed-in user }
+    post:
+      summary: Apply to an open farm job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string, maxLength: 1000 }
+      responses:
+        '201': { description: Application submitted }
+        '409': { description: Profile required or application already submitted }
+
+  /workforce/applications/mine:
+    get:
+      summary: List the signed-in worker's job applications
+      responses:
+        '200': { description: Worker applications }
+
+  /workforce/applications/{applicationId}:
+    parameters:
+      - in: path
+        name: applicationId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Accept or decline an application for an owned job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [accepted, declined] }
+      responses:
+        '200': { description: Application updated }
+        '403': { description: Job is not owned by the signed-in user }
+
+  /transport/requests:
+    get:
+      summary: List open transport requests for carriers
+      responses:
+        '200': { description: Open transport requests }
+    post:
+      summary: Publish a transport request for carrier quotes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pickup, destination, cargo]
+              properties:
+                pickup: { type: string, minLength: 1, maxLength: 160 }
+                destination: { type: string, minLength: 1, maxLength: 160 }
+                cargo: { type: string, minLength: 1, maxLength: 120 }
+                weight_kg: { type: number, exclusiveMinimum: 0, maximum: 1000000, nullable: true }
+                pickup_date: { type: string, format: date, nullable: true }
+                details: { type: string, maxLength: 2000 }
+      responses:
+        '201': { description: Transport request published }
+        '403': { description: Farmer or buyer role required }
+
+  /transport/requests/mine:
+    get:
+      summary: List the signed-in user's transport requests and quotes
+      responses:
+        '200': { description: Transport requests and carrier quotes }
+
+  /transport/requests/{requestId}/quotes:
+    parameters:
+      - in: path
+        name: requestId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Submit a carrier quote for an open transport request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                details: { type: string, maxLength: 1000 }
+      responses:
+        '201': { description: Quote submitted }
+        '409': { description: A quote already exists or request is no longer open }
+
+  /transport/quotes/{quoteId}:
+    parameters:
+      - in: path
+        name: quoteId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Accept or decline a quote on the signed-in user's request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [accepted, declined] }
+      responses:
+        '200': { description: Quote decision saved }
+        '404': { description: Quote not found or not owned by the signed-in user }
+
   /soko/listings:
     post:
       summary: Create a marketplace listing

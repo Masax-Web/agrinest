@@ -13,9 +13,9 @@ body.expert-booking-active {
   --expert-text: #161c22;
   --expert-muted: #54615d;
   --expert-outline: #c1c8c1;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  grid-template-columns: 12.25rem minmax(0, 1fr);
   background: var(--expert-surface);
   color: var(--expert-text);
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
@@ -27,86 +27,47 @@ body.expert-booking-active {
   box-sizing: border-box;
 }
 
-.expert-booking-sidebar {
+.expert-booking-shell-header {
   position: sticky;
+  z-index: 20;
   top: 0;
   display: flex;
-  height: 100vh;
-  min-height: 38rem;
-  flex-direction: column;
-  border-right: 1px solid rgba(80, 105, 94, 0.13);
-  background: var(--expert-surface-low);
-  box-shadow: 0 2px 6px rgba(17, 28, 44, 0.08);
-  padding: 1.15rem 0.7rem 1rem;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(80, 105, 94, 0.13);
+  background: var(--expert-surface);
+  padding: 0.5rem clamp(0.85rem, 3vw, 2rem);
 }
 
-.expert-booking-brand {
+.expert-booking-shell-header > button {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0 0 1.75rem;
   border: 0;
   background: transparent;
   color: #23322d;
-  padding: 0.15rem 0.7rem;
+  padding: 0.25rem;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   text-align: left;
   cursor: pointer;
 }
 
-.expert-booking-brand .material-symbols-outlined {
+.expert-booking-shell-header > button .material-symbols-outlined {
   color: var(--expert-primary);
-  font-size: 1.45rem;
+  font-size: 1.2rem;
   font-variation-settings: 'FILL' 1;
 }
 
-.expert-booking-sidebar nav,
-.expert-booking-sidebar-bottom {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.expert-booking-sidebar nav button,
-.expert-booking-sidebar-bottom button {
-  display: flex;
-  min-height: 2.85rem;
-  align-items: center;
-  gap: 0.65rem;
-  border: 0;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: #48554f;
-  padding: 0.65rem 0.7rem;
-  font: inherit;
-  font-size: 0.65rem;
-  letter-spacing: 0.025em;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.expert-booking-sidebar nav button:hover,
-.expert-booking-sidebar-bottom button:hover {
-  background: var(--expert-surface-high);
-  transform: translateX(2px);
-}
-
-.expert-booking-sidebar nav button.active {
-  background: var(--expert-secondary-soft);
-  color: #1b724f;
-}
-
-.expert-booking-sidebar nav .material-symbols-outlined,
-.expert-booking-sidebar-bottom .material-symbols-outlined {
-  font-size: 1.1rem;
-}
-
-.expert-booking-sidebar-bottom {
-  margin-top: auto;
+.expert-booking-shell-header > span {
+  color: var(--expert-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
 }
 
 .expert-booking-main {
+  flex: 1;
   width: min(100%, 90rem);
   min-width: 0;
   margin: 0 auto;
@@ -121,8 +82,7 @@ body.expert-booking-active {
   margin-bottom: 1.35rem;
 }
 
-.expert-booking-back,
-.expert-network-header > button {
+.expert-booking-back {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -135,13 +95,11 @@ body.expert-booking-active {
   cursor: pointer;
 }
 
-.expert-booking-back:hover,
-.expert-network-header > button:hover {
+.expert-booking-back:hover {
   color: var(--expert-secondary);
 }
 
-.expert-booking-back .material-symbols-outlined,
-.expert-network-header > button .material-symbols-outlined {
+.expert-booking-back .material-symbols-outlined {
   font-size: 0.85rem;
 }
 
@@ -1125,10 +1083,6 @@ body.expert-booking-active {
 }
 
 @media (max-width: 980px) {
-  .expert-booking-app {
-    grid-template-columns: 10.5rem minmax(0, 1fr);
-  }
-
   .expert-booking-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1144,52 +1098,6 @@ body.expert-booking-active {
 }
 
 @media (max-width: 640px) {
-  .expert-booking-app {
-    display: block;
-    min-height: 100vh;
-  }
-
-  .expert-booking-sidebar {
-    position: sticky;
-    z-index: 10;
-    top: 0;
-    display: block;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    border-right: 0;
-    border-bottom: 1px solid rgba(80, 105, 94, 0.13);
-    padding: 0.4rem 0.55rem;
-  }
-
-  .expert-booking-brand {
-    margin: 0;
-    padding: 0.25rem 0.5rem 0.45rem;
-  }
-
-  .expert-booking-sidebar nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.2rem;
-  }
-
-  .expert-booking-sidebar nav button {
-    min-height: 2.5rem;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.12rem;
-    padding: 0.25rem;
-    font-size: 0.48rem;
-    text-align: center;
-  }
-
-  .expert-booking-sidebar nav button .material-symbols-outlined {
-    font-size: 0.95rem;
-  }
-
-  .expert-booking-sidebar-bottom {
-    display: none;
-  }
-
   .expert-booking-main {
     padding: 1rem 0.85rem 1.5rem;
   }

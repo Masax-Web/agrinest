@@ -472,8 +472,6 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
     return <TransportLogisticsWorkspace
       user={user}
       profile={profile}
-      records={records}
-      onRecordsChange={onRecordsChange}
     />;
   }
 
@@ -581,6 +579,7 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
   if (page === 'labour' || page === 'payroll') {
     return <LabourWorkspace
       page={page}
+      user={user}
       profile={profile}
       records={records}
       onRecordsChange={onRecordsChange}

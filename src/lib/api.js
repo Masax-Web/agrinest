@@ -359,6 +359,70 @@ export const api = {
   async applyStudentOpportunity(data) {
     return apiRequest('/students/applications', { method: 'POST', body: JSON.stringify(data) });
   },
+
+  async getWorkforceProfile() {
+    return apiRequest('/workforce/profile');
+  },
+
+  async saveWorkforceProfile(data) {
+    return apiRequest('/workforce/profile', { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  async getWorkforceJobs(mine = false) {
+    return apiRequest(`/workforce/jobs${mine ? '?mine=true' : ''}`);
+  },
+
+  async createWorkforceJob(data) {
+    return apiRequest('/workforce/jobs', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async getWorkforceApplications() {
+    return apiRequest('/workforce/applications/mine');
+  },
+
+  async applyToWorkforceJob(jobId, message = '') {
+    return apiRequest(`/workforce/jobs/${encodeURIComponent(jobId)}/applications`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  },
+
+  async getJobApplications(jobId) {
+    return apiRequest(`/workforce/jobs/${encodeURIComponent(jobId)}/applications`);
+  },
+
+  async updateWorkforceApplication(applicationId, status) {
+    return apiRequest(`/workforce/applications/${encodeURIComponent(applicationId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async getOpenTransportRequests() {
+    return apiRequest('/transport/requests');
+  },
+
+  async getMyTransportRequests() {
+    return apiRequest('/transport/requests/mine');
+  },
+
+  async createTransportRequest(data) {
+    return apiRequest('/transport/requests', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async submitTransportQuote(requestId, data) {
+    return apiRequest(`/transport/requests/${encodeURIComponent(requestId)}/quotes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateTransportQuote(quoteId, status) {
+    return apiRequest(`/transport/quotes/${encodeURIComponent(quoteId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
 };
 
 export default api;

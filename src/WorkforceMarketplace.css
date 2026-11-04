@@ -1,0 +1,244 @@
+.workforce-marketplace {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1rem, 2.4vw, 1.75rem);
+  color: #203229;
+}
+
+.workforce-marketplace-heading,
+.workforce-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.workforce-marketplace-heading h1 {
+  margin: 0.3rem 0;
+  color: #143321;
+  font-family: var(--agri-display-font, 'Syne', sans-serif);
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+}
+
+.workforce-marketplace-heading p,
+.workforce-form > p {
+  margin: 0;
+  color: #627268;
+  font-size: 0.82rem;
+}
+
+.workforce-eyebrow {
+  color: #557466;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+
+.workforce-panel {
+  min-width: 0;
+  border: 1px solid #e1e9e2;
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: clamp(0.9rem, 2vw, 1.25rem);
+}
+
+.workforce-panel h2 {
+  margin: 0;
+  color: #173a28;
+  font-size: 1rem;
+}
+
+.workforce-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.workforce-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.workforce-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: #40564a;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.workforce-form input,
+.workforce-form textarea,
+.workforce-form select {
+  width: 100%;
+  min-height: 2.6rem;
+  border: 1px solid #d5e0d7;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #203229;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  font-weight: 450;
+}
+
+.workforce-form textarea {
+  resize: vertical;
+}
+
+.workforce-form input:focus-visible,
+.workforce-form textarea:focus-visible,
+.workforce-form select:focus-visible {
+  outline: 3px solid #e9c94a;
+  outline-offset: 1px;
+}
+
+.workforce-disclosure {
+  border-left: 3px solid #d8b63c;
+  background: #fbf8eb;
+  color: #645938;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.workforce-message {
+  margin: 0;
+  border-radius: 0.45rem;
+  background: #edf5ee;
+  color: #245c3e;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.78rem;
+}
+
+.workforce-message.is-error {
+  background: #fff0ed;
+  color: #8d3022;
+}
+
+.workforce-card-list {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.workforce-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e5ebe6;
+  border-radius: 0.65rem;
+  padding: 0.85rem;
+}
+
+.workforce-card h3 {
+  margin: 0.35rem 0 0.2rem;
+  color: #183d2b;
+  font-size: 0.92rem;
+}
+
+.workforce-card p {
+  margin: 0.25rem 0;
+  color: #4f6257;
+  font-size: 0.78rem;
+}
+
+.workforce-card small {
+  display: block;
+  margin-top: 0.3rem;
+  color: #748078;
+  font-size: 0.7rem;
+}
+
+.workforce-status {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #eef1ed;
+  color: #516157;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.workforce-status.is-open,
+.workforce-status.is-accepted {
+  background: #e5f4e8;
+  color: #27623e;
+}
+
+.workforce-status.is-pending {
+  background: #fbf3d9;
+  color: #775c12;
+}
+
+.workforce-status.is-declined,
+.workforce-status.is-closed {
+  background: #f9e8e5;
+  color: #8b3c30;
+}
+
+.workforce-card-actions {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.workforce-card-actions > strong {
+  color: #183d2b;
+  font-size: 0.78rem;
+}
+
+.workforce-primary-button,
+.workforce-quiet-button {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #1b6341;
+  border-radius: 0.45rem;
+  background: #145536;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.workforce-quiet-button {
+  border-color: #d3ded5;
+  background: #fff;
+  color: #2a5a3e;
+}
+
+.workforce-primary-button:disabled,
+.workforce-quiet-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.workforce-section-heading {
+  align-items: center;
+}
+
+@media (max-width: 680px) {
+  .workforce-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workforce-card {
+    flex-direction: column;
+  }
+
+  .workforce-card-actions {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .workforce-marketplace-heading {
+    align-items: flex-start;
+  }
+}

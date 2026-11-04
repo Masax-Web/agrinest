@@ -33,6 +33,17 @@
       ]
     },
     {
+      "id": "worker",
+      "label": "Agricultural Worker",
+      "defaultPersona": "agricultural_worker",
+      "personas": ["agricultural_worker"],
+      "journey": [
+        { "module": "profile", "label": "Create a worker profile", "route": "/workforce/profile", "icon": "account_circle", "description": "Share your skills and availability with employers when you apply." },
+        { "module": "jobs", "label": "Find farm work", "route": "/workforce/jobs", "icon": "work", "description": "Review paid work posts from farmers and submit applications." },
+        { "module": "applications", "label": "Track applications", "route": "/workforce/applications", "icon": "assignment", "description": "Follow employer decisions on your applications." }
+      ]
+    },
+    {
       "id": "admin",
       "label": "Platform Staff",
       "defaultPersona": "ai_model_manager",
@@ -153,6 +164,7 @@
     "gov": "government_agency",
     "student": "agri_student",
     "transporter": "transport_provider",
+    "worker": "agricultural_worker",
     "coop": "farmer_group",
     "expert": "agricultural_expert",
     "admin": "ai_model_manager"
