@@ -1958,7 +1958,7 @@ function SmallholderDashboard({ user, onLogout }) {
   };
 
   const farmerNavigationViews = {
-    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
+    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Harvest Prediction': 'harvest-prediction', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
     'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Community & Learning Portal': 'community-learning', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
@@ -2049,6 +2049,7 @@ function SmallholderDashboard({ user, onLogout }) {
         { label: 'Dashboard', icon: 'dashboard', active: true },
         { label: 'Farm Profile', icon: 'eco' },
         { label: 'Digital Farm', icon: 'agriculture' },
+        { label: 'Harvest Prediction', icon: 'event_upcoming' },
         { label: 'Kadiria Maji', icon: 'water_drop' },
         { label: 'Jicho AI', icon: 'psychology' },
         { label: 'Livestock', icon: 'pets' },
