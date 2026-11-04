@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import LivestockHealthWorkspace from './LivestockHealthWorkspace';
 
 const animalSpecies = ['Cattle', 'Goat', 'Sheep', 'Chicken', 'Pig', 'Other'];
 const animalHealthOptions = ['healthy', 'under treatment', 'needs attention', 'not assessed'];
@@ -64,6 +65,7 @@ function makeAnimalCode(species, existingAnimals) {
 
 function LivestockWorkspace({ profile, records, search = '', onSearch, onRecordsChange, onProfileSave, onBack }) {
   const [dialog, setDialog] = useState('');
+  const [activeSection, setActiveSection] = useState('health');
   const [notice, setNotice] = useState('');
   const [formError, setFormError] = useState('');
   const [animalFilter, setAnimalFilter] = useState('active');
@@ -76,7 +78,7 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
   });
   const [milkDraft, setMilkDraft] = useState({ liters: '', date: localDateValue(), animalId: '', notes: '' });
   const [healthDraft, setHealthDraft] = useState({
-    eventType: 'Vaccination', animalId: '', date: localDateValue(), dueDate: '', provider: '', notes: '',
+    eventType: 'Vaccination', animalId: '', date: localDateValue(), dueDate: '', provider: '', dosage: '', notes: '',
   });
   const [quoteDraft, setQuoteDraft] = useState({
     species: 'Cattle', marketClass: '', market: profile.location || profile.region || '', price: '', date: localDateValue(),
@@ -287,17 +289,17 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
     }
     updateActivity([...activities, {
       ...healthDraft, id: createId(), module: 'livestock-health', status: 'open',
-      notes: healthDraft.notes.trim(), provider: healthDraft.provider.trim(), createdAt: new Date().toISOString(),
+      notes: healthDraft.notes.trim(), provider: healthDraft.provider.trim(), dosage: healthDraft.dosage.trim(), createdAt: new Date().toISOString(),
     }]);
     setFormError('');
     setDialog('');
     setNotice('Health event saved. Follow-up reminders are based on the date you entered.');
   };
 
-  const openHealthDialog = (animalId = '') => {
+  const openHealthDialog = (animalId = '', eventType = 'Vaccination') => {
     setFormError('');
     setSelectedAnimalId(animalId);
-    setHealthDraft({ eventType: 'Vaccination', animalId, date: localDateValue(), dueDate: '', provider: '', notes: '' });
+    setHealthDraft({ eventType, animalId, date: localDateValue(), dueDate: '', provider: '', dosage: '', notes: '' });
     setDialog('health');
   };
 
@@ -342,8 +344,28 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
   ]);
 
   return (
-    <main className="livestock-page" aria-label="Livestock Management">
+    <main className={`livestock-page ${activeSection === 'health' ? 'livestock-health-page' : ''}`} aria-label="Livestock Management">
       {notice && <div className="livestock-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
+      {activeSection === 'health' ? <LivestockHealthWorkspace
+        profile={profile}
+        records={records}
+        animals={animals}
+        healthEntries={healthEntries}
+        dueEvents={dueEvents}
+        totalHeads={totalHeads}
+        healthyPercent={healthyPercent}
+        healthyHeads={healthyHeads}
+        assessedHeads={assessedHeads}
+        search={search}
+        onSearch={onSearch}
+        onBack={onBack}
+        onShowRegister={() => setActiveSection('register')}
+        onAddAnimal={openNewAnimal}
+        onOpenHealthDialog={openHealthDialog}
+        onMarkHealthComplete={markHealthComplete}
+        onViewHealthLog={() => setHealthLogOpen(true)}
+        onRecordsChange={onRecordsChange}
+      /> : <>
       <header className="livestock-heading">
         <div>
           <button type="button" className="livestock-back" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Dashboard</button>
@@ -352,6 +374,7 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
           <p>Track production, monitor herd health, and review farmer-entered market quotes.</p>
         </div>
         <div className="livestock-heading-actions">
+          <button type="button" className="livestock-secondary-button" onClick={() => setActiveSection('health')}><span className="material-symbols-outlined">vaccines</span>Health &amp; Vaccines</button>
           <button type="button" className="livestock-secondary-button" onClick={() => openHealthDialog()}><span className="material-symbols-outlined">medical_services</span>Log health event</button>
           <button type="button" className="livestock-primary-button" onClick={openNewAnimal}><span className="material-symbols-outlined">add</span>Add animal</button>
         </div>
@@ -433,6 +456,7 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
           </section>
         </aside>
       </div>
+      </>}
 
       {dialog && <div className="livestock-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}>
         <section className="livestock-modal" role="dialog" aria-modal="true" aria-labelledby="livestock-dialog-title">
@@ -457,7 +481,7 @@ function LivestockWorkspace({ profile, records, search = '', onSearch, onRecords
             <div className="livestock-form-grid"><label>Milk yield (liters)<input required type="number" min="0.1" step="0.1" value={milkDraft.liters} onChange={(event) => setMilkDraft((current) => ({ ...current, liters: event.target.value }))} /></label><label>Milking date<input required type="date" max={today} value={milkDraft.date} onChange={(event) => setMilkDraft((current) => ({ ...current, date: event.target.value }))} /></label><label>Animal or group (optional)<select value={milkDraft.animalId} onChange={(event) => setMilkDraft((current) => ({ ...current, animalId: event.target.value }))}><option value="">Not specified</option>{activeAnimals.map((animal) => <option key={animal.id} value={animal.id}>{animal.animalId || animal.species} · {animal.species}</option>)}</select></label><label className="is-wide">Notes (optional)<textarea value={milkDraft.notes} onChange={(event) => setMilkDraft((current) => ({ ...current, notes: event.target.value }))} /></label></div>
             <p className="livestock-form-disclaimer">Milk entries are recorded as provided by you; the app does not measure or verify production.</p><div className="livestock-modal-actions"><button type="button" className="livestock-secondary-button" onClick={() => setDialog('')}>Cancel</button><button type="submit" className="livestock-primary-button"><span className="material-symbols-outlined">save</span>Save yield</button></div>
           </form> : dialog === 'health' ? <form className="livestock-form" onSubmit={saveHealthEvent}>
-            <div className="livestock-form-grid"><label>Event type<select value={healthDraft.eventType} onChange={(event) => setHealthDraft((current) => ({ ...current, eventType: event.target.value }))}>{healthEventTypes.map((type) => <option key={type}>{type}</option>)}</select></label><label>Animal or group (optional)<select value={healthDraft.animalId || selectedAnimalId} onChange={(event) => setHealthDraft((current) => ({ ...current, animalId: event.target.value }))}><option value="">Whole herd / not specified</option>{activeAnimals.map((animal) => <option key={animal.id} value={animal.id}>{animal.animalId || animal.species} · {animal.species}</option>)}</select></label><label>Event date<input required type="date" value={healthDraft.date} onChange={(event) => setHealthDraft((current) => ({ ...current, date: event.target.value }))} /></label><label>Next due / follow-up date<input type="date" min={healthDraft.date} value={healthDraft.dueDate} onChange={(event) => setHealthDraft((current) => ({ ...current, dueDate: event.target.value }))} /></label><label>Vet or provider (optional)<input value={healthDraft.provider} onChange={(event) => setHealthDraft((current) => ({ ...current, provider: event.target.value }))} /></label><label className="is-wide">Notes<textarea value={healthDraft.notes} onChange={(event) => setHealthDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Treatment, vaccine name, or visit notes" /></label></div>
+            <div className="livestock-form-grid"><label>Event type<select value={healthDraft.eventType} onChange={(event) => setHealthDraft((current) => ({ ...current, eventType: event.target.value }))}>{healthEventTypes.map((type) => <option key={type}>{type}</option>)}</select></label><label>Animal or group (optional)<select value={healthDraft.animalId || selectedAnimalId} onChange={(event) => setHealthDraft((current) => ({ ...current, animalId: event.target.value }))}><option value="">Whole herd / not specified</option>{activeAnimals.map((animal) => <option key={animal.id} value={animal.id}>{animal.animalId || animal.species} · {animal.species}</option>)}</select></label><label>Event date<input required type="date" value={healthDraft.date} onChange={(event) => setHealthDraft((current) => ({ ...current, date: event.target.value }))} /></label><label>Next due / follow-up date<input type="date" min={healthDraft.date} value={healthDraft.dueDate} onChange={(event) => setHealthDraft((current) => ({ ...current, dueDate: event.target.value }))} /></label><label>Vet or provider (optional)<input value={healthDraft.provider} onChange={(event) => setHealthDraft((current) => ({ ...current, provider: event.target.value }))} /></label><label>Dosage or product (optional)<input value={healthDraft.dosage} onChange={(event) => setHealthDraft((current) => ({ ...current, dosage: event.target.value }))} /></label><label className="is-wide">Notes<textarea value={healthDraft.notes} onChange={(event) => setHealthDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Treatment, vaccine name, or visit notes" /></label></div>
             <p className="livestock-form-disclaimer">This health log is not a veterinary diagnosis. Contact a qualified animal-health professional for urgent concerns.</p><div className="livestock-modal-actions"><button type="button" className="livestock-secondary-button" onClick={() => setDialog('')}>Cancel</button><button type="submit" className="livestock-primary-button"><span className="material-symbols-outlined">save</span>Save health event</button></div>
           </form> : <form className="livestock-form" onSubmit={saveMarketQuote}>
             <div className="livestock-form-grid"><label>Species<select value={quoteDraft.species} onChange={(event) => setQuoteDraft((current) => ({ ...current, species: event.target.value }))}>{animalSpecies.map((species) => <option key={species}>{species}</option>)}</select></label><label>Class or animal type (optional)<input value={quoteDraft.marketClass} onChange={(event) => setQuoteDraft((current) => ({ ...current, marketClass: event.target.value }))} placeholder="e.g. bull, heifer, mature goat" /></label><label>Price per head (TZS)<input required type="number" min="1" step="1" value={quoteDraft.price} onChange={(event) => setQuoteDraft((current) => ({ ...current, price: event.target.value }))} /></label><label>Market or location<input value={quoteDraft.market} onChange={(event) => setQuoteDraft((current) => ({ ...current, market: event.target.value }))} /></label><label>Quote date<input required type="date" max={today} value={quoteDraft.date} onChange={(event) => setQuoteDraft((current) => ({ ...current, date: event.target.value }))} /></label></div>

@@ -1,0 +1,1163 @@
+.livestock-health-page {
+  --health-green: #052d1c;
+  --health-secondary: #14744e;
+  --health-mint: #a1f4c8;
+  --health-ink: #1a241e;
+  --health-muted: #68736c;
+  --health-border: #d7ddd8;
+  padding: 0;
+  overflow: visible;
+  background: #f8f9f6;
+  color: var(--health-ink);
+}
+
+.livestock-health-page > .livestock-notice {
+  position: relative;
+  z-index: 3;
+  max-width: 76rem;
+  margin: 0.6rem auto;
+}
+
+.livestock-health-hub,
+.livestock-health-hub * {
+  box-sizing: border-box;
+}
+
+.livestock-health-hub {
+  display: flex;
+  min-height: calc(100vh - 4.5rem);
+  background: #f8f9f6;
+  color: var(--health-ink);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.livestock-health-nav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 12rem;
+  height: 100vh;
+  flex: 0 0 12rem;
+  flex-direction: column;
+  padding: 1.15rem 0.55rem 0.75rem;
+  border-right: 1px solid var(--health-border);
+  background: #f9faf7;
+}
+
+.livestock-health-brand {
+  display: grid;
+  gap: 0.08rem;
+  padding: 0.25rem 0.55rem 1.8rem;
+}
+
+.livestock-health-brand strong {
+  color: var(--health-green);
+  font: 700 1rem 'Syne', sans-serif;
+}
+
+.livestock-health-brand span {
+  color: #536159;
+  font-size: 0.5rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.livestock-health-nav > nav {
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+}
+
+.livestock-health-nav > nav button,
+.livestock-health-nav-bottom > span {
+  display: flex;
+  min-height: 2.35rem;
+  align-items: center;
+  gap: 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #4f5c53;
+  padding: 0.5rem 0.6rem;
+  font: 500 0.68rem 'DM Sans', sans-serif;
+  text-align: left;
+}
+
+.livestock-health-nav > nav button {
+  cursor: pointer;
+}
+
+.livestock-health-nav > nav button:hover:not(:disabled) {
+  background: #eef2ed;
+}
+
+.livestock-health-nav > nav button.is-active {
+  background: var(--health-mint);
+  color: #0e6341;
+  font-weight: 750;
+}
+
+.livestock-health-nav > nav button.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.livestock-health-nav > nav .material-symbols-outlined,
+.livestock-health-nav-bottom .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.livestock-health-nav-bottom {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--health-border);
+}
+
+.livestock-health-nav-bottom > span {
+  min-height: 1.8rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.62rem;
+}
+
+.livestock-health-nav-bottom button.livestock-health-add {
+  justify-content: center;
+  min-height: 2.45rem;
+  margin-bottom: 0.35rem;
+  background: var(--health-green);
+  color: #fff;
+  font-weight: 750;
+}
+
+.livestock-health-nav-bottom button.livestock-health-add:hover {
+  background: #11442e;
+}
+
+.livestock-health-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.livestock-health-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.45rem clamp(1rem, 2.5vw, 2rem);
+  border-bottom: 1px solid #e0e4df;
+  background: rgba(249, 250, 247, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.livestock-health-search {
+  display: flex;
+  width: min(19rem, 34vw);
+  min-width: 9rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.55rem;
+  border-radius: 99px;
+  background: #eef0ed;
+  color: #5b665f;
+}
+
+.livestock-health-search > .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.livestock-health-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--health-ink);
+  font: 400 0.6rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-topbar > nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.55rem, 1.5vw, 1.2rem);
+  margin-left: auto;
+}
+
+.livestock-health-topbar > nav button {
+  border: 0;
+  background: transparent;
+  color: #566159;
+  padding: 0.3rem 0;
+  cursor: pointer;
+  font: 500 0.62rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-topbar > nav button:hover {
+  color: var(--health-secondary);
+}
+
+.livestock-health-icon-button,
+.livestock-health-mobile-back {
+  position: relative;
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #4c5a51;
+  cursor: pointer;
+}
+
+.livestock-health-icon-button:hover,
+.livestock-health-mobile-back:hover {
+  background: #edf2ee;
+}
+
+.livestock-health-icon-button .material-symbols-outlined,
+.livestock-health-mobile-back .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.livestock-health-notification-count {
+  position: absolute;
+  top: -0.05rem;
+  right: -0.05rem;
+  display: grid;
+  min-width: 0.85rem;
+  height: 0.85rem;
+  place-items: center;
+  border: 1px solid #fff;
+  border-radius: 99px;
+  background: #a33b2c;
+  color: #fff;
+  font-size: 0.48rem;
+  font-weight: 750;
+}
+
+.livestock-health-avatar {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #c7d2ca;
+  border-radius: 50%;
+  background: #e9f1eb;
+  color: #285d40;
+}
+
+.livestock-health-avatar .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.livestock-health-mobile-back {
+  display: none;
+}
+
+.livestock-health-main {
+  display: grid;
+  width: min(100%, 88rem);
+  gap: 0.85rem;
+  margin: 0 auto;
+  padding: 0.85rem clamp(1rem, 2.5vw, 1.8rem) 2rem;
+}
+
+.livestock-health-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.livestock-health-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+  color: #637067;
+  font-size: 0.55rem;
+}
+
+.livestock-health-breadcrumb strong {
+  color: var(--health-secondary);
+}
+
+.livestock-health-title-row h1 {
+  margin: 0;
+  color: var(--health-green);
+  font: 700 clamp(1.25rem, 2.2vw, 1.8rem)/1.2 'Syne', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.livestock-health-title-row p {
+  margin: 0.25rem 0 0;
+  color: var(--health-muted);
+  font-size: 0.67rem;
+}
+
+.livestock-health-primary {
+  display: inline-flex;
+  min-height: 2.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--health-green);
+  border-radius: 0.4rem;
+  background: var(--health-green);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font: 700 0.62rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-primary:hover {
+  background: #11442e;
+}
+
+.livestock-health-primary .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.livestock-health-disclosure {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  color: #5e6b62;
+  font-size: 0.57rem;
+  line-height: 1.45;
+}
+
+.livestock-health-disclosure .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: var(--health-secondary);
+  font-size: 0.9rem;
+}
+
+.livestock-health-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  scroll-margin-top: 4rem;
+}
+
+.livestock-health-metrics > article {
+  display: grid;
+  min-width: 0;
+  min-height: 4.7rem;
+  align-content: space-between;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--health-border);
+  border-radius: 0.55rem;
+  background: #fff;
+}
+
+.livestock-health-metric-label {
+  color: #5f6b63;
+  font-size: 0.52rem;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.livestock-health-metric-value {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--health-green);
+  font: 700 clamp(1rem, 1.7vw, 1.5rem)/1.1 'Syne', sans-serif;
+}
+
+.livestock-health-metric-value > .material-symbols-outlined {
+  color: var(--health-secondary);
+  font-size: 1.15rem;
+}
+
+.livestock-health-metric-value.is-healthy {
+  color: var(--health-secondary);
+  font-size: clamp(0.9rem, 1.45vw, 1.25rem);
+}
+
+.livestock-health-metrics > article.is-alert .livestock-health-metric-value {
+  color: #923d3c;
+}
+
+.livestock-health-metrics > article.is-alert .livestock-health-metric-value .material-symbols-outlined {
+  color: #b94d4c;
+}
+
+.livestock-health-metrics > article > small {
+  overflow: hidden;
+  color: var(--health-muted);
+  font-size: 0.51rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+}
+
+.livestock-health-columns {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(18rem, 1.7fr) minmax(12rem, 0.8fr);
+  align-items: stretch;
+  gap: 0.7rem;
+}
+
+.livestock-health-schedule,
+.livestock-health-animal-section,
+.livestock-health-biosecurity,
+.livestock-health-history {
+  min-width: 0;
+  border: 1px solid var(--health-border);
+  border-radius: 0.55rem;
+  background: #fff;
+}
+
+.livestock-health-schedule {
+  display: flex;
+  min-height: 23rem;
+  flex-direction: column;
+  scroll-margin-top: 4rem;
+}
+
+.livestock-health-schedule > header {
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--health-border);
+  background: #f5f6f2;
+}
+
+.livestock-health-schedule h2,
+.livestock-health-section-heading h2,
+.livestock-health-biosecurity h2,
+.livestock-health-history h2 {
+  margin: 0;
+  color: var(--health-green);
+  font: 600 0.83rem/1.35 'Syne', sans-serif;
+}
+
+.livestock-health-schedule > header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.livestock-health-schedule > header .material-symbols-outlined {
+  color: var(--health-secondary);
+  font-size: 1rem;
+}
+
+.livestock-health-schedule-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.7rem;
+}
+
+.livestock-health-schedule-list article {
+  position: relative;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.05rem 0 0.65rem 0.55rem;
+  border-left: 1px solid #cdd8d0;
+}
+
+.livestock-health-timeline-dot {
+  position: absolute;
+  top: 0.05rem;
+  left: -0.28rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #2b7955;
+  box-shadow: 0 0 0 1px #b8c8bd;
+}
+
+.livestock-health-schedule-list article.is-overdue .livestock-health-timeline-dot {
+  background: #a53d39;
+}
+
+.livestock-health-schedule-list article > div {
+  display: grid;
+  justify-items: start;
+  gap: 0.17rem;
+}
+
+.livestock-health-schedule-list small {
+  color: var(--health-secondary);
+  font-size: 0.5rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.livestock-health-schedule-list article.is-overdue small {
+  color: #a03b38;
+}
+
+.livestock-health-schedule-list strong {
+  color: #26352b;
+  font-size: 0.62rem;
+}
+
+.livestock-health-schedule-list p,
+.livestock-health-schedule-list time {
+  margin: 0;
+  color: #68736c;
+  font-size: 0.54rem;
+}
+
+.livestock-health-schedule-list button {
+  min-height: 1.4rem;
+  margin-top: 0.12rem;
+  border: 1px solid #d5ddd7;
+  border-radius: 0.25rem;
+  background: #f2f4f1;
+  color: #34443a;
+  padding: 0.2rem 0.42rem;
+  cursor: pointer;
+  font: 700 0.5rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-schedule-list button:hover {
+  background: #e6f4eb;
+}
+
+.livestock-health-empty-schedule,
+.livestock-health-history-empty,
+.livestock-health-no-animals {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.35rem;
+  min-height: 8rem;
+  padding: 1rem;
+  color: var(--health-muted);
+  text-align: center;
+}
+
+.livestock-health-empty-schedule {
+  flex: 1;
+}
+
+.livestock-health-empty-schedule > .material-symbols-outlined,
+.livestock-health-history-empty > .material-symbols-outlined,
+.livestock-health-no-animals > .material-symbols-outlined {
+  color: var(--health-secondary);
+  font-size: 1.35rem;
+}
+
+.livestock-health-empty-schedule strong,
+.livestock-health-history-empty strong,
+.livestock-health-no-animals strong {
+  color: #334239;
+  font-size: 0.65rem;
+}
+
+.livestock-health-empty-schedule p,
+.livestock-health-history-empty p,
+.livestock-health-no-animals p {
+  max-width: 17rem;
+  margin: 0;
+  font-size: 0.54rem;
+  line-height: 1.45;
+}
+
+.livestock-health-text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  margin: auto 0.65rem 0.55rem;
+  border: 0;
+  background: transparent;
+  color: var(--health-secondary);
+  padding: 0.35rem;
+  cursor: pointer;
+  font: 700 0.55rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-text-button .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.livestock-health-animal-section {
+  padding: 0.65rem;
+}
+
+.livestock-health-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.55rem;
+}
+
+.livestock-health-section-heading p {
+  margin: 0.15rem 0 0;
+  color: var(--health-muted);
+  font-size: 0.52rem;
+}
+
+.livestock-health-section-heading > div:last-child {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.livestock-health-section-heading > div:last-child button {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border: 1px solid var(--health-border);
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #4f5f54;
+  cursor: pointer;
+}
+
+.livestock-health-section-heading > div:last-child button[aria-pressed='true'] {
+  background: #e8f4ec;
+  color: #176444;
+}
+
+.livestock-health-section-heading > div:last-child .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.livestock-health-animal-cards {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.livestock-health-animal-card {
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.7fr) minmax(0, 1.3fr);
+  min-width: 0;
+  min-height: 7rem;
+  overflow: hidden;
+  border: 1px solid #dfe4df;
+  border-radius: 0.45rem;
+  background: #fff;
+}
+
+.livestock-health-animal-image {
+  position: relative;
+  display: grid;
+  min-height: 7rem;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #dce8df, #a9c1ae);
+  color: #285b3f;
+}
+
+.livestock-health-animal-image > .material-symbols-outlined {
+  font-size: 3.5rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.livestock-health-animal-image > strong {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  max-width: calc(100% - 0.7rem);
+  overflow: hidden;
+  border-radius: 0.2rem;
+  background: var(--health-green);
+  color: white;
+  padding: 0.15rem 0.3rem;
+  font-size: 0.48rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.livestock-health-animal-info {
+  display: grid;
+  min-width: 0;
+  align-content: space-between;
+  gap: 0.4rem;
+  padding: 0.55rem;
+}
+
+.livestock-health-animal-title {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.livestock-health-animal-title h3 {
+  margin: 0;
+  overflow: hidden;
+  color: #20352a;
+  font: 600 0.73rem/1.25 'Syne', sans-serif;
+  text-overflow: ellipsis;
+}
+
+.livestock-health-animal-title p {
+  margin: 0.12rem 0 0;
+  color: var(--health-muted);
+  font-size: 0.5rem;
+}
+
+.livestock-health-badge {
+  flex: 0 0 auto;
+  border-radius: 99px;
+  background: #eff1ee;
+  color: #58635a;
+  padding: 0.13rem 0.32rem;
+  font-size: 0.45rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.livestock-health-badge.is-healthy {
+  background: #d8f6e5;
+  color: #136640;
+}
+
+.livestock-health-badge.is-attention {
+  background: #f9e3df;
+  color: #923c35;
+}
+
+.livestock-health-last-treatment {
+  margin: 0;
+  color: #58655d;
+  font-size: 0.5rem;
+  line-height: 1.4;
+}
+
+.livestock-health-animal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.livestock-health-animal-stats > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+  padding: 0.3rem;
+  border-radius: 0.25rem;
+  background: #f1f3f0;
+  text-align: center;
+}
+
+.livestock-health-animal-stats small {
+  color: var(--health-muted);
+  font-size: 0.44rem;
+}
+
+.livestock-health-animal-stats strong {
+  overflow: hidden;
+  color: #2d4536;
+  font-size: 0.49rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.livestock-health-card-action {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  color: #176444;
+  padding: 0;
+  cursor: pointer;
+  font: 700 0.5rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-card-action:hover {
+  text-decoration: underline;
+}
+
+.livestock-health-animal-cards.is-list .livestock-health-animal-card {
+  grid-template-columns: minmax(4rem, 0.45fr) minmax(0, 1.55fr);
+}
+
+.livestock-health-data-note {
+  margin: 0.45rem 0 0;
+  color: #727d75;
+  font-size: 0.48rem;
+  line-height: 1.4;
+}
+
+.livestock-health-no-animals {
+  min-height: 13rem;
+  border: 1px dashed #cbd6ce;
+  border-radius: 0.45rem;
+  background: #fafbf9;
+}
+
+.livestock-health-biosecurity {
+  overflow: hidden;
+}
+
+.livestock-health-biosecurity > header {
+  padding: 0.7rem;
+  background: var(--health-green);
+  color: #fff;
+}
+
+.livestock-health-biosecurity h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #fff;
+}
+
+.livestock-health-biosecurity h2 .material-symbols-outlined {
+  font-size: 0.95rem;
+}
+
+.livestock-health-biosecurity-body {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.7rem;
+}
+
+.livestock-health-biosecurity-body > p:first-child {
+  margin: 0 0 0.1rem;
+  color: #657168;
+  font-size: 0.54rem;
+  line-height: 1.4;
+}
+
+.livestock-health-check {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.48rem;
+  border: 1px solid #d8dfd9;
+  border-radius: 0.35rem;
+  background: #fbfcfa;
+  cursor: pointer;
+}
+
+.livestock-health-check input {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  margin: 0.05rem 0 0;
+  accent-color: #14744e;
+  cursor: pointer;
+}
+
+.livestock-health-check > span {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.livestock-health-check strong {
+  color: #2c3b31;
+  font-size: 0.54rem;
+}
+
+.livestock-health-check small {
+  color: #707b73;
+  font-size: 0.46rem;
+  line-height: 1.35;
+}
+
+.livestock-health-biosecurity-notice {
+  margin: 0;
+  color: #176444;
+  font-size: 0.5rem;
+}
+
+.livestock-health-quarantine {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+  padding: 0.55rem;
+  border-radius: 0.35rem;
+  background: #f3efef;
+  color: #644d4b;
+}
+
+.livestock-health-quarantine > .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+}
+
+.livestock-health-quarantine strong {
+  font-size: 0.48rem;
+}
+
+.livestock-health-quarantine p {
+  margin: 0.12rem 0 0;
+  color: #6a6463;
+  font-size: 0.47rem;
+  line-height: 1.4;
+}
+
+.livestock-health-history {
+  overflow: hidden;
+  scroll-margin-top: 4rem;
+}
+
+.livestock-health-history > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--health-border);
+}
+
+.livestock-health-history > header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 0;
+  background: transparent;
+  color: #176444;
+  padding: 0.3rem;
+  cursor: pointer;
+  font: 700 0.53rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-history > header button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.livestock-health-history > header .material-symbols-outlined {
+  font-size: 0.8rem;
+}
+
+.livestock-health-history-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.livestock-health-history table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.livestock-health-history th {
+  padding: 0.55rem 0.65rem;
+  background: #f3f4f1;
+  color: #405047;
+  font-size: 0.47rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.livestock-health-history td {
+  padding: 0.6rem 0.65rem;
+  border-bottom: 1px solid #e1e5e1;
+  color: #39453d;
+  font-size: 0.53rem;
+  vertical-align: middle;
+}
+
+.livestock-health-history tbody tr:nth-child(even) {
+  background: #f9faf7;
+}
+
+.livestock-health-history td small {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  margin-top: 0.12rem;
+  color: #707b73;
+  font-size: 0.46rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.livestock-health-history-status {
+  display: inline-flex;
+  border: 1px solid #cbd9cf;
+  border-radius: 0.2rem;
+  background: #eff6f0;
+  color: #286547;
+  padding: 0.17rem 0.32rem;
+  font-size: 0.45rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.livestock-health-history-status.is-open {
+  border-color: #dacac7;
+  background: #f6f0ef;
+  color: #76504c;
+}
+
+.livestock-health-history-empty {
+  min-height: 8rem;
+}
+
+.livestock-health-load-more {
+  display: block;
+  width: 100%;
+  min-height: 2rem;
+  border: 0;
+  border-top: 1px solid var(--health-border);
+  background: #f6f7f4;
+  color: #536158;
+  cursor: pointer;
+  font: 700 0.52rem 'DM Sans', sans-serif;
+}
+
+.livestock-health-load-more:hover {
+  background: #edf4ee;
+}
+
+.livestock-health-hub button:focus-visible,
+.livestock-health-hub input:focus-visible {
+  outline: 2px solid #31936a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 1120px) {
+  .livestock-health-columns {
+    grid-template-columns: minmax(12rem, 0.72fr) minmax(17rem, 1.35fr);
+  }
+
+  .livestock-health-biosecurity {
+    grid-column: 1 / -1;
+  }
+
+  .livestock-health-biosecurity-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .livestock-health-biosecurity-body > p:first-child,
+  .livestock-health-biosecurity-notice,
+  .livestock-health-quarantine {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .livestock-health-hub {
+    display: block;
+  }
+
+  .livestock-health-nav {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 0.65rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--health-border);
+  }
+
+  .livestock-health-brand,
+  .livestock-health-nav-bottom {
+    display: none;
+  }
+
+  .livestock-health-nav > nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.25rem;
+  }
+
+  .livestock-health-nav > nav button {
+    min-height: 2rem;
+    flex: 0 0 auto;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.6rem;
+  }
+
+  .livestock-health-content {
+    min-height: auto;
+  }
+
+  .livestock-health-topbar {
+    position: static;
+    gap: 0.45rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .livestock-health-mobile-back {
+    display: grid;
+  }
+
+  .livestock-health-search {
+    width: auto;
+    flex: 1;
+  }
+
+  .livestock-health-topbar > nav {
+    display: none;
+  }
+
+  .livestock-health-main {
+    padding: 0.75rem;
+  }
+
+  .livestock-health-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .livestock-health-schedule {
+    min-height: auto;
+  }
+
+  .livestock-health-biosecurity {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .livestock-health-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .livestock-health-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .livestock-health-title-row > .livestock-health-primary {
+    align-self: stretch;
+  }
+
+  .livestock-health-biosecurity-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .livestock-health-biosecurity-body > p:first-child,
+  .livestock-health-biosecurity-notice,
+  .livestock-health-quarantine {
+    grid-column: auto;
+  }
+
+  .livestock-health-animal-card {
+    grid-template-columns: minmax(4rem, 0.55fr) minmax(0, 1.45fr);
+  }
+
+  .livestock-health-animal-title {
+    flex-direction: column;
+  }
+
+  .livestock-health-history > header {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .livestock-health-hub *,
+  .livestock-health-hub *::before,
+  .livestock-health-hub *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
