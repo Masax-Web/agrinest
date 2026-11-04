@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "AGRI-NEST | Smart Agriculture Platform",
+  "short_name": "AGRI-NEST",
+  "description": "AGRI-NEST connects farmers, buyers, financiers, and experts through a unified digital agriculture ecosystem.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b3d2e",
+  "theme_color": "#0b3d2e",
+  "icons": [
+    {
+      "src": "/agrinest-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/agrinest-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
