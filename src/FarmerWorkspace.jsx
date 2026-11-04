@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
 import AgrishopNetwork from './AgrishopNetwork';
+import ExportReadinessWorkspace from './ExportReadinessWorkspace';
 import HabariIntelligence from './HabariIntelligence';
 import TransportLogisticsWorkspace from './TransportLogisticsWorkspace';
 import {
@@ -466,6 +467,15 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       profile={profile}
       records={records}
       onRecordsChange={onRecordsChange}
+    />;
+  }
+
+  if (page === 'compliance') {
+    return <ExportReadinessWorkspace
+      records={records}
+      fields={records.fields}
+      onRecordsChange={onRecordsChange}
+      onBack={onBack}
     />;
   }
 
