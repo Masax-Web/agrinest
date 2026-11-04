@@ -1409,6 +1409,15 @@ button {
   color: var(--auth-gold);
 }
 
+.agrinest-logo {
+  display: block;
+  width: min(100%, 24rem);
+  aspect-ratio: 3.1;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  object-position: center;
+}
+
 .agrinest-hero-title {
   max-width: 14ch;
   color: var(--auth-gold);
@@ -1794,6 +1803,10 @@ button {
     color: var(--auth-gold);
     font-family: 'Syne', 'DM Sans', sans-serif;
     font-size: 1.05rem;
+  }
+
+  .agrinest-mobile-brand .agrinest-logo {
+    width: min(100%, 15rem);
   }
 
   .agrinest-mobile-brand .material-symbols-outlined {

@@ -785,8 +785,7 @@ function App() {
     <div className="agrinest-auth-shell">
       <div className="agrinest-visual-panel">
         <div className="agrinest-brand-row">
-          <span className="agrinest-icon">eco</span>
-          <span className="agrinest-brand">AGRI-NEST</span>
+          <img className="agrinest-logo" src="/agrinest-logo.jpg" alt="Agri-Nest — Agricultural Operating System" />
         </div>
 
         <h1 className="agrinest-hero-title">Empowering the Future of Farming</h1>
@@ -818,8 +817,7 @@ function App() {
 
       <div className="agrinest-form-panel">
         <div className="agrinest-mobile-brand">
-          <span className="material-symbols-outlined">eco</span>
-          <span>AGRI-NEST</span>
+          <img className="agrinest-logo" src="/agrinest-logo.jpg" alt="Agri-Nest — Agricultural Operating System" />
         </div>
         <div className="agrinest-auth-card">
           <div className="agrinest-header-row">
