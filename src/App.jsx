@@ -134,9 +134,9 @@ function getAuthErrorMessage(code) {
   return messages[code] || String(code || 'Authentication failed. Please try again.').replaceAll('_', ' ');
 }
 
-function GoogleSignInButton({ label, onClick, disabled }) {
+function GoogleSignInButton({ label, onClick, disabled, className = '' }) {
   return (
-    <button type="button" className="google-signin-button" onClick={onClick} disabled={disabled}>
+    <button type="button" className={`google-signin-button ${className}`.trim()} onClick={onClick} disabled={disabled}>
       <svg className="google-g-mark" viewBox="0 0 24 24" aria-hidden="true">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.91 3.28-4.73 3.28-8.09Z" />
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84C3.96 20.48 7.7 23 12 23Z" />
@@ -537,6 +537,7 @@ function App() {
   const [staffAccessMode, setStaffAccessMode] = useState(false);
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showRegistrationPasswords, setShowRegistrationPasswords] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState(1);
   const registrationFormRef = useRef(null);
 
   useEffect(() => {
@@ -681,13 +682,20 @@ function App() {
       return;
     }
     const values = new FormData(form);
+    const invitationToken = String(values.get('invitation_token') || '').trim();
+    if (personaById.get(selectedRole)?.registration === 'invite' && !invitationToken) {
+      setAuthMessage('Enter your invitation token before continuing with Google.');
+      return;
+    }
     handleGoogleSignIn({
       core_role: personaCoreRole,
       persona_id: selectedRole,
       phone: values.get('phone'),
-      invitation_token: values.get('invitation_token') || undefined,
+      invitation_token: invitationToken || undefined,
     });
   };
+
+  const requiresInvitation = personaById.get(selectedRole)?.registration === 'invite';
 
   const handleEndImpersonation = async () => {
     try {
@@ -840,7 +848,7 @@ function App() {
               <button
                 type="button"
                 className={activeTab === 'register' ? 'tab-button active' : 'tab-button'}
-                onClick={() => { setActiveTab('register'); setStaffAccessMode(false); setAuthMessage(''); }}
+                onClick={() => { setActiveTab('register'); setRegistrationStep(1); setStaffAccessMode(false); setAuthMessage(''); }}
               >
                 Register
               </button>
@@ -919,63 +927,114 @@ function App() {
             <div className="register-panel">
             <div className="signin-heading">
               <h2>Join the Nest</h2>
-              <p>Create your AGRI-NEST account.</p>
+              <p aria-live="polite">
+                {registrationStep === 1
+                  ? `Step 1 of ${requiresInvitation ? 3 : 2} · Set up your account.`
+                  : registrationStep === 2
+                    ? `Step 2 of ${requiresInvitation ? 3 : 2} · Choose a secure password.`
+                    : 'Step 3 of 3 · Enter your invitation token.'}
+              </p>
             </div>
 
-            <form ref={registrationFormRef} className="register-box" onSubmit={handleRegister}>
-              <label className="persona-select-label">
-                <span>Core role</span>
-                <select value={selectedCoreRole} onChange={(event) => {
-                  const nextCoreRole = coreRoleById.get(event.target.value);
-                  const nextPersonaId = nextCoreRole?.personas.find((personaId) => personaId !== 'super_admin') || '';
-                  setSelectedCoreRole(event.target.value);
-                  setSelectedRole(nextPersonaId);
+            <form
+              ref={registrationFormRef}
+              className="register-box"
+              onSubmit={(event) => {
+                if (registrationStep === 1) {
+                  event.preventDefault();
                   setAuthMessage('');
-                }}>
-                  {roleModel.coreRoles.map((coreRole) => (
-                    <option key={coreRole.id} value={coreRole.id}>{coreRole.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="persona-select-label">
-                <span>Account type</span>
-                <select value={selectedRole} onChange={(event) => { setSelectedRole(event.target.value); setAuthMessage(''); }}>
-                  {(coreRoleById.get(selectedCoreRole)?.personas || [])
-                    .filter((personaId) => personaId !== 'super_admin')
-                    .map((personaId) => personaById.get(personaId))
-                    .filter(Boolean)
-                    .map((persona) => (
-                      <option key={persona.id} value={persona.id}>{persona.label}</option>
+                  setRegistrationStep(2);
+                  return;
+                }
+                if (registrationStep === 2 && requiresInvitation) {
+                  event.preventDefault();
+                  setAuthMessage('');
+                  setRegistrationStep(3);
+                  return;
+                }
+                handleRegister(event);
+              }}
+            >
+              <div className="registration-step-fields" hidden={registrationStep !== 1}>
+                <label className="persona-select-label">
+                  <span>Core role</span>
+                  <select value={selectedCoreRole} onChange={(event) => {
+                    const nextCoreRole = coreRoleById.get(event.target.value);
+                    const nextPersonaId = nextCoreRole?.personas.find((personaId) => personaId !== 'super_admin') || '';
+                    setSelectedCoreRole(event.target.value);
+                    setSelectedRole(nextPersonaId);
+                    setAuthMessage('');
+                  }}>
+                    {roleModel.coreRoles.map((coreRole) => (
+                      <option key={coreRole.id} value={coreRole.id}>{coreRole.label}</option>
                     ))}
-                </select>
-              </label>
-              <div className="register-row two-up">
-                <label><span>Full Name</span><input name="name" type="text" autoComplete="name" required minLength="2" maxLength="120" placeholder="Your full name" /></label>
-                <label><span>Phone</span><input name="phone" type="tel" autoComplete="tel" required placeholder="+255..." /></label>
+                  </select>
+                </label>
+                <label className="persona-select-label">
+                  <span>Account type</span>
+                  <select value={selectedRole} onChange={(event) => { setSelectedRole(event.target.value); setAuthMessage(''); }}>
+                    {(coreRoleById.get(selectedCoreRole)?.personas || [])
+                      .filter((personaId) => personaId !== 'super_admin')
+                      .map((personaId) => personaById.get(personaId))
+                      .filter(Boolean)
+                      .map((persona) => (
+                        <option key={persona.id} value={persona.id}>{persona.label}</option>
+                      ))}
+                  </select>
+                </label>
+                <div className="register-row two-up registration-contact-row">
+                  <label><span>Full Name</span><input name="name" type="text" autoComplete="name" required={registrationStep === 1} minLength="2" maxLength="120" placeholder="Your full name" /></label>
+                  <label><span>Phone</span><input name="phone" type="tel" autoComplete="tel" required={registrationStep === 1} placeholder="+255..." /></label>
+                </div>
+                <label className="field-label"><span>Email Address (optional)</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" /></label>
               </div>
-              <label className="field-label"><span>Email Address (optional)</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" /></label>
-              <div className="register-row two-up">
-                <label><span>Password</span><div className="register-password-shell"><input name="password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required minLength="12" maxLength="128" /><button type="button" aria-label={showRegistrationPasswords ? 'Hide passwords' : 'Show passwords'} aria-pressed={showRegistrationPasswords} onClick={() => setShowRegistrationPasswords((visible) => !visible)}>{showRegistrationPasswords ? 'visibility' : 'visibility_off'}</button></div></label>
-                <label><span>Confirm Password</span><div className="register-password-shell"><input name="confirm_password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required minLength="12" maxLength="128" /></div></label>
+
+              <div className="registration-step-fields" hidden={registrationStep !== 2}>
+                <div className="register-row two-up">
+                  <label><span>Password</span><div className="register-password-shell"><input name="password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required={registrationStep === 2} minLength="12" maxLength="128" /><button type="button" aria-label={showRegistrationPasswords ? 'Hide passwords' : 'Show passwords'} aria-pressed={showRegistrationPasswords} onClick={() => setShowRegistrationPasswords((visible) => !visible)}>{showRegistrationPasswords ? 'visibility' : 'visibility_off'}</button></div></label>
+                  <label><span>Confirm Password</span><div className="register-password-shell"><input name="confirm_password" type={showRegistrationPasswords ? 'text' : 'password'} autoComplete="new-password" required={registrationStep === 2} minLength="12" maxLength="128" /></div></label>
+                </div>
+                <p className="password-requirement">Use 12 to 128 characters.</p>
+                <p className="persona-registration-note">
+                  {requiresInvitation
+                    ? 'This staff persona is invitation-only.'
+                    : personaById.get(selectedRole)?.registration === 'review'
+                        ? 'Your account will be activated after an administrator reviews your registration.'
+                        : 'You can sign in as soon as your account is created.'}
+                </p>
+                <div className="registration-step-actions">
+                  <button type="button" className="security-settings-secondary" onClick={() => { setAuthMessage(''); setRegistrationStep(1); }}>Back</button>
+                  <button type="submit" className="primary-action register-submit" disabled={authBusy}>
+                    {authBusy ? 'Submitting...' : requiresInvitation ? 'Continue' : 'Create Account'}
+                    <span className="arrow-forward">arrow_forward</span>
+                  </button>
+                </div>
+                {!requiresInvitation && (
+                  <>
+                    <GoogleSignInButton label="Sign up with Google" onClick={handleGoogleRegistration} disabled={authBusy} className="registration-google-button" />
+                    <p className="google-registration-note">Uses your selected role and phone; approval or an invite may be required.</p>
+                  </>
+                )}
               </div>
-              <p className="password-requirement">Use 12 to 128 characters.</p>
-              {personaById.get(selectedRole)?.registration === 'invite' && <label className="field-label"><span>Invitation Token</span><input name="invitation_token" type="text" required autoComplete="one-time-code" /></label>}
-              <p className="persona-registration-note">
-                {personaById.get(selectedRole)?.registration === 'invite'
-                  ? 'This staff persona is invitation-only.'
-                  : personaById.get(selectedRole)?.registration === 'review'
-                      ? 'Your account will be activated after an administrator reviews your registration.'
-                      : 'You can sign in as soon as your account is created.'}
-              </p>
+
+              {requiresInvitation && (
+                <div className="registration-step-fields" hidden={registrationStep !== 3}>
+                  <label className="field-label"><span>Invitation Token</span><input name="invitation_token" type="text" required={registrationStep === 3} autoComplete="one-time-code" /></label>
+                  <p className="persona-registration-note">Enter the invitation token supplied by your AGRI-NEST administrator.</p>
+                  <div className="registration-step-actions">
+                    <button type="button" className="security-settings-secondary" onClick={() => { setAuthMessage(''); setRegistrationStep(2); }}>Back</button>
+                    <button type="submit" className="primary-action register-submit" disabled={authBusy}>
+                      {authBusy ? 'Submitting...' : 'Create Account'}
+                      <span className="arrow-forward">arrow_forward</span>
+                    </button>
+                  </div>
+                  <GoogleSignInButton label="Sign up with Google" onClick={handleGoogleRegistration} disabled={authBusy} className="registration-google-button" />
+                  <p className="google-registration-note">Uses your selected role and phone.</p>
+                </div>
+              )}
               {authMessage && <p className="auth-feedback" role="alert">{authMessage}</p>}
-              <button type="submit" className="primary-action register-submit" disabled={authBusy}>
-                {authBusy ? 'Submitting...' : 'Create Account'}
-                <span className="arrow-forward">arrow_forward</span>
-              </button>
+              {registrationStep === 1 && <button type="submit" className="primary-action register-submit">Continue</button>}
             </form>
-            <div className="auth-divider" aria-hidden="true"><span>or create an account with</span></div>
-            <GoogleSignInButton label="Sign up with Google" onClick={handleGoogleRegistration} disabled={authBusy} />
-            <p className="google-registration-note">Google sign-up uses the selected account type. Some types require administrator approval or an invitation.</p>
             </div>
           )}
         </div>
