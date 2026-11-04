@@ -10,6 +10,7 @@ const SpaceRentalService = require('../../api/services/SpaceRentalService');
 describe('AGRI-NEST API integration', () => {
   const methods = [
     [AuthService, 'getSessionUser'],
+    [AuthService, 'loginUser'],
     [AuthService, 'setFarmerPersona'],
     [FarmService, 'createFarm'],
     [FarmService, 'getFarmById'],
@@ -83,6 +84,35 @@ describe('AGRI-NEST API integration', () => {
       .post('/auth/register')
       .send({ name: 'Test Farmer', phone: '+255700000002', persona_id: 'smallholder_farmer' })
       .expect(400);
+  });
+
+  it('returns a documented error when no session is provided', async () => {
+    const response = await request(app).get('/auth/me').expect(401);
+    expect(response.body.error).to.be.a('string').and.not.empty;
+  });
+
+  it('preserves expected login errors through response validation', async () => {
+    AuthService.loginUser = async () => {
+      throw Object.assign(new Error('invalid_credentials'), { code: 'invalid_credentials', status: 401 });
+    };
+
+    const response = await request(app)
+      .post('/auth/login')
+      .send({ identifier: 'farmer@example.test', password: 'test-password-only' })
+      .expect(401);
+
+    expect(response.body.error).to.equal('invalid_credentials');
+
+    AuthService.loginUser = async () => {
+      throw Object.assign(new Error('auth_backend_unavailable'), { code: 'auth_backend_unavailable', status: 500 });
+    };
+
+    const serverError = await request(app)
+      .post('/auth/login')
+      .send({ identifier: 'farmer@example.test', password: 'test-password-only' })
+      .expect(500);
+
+    expect(serverError.body.error).to.equal('auth_backend_unavailable');
   });
 
   it('returns the authenticated account', async () => {

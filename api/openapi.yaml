@@ -56,6 +56,36 @@ paths:
                   expires_at:
                     type: string
                     format: date-time
+        '400':
+          description: Invalid sign-in request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account access is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many sign-in attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Sign-in could not be completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/pin/verify:
     post:
@@ -74,6 +104,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResult'
+        '400':
+          description: Invalid or expired PIN challenge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: PIN verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many PIN verification attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: PIN verification could not be completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/google:
     get:
@@ -180,6 +234,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResult'
+        '400':
+          description: Invalid or expired Google exchange code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Google sign-in could not be verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account access is not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Google sign-in could not be completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/profile:
     get:
@@ -193,6 +271,22 @@ paths:
                 $ref: '#/components/schemas/FarmerProfileResult'
         '401':
           description: A valid session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Authentication service is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Farmer profile could not be loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       summary: Save the authenticated user's farmer profile
       requestBody:
@@ -214,10 +308,34 @@ paths:
                 $ref: '#/components/schemas/FarmerProfileResult'
         '400':
           description: Invalid profile or image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: A valid session is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '413':
           description: Profile exceeds the allowed size
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Authentication service is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Farmer profile could not be saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/persona:
     put:
@@ -471,6 +589,16 @@ paths:
                     $ref: '#/components/schemas/AuthUser'
         '401':
           description: Missing or expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Authentication service is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /auth/logout:
     post:
@@ -1010,7 +1138,7 @@ paths:
               properties:
                 skills: { type: array, minItems: 1, maxItems: 12, items: { type: string, minLength: 1, maxLength: 60 } }
                 region: { type: string, minLength: 1, maxLength: 120 }
-                dailyRate: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                dailyRate: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
                 experience: { type: string, maxLength: 300 }
                 bio: { type: string, maxLength: 1000 }
                 availability: { type: string, enum: [available, seasonal, busy] }
@@ -1041,7 +1169,7 @@ paths:
                 skill: { type: string, minLength: 1, maxLength: 80 }
                 location: { type: string, minLength: 1, maxLength: 120 }
                 workersNeeded: { type: integer, minimum: 1, maximum: 1000 }
-                dailyRate: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                dailyRate: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
                 startDate: { type: string, format: date }
                 durationDays: { type: integer, minimum: 1, maximum: 365 }
                 details: { type: string, maxLength: 2000 }
@@ -1119,7 +1247,7 @@ paths:
                 pickup: { type: string, minLength: 1, maxLength: 160 }
                 destination: { type: string, minLength: 1, maxLength: 160 }
                 cargo: { type: string, minLength: 1, maxLength: 120 }
-                weight_kg: { type: number, exclusiveMinimum: 0, maximum: 1000000, nullable: true }
+                weight_kg: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000, nullable: true }
                 pickup_date: { type: string, format: date, nullable: true }
                 details: { type: string, maxLength: 2000 }
       responses:
@@ -1148,7 +1276,7 @@ paths:
               type: object
               required: [amount]
               properties:
-                amount: { type: number, exclusiveMinimum: 0, maximum: 1000000000 }
+                amount: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
                 details: { type: string, maxLength: 1000 }
       responses:
         '201': { description: Quote submitted }
