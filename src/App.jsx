@@ -13,6 +13,7 @@ import JichoNdviWorkspace from './JichoNdviWorkspace';
 import IrrigationWorkspace from './IrrigationWorkspace';
 import GroupsDashboard from './GroupsDashboard';
 import CommunityLearningPortal from './CommunityLearningPortal';
+import LearningTrainingWorkspace from './LearningTrainingWorkspace';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
 import LenderDashboard from './LenderDashboard';
@@ -2747,6 +2748,8 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
             records={farmerRecords}
             onRecordsChange={updateFarmerRecords}
           />
+        ) : activeView === 'training' ? (
+          <LearningTrainingWorkspace key={user.user_id} accountId={user.user_id} profile={farmerProfile} />
         ) : (
           <FarmerWorkspace
             page={activeView}
