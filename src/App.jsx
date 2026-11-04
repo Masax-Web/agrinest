@@ -12,6 +12,7 @@ import SustainabilityWorkspace from './SustainabilityWorkspace';
 import JichoNdviWorkspace from './JichoNdviWorkspace';
 import IrrigationWorkspace from './IrrigationWorkspace';
 import GroupsDashboard from './GroupsDashboard';
+import CommunityLearningPortal from './CommunityLearningPortal';
 import LoanSpendingPage from './LoanSpendingPage';
 import SmartLoanApplication from './SmartLoanApplication';
 import LenderDashboard from './LenderDashboard';
@@ -1957,7 +1958,7 @@ function SmallholderDashboard({ user, onLogout }) {
   const farmerNavigationViews = {
     Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock',
     'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
-    Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
+    Experts: 'experts', Groups: 'groups', 'Community & Learning Portal': 'community-learning', 'Wanafunzi Hub': 'training', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
     'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
@@ -2061,6 +2062,7 @@ function SmallholderDashboard({ user, onLogout }) {
     {
       heading: 'Learning & Training',
       items: [
+        { label: 'Community & Learning Portal', icon: 'school' },
         { label: 'Wanafunzi Hub', icon: 'school' },
         { label: 'Community Chat', icon: 'forum' },
       ],
@@ -2195,6 +2197,7 @@ function SmallholderDashboard({ user, onLogout }) {
               </span>
             </button>
             {activeView === 'income' && <h2 className="topbar-page-title">Hesabu Yangu</h2>}
+            {activeView === 'community-learning' && <h2 className="topbar-page-title">Community &amp; Learning Portal</h2>}
             {activeView === 'community' && <h2 className="topbar-page-title">Community Chat</h2>}
             {activeView === 'jicho' && <h2 className="topbar-page-title">Jicho AI</h2>}
             {activeView === 'marketplace' && <h2 className="topbar-page-title">Soko Marketplace</h2>}
@@ -2309,6 +2312,13 @@ function SmallholderDashboard({ user, onLogout }) {
             notifications={notifications}
             onNotificationsChange={setNotifications}
             onBackToDashboard={() => setActiveView('dashboard')}
+          />
+        ) : activeView === 'community-learning' ? (
+          <CommunityLearningPortal
+            profile={farmerProfile}
+            records={farmerRecords}
+            onRecordsChange={updateFarmerRecords}
+            onNavigate={setActiveView}
           />
         ) : activeView === 'community' ? (
           <CommunityChat
