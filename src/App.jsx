@@ -1700,6 +1700,7 @@ function normalizeFarmerRecords(records = {}) {
     ndvi: collection(records.ndvi),
     irrigationLogs: collection(records.irrigationLogs),
     irrigationSettings: collection(records.irrigationSettings),
+    moistureReadings: collection(records.moistureReadings),
     livestock: collection(records.livestock),
     groups: Array.isArray(records.groups) ? collection(records.groups) : [{ id: 'iringa-women-farmers', name: 'Iringa Women Farmers', region: 'Iringa' }],
     activities: collection(records.activities),
@@ -2644,10 +2645,12 @@ function SmallholderDashboard({ user, onLogout }) {
             fields={farmerRecords.fields}
             logs={farmerRecords.irrigationLogs}
             settings={farmerRecords.irrigationSettings}
+            moistureReadings={farmerRecords.moistureReadings}
             weather={weatherData}
             weatherStatus={weatherLocationStatus}
             onLogsChange={(irrigationLogs) => updateFarmerRecords('irrigationLogs', irrigationLogs)}
             onSettingsChange={(irrigationSettings) => updateFarmerRecords('irrigationSettings', irrigationSettings)}
+            onMoistureReadingsChange={(moistureReadings) => updateFarmerRecords('moistureReadings', moistureReadings)}
             onNavigate={setActiveView}
           />
         ) : activeView === 'groups' ? (

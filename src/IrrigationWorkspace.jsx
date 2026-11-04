@@ -7,6 +7,7 @@ const today = () => {
 };
 const makeId = () => globalThis.crypto?.randomUUID?.() || `irrigation-${Date.now()}`;
 const positiveNumber = (value) => Number.isFinite(Number(value)) && Number(value) > 0;
+const fieldRecordId = (field, index) => field.id || `field-${index}`;
 const formatLiters = (value) => `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })} L`;
 const formatDate = (value) => {
   if (!value) return 'Date not recorded';
@@ -42,10 +43,12 @@ export default function IrrigationWorkspace({
   fields = [],
   logs = [],
   settings = [],
+  moistureReadings = [],
   weather,
   weatherStatus = '',
   onLogsChange,
   onSettingsChange,
+  onMoistureReadingsChange,
   onNavigate,
 }) {
   const [selectedFieldId, setSelectedFieldId] = useState(fields[0]?.id || (fields.length ? 'field-0' : ''));
@@ -58,14 +61,30 @@ export default function IrrigationWorkspace({
   const [logDate, setLogDate] = useState(today);
   const [logNote, setLogNote] = useState('');
   const [moistureThreshold, setMoistureThreshold] = useState('');
+  const [moisturePercent, setMoisturePercent] = useState('');
+  const [moistureDate, setMoistureDate] = useState(today);
   const [notice, setNotice] = useState('');
 
-  const selectedFieldIndex = fields.findIndex((field, index) => (field.id || `field-${index}`) === selectedFieldId);
+  const selectedFieldIndex = fields.findIndex((field, index) => fieldRecordId(field, index) === selectedFieldId);
   const selectedField = selectedFieldIndex >= 0 ? fields[selectedFieldIndex] : undefined;
   const selectedSetting = settings.find((setting) => setting.fieldId === selectedFieldId);
-  const validBuckets = positiveNumber(bucketSize) && positiveNumber(bucketCount);
+  const moistureByField = useMemo(() => fields.map((field, index) => {
+    const fieldId = fieldRecordId(field, index);
+    const readings = moistureReadings
+      .filter((reading) => reading.fieldId === fieldId && String(reading.moisturePercent ?? '').trim() !== ''
+        && Number.isFinite(Number(reading.moisturePercent))
+        && Number(reading.moisturePercent) >= 0 && Number(reading.moisturePercent) <= 100)
+      .sort((left, right) => `${right.date || ''}T${right.time || ''}`.localeCompare(`${left.date || ''}T${left.time || ''}`));
+    const setting = settings.find((item) => item.fieldId === fieldId);
+    return { field, fieldId, readings, latest: readings[0], setting };
+  }), [fields, moistureReadings, settings]);
+  const validBuckets = positiveNumber(bucketSize)
+    && Number.isInteger(Number(bucketCount))
+    && positiveNumber(bucketCount)
+    && Number.isFinite(Number(bucketSize) * Number(bucketCount));
   const estimatedLiters = validBuckets ? Number(bucketSize) * Number(bucketCount) : null;
   const estimatedPumpMinutes = estimatedLiters && positiveNumber(pumpFlow)
+    && Number.isFinite(estimatedLiters / Number(pumpFlow))
     ? estimatedLiters / Number(pumpFlow)
     : null;
   const fieldLogs = useMemo(() => logs
@@ -76,6 +95,12 @@ export default function IrrigationWorkspace({
   const sevenDayTotal = sevenDayTrend.reduce((total, day) => total + day.liters, 0);
   const chartMaximum = Math.max(...sevenDayTrend.map((day) => day.liters), 1);
   const latestRainForecast = weather?.forecast?.[0];
+
+  useEffect(() => {
+    if (fields.length && !fields.some((field, index) => fieldRecordId(field, index) === selectedFieldId)) {
+      setSelectedFieldId(fieldRecordId(fields[0], 0));
+    }
+  }, [fields, selectedFieldId]);
 
   useEffect(() => {
     setMoistureThreshold(selectedSetting ? String(selectedSetting.moistureThresholdPercent) : '');
@@ -107,9 +132,41 @@ export default function IrrigationWorkspace({
     setNotice('Irrigation record saved to your farm records.');
   };
 
+  const saveMoistureReading = (event) => {
+    event.preventDefault();
+    const value = Number(moisturePercent);
+    if (!selectedField) {
+      setNotice('Add or select a field in Digital Farm before recording its moisture.');
+      return;
+    }
+    if (moisturePercent.trim() === '' || !Number.isFinite(value) || value < 0 || value > 100) {
+      setNotice('Enter a measured moisture value from 0 to 100%.');
+      return;
+    }
+    if (!moistureDate || moistureDate > today()) {
+      setNotice('Choose a moisture-reading date that is not in the future.');
+      return;
+    }
+    if (!onMoistureReadingsChange) {
+      setNotice('Unable to save the moisture reading because farm records are unavailable.');
+      return;
+    }
+    const reading = {
+      id: makeId(),
+      fieldId: selectedFieldId,
+      fieldName: selectedField.name || `Field ${selectedFieldIndex + 1}`,
+      moisturePercent: value,
+      date: moistureDate,
+      source: 'farmer-entered',
+    };
+    onMoistureReadingsChange([...moistureReadings, reading]);
+    setMoisturePercent('');
+    setNotice('Moisture reading saved as a farmer-entered observation. No sensor is connected.');
+  };
+
   const saveSettings = () => {
     const threshold = Number(moistureThreshold);
-    if (!selectedFieldId || !Number.isInteger(threshold) || threshold < 0 || threshold > 100) {
+    if (!selectedFieldId || moistureThreshold.trim() === '' || !Number.isInteger(threshold) || threshold < 0 || threshold > 100) {
       setNotice('Choose a field and enter a moisture reminder target from 0 to 100%.');
       return;
     }
@@ -129,41 +186,108 @@ export default function IrrigationWorkspace({
     <main className="irrigation-hub">
       <header className="irrigation-heading">
         <div>
-          <span className="irrigation-eyebrow">FIELD WATER RECORDS</span>
+          <span className="irrigation-eyebrow">KADIRIA MAJI · FIELD WATER RECORDS</span>
           <h1>Smart Irrigation Hub</h1>
-          <p>Track water you apply, check available local weather, and estimate quantities using your own measurements.</p>
+          <p>Review field observations, local forecast context, and the water you record applying.</p>
         </div>
-        <span className="irrigation-heading-mark material-symbols-outlined" aria-hidden="true">water_drop</span>
+        <span className={`irrigation-connection-status ${weather ? 'available' : ''}`}>
+          <span className="material-symbols-outlined" aria-hidden="true">{weather ? 'cloud_done' : 'cloud_off'}</span>
+          {weather?.source === 'default' ? 'Regional weather reference' : weather ? 'Farm weather snapshot available' : 'Weather unavailable'}
+        </span>
       </header>
 
       <p className="irrigation-disclaimer">
         <span className="material-symbols-outlined" aria-hidden="true">info</span>
-        Crop-water demand, evapotranspiration, live soil moisture, irrigation control, equipment listings, and NIRC data are not connected. No irrigation recommendation or compliance status is calculated here.
+        Moisture values are farmer-entered observations, not live sensor readings. AGRI-NEST is not connected to irrigation controls, evapotranspiration, crop-water recommendations, equipment inventory, or NIRC records.
       </p>
+      {notice && <p className="irrigation-status" role="status">{notice}</p>}
 
-      <section className="irrigation-field-row" aria-label="Selected field details">
-        <article className="irrigation-card irrigation-field-picker">
-          <label htmlFor="irrigation-field">Selected field</label>
-          <select id="irrigation-field" value={selectedFieldId} onChange={(event) => setSelectedFieldId(event.target.value)}>
-            <option value="">All farm records / no field selected</option>
-            {fields.map((field, index) => (
-              <option value={field.id || `field-${index}`} key={field.id || `field-${index}`}>
-                {field.name || `Field ${index + 1}`}{field.crop ? ` · ${field.crop}` : ''}
-              </option>
-            ))}
-          </select>
-        </article>
-        <article className="irrigation-card irrigation-field-summary">
-          <div><small>Field size</small><strong>{selectedField?.area ? `${selectedField.area} acres` : 'Not recorded'}</strong></div>
-          <div><small>Crop</small><strong>{selectedField?.crop || 'Not recorded'}</strong></div>
-          <div><small>Soil record</small><strong>{selectedField?.soil?.type || selectedField?.soil?.soilType || 'Not recorded'}</strong></div>
-          <div><small>Season</small><strong>{selectedField?.season || (selectedField?.plantedOn ? `Planted ${formatDate(selectedField.plantedOn)}` : 'Not recorded')}</strong></div>
-        </article>
+      <section className="irrigation-field-dashboard" aria-labelledby="irrigation-fields-title">
+        <div className="irrigation-section-heading">
+          <div><span className="material-symbols-outlined" aria-hidden="true">grid_view</span><div><h2 id="irrigation-fields-title">Field moisture overview</h2><p>Select a field to review its saved water records.</p></div></div>
+          <span>{fields.length} {fields.length === 1 ? 'field' : 'fields'}</span>
+        </div>
+        {fields.length ? (
+          <div className="irrigation-field-cards">
+            {moistureByField.map(({ field, fieldId, readings, latest, setting }, index) => {
+              const targetPercent = Number(setting?.moistureThresholdPercent);
+              const hasTarget = String(setting?.moistureThresholdPercent ?? '').trim() !== ''
+                && Number.isInteger(targetPercent) && targetPercent >= 0 && targetPercent <= 100;
+              const isBelowTarget = Boolean(latest && hasTarget && Number(latest.moisturePercent) < targetPercent);
+              const status = latest ? (isBelowTarget ? 'Below your target' : hasTarget ? 'At/above your target' : 'Reading saved') : 'No reading';
+              const ringOffset = latest ? 251 - (251 * Number(latest.moisturePercent) / 100) : 251;
+              const recentReadings = readings.slice(0, 7).reverse();
+              return (
+                <button
+                  type="button"
+                  key={fieldId}
+                  className={`irrigation-field-card${selectedFieldId === fieldId ? ' selected' : ''}${isBelowTarget ? ' below-target' : ''}`}
+                  aria-pressed={selectedFieldId === fieldId}
+                  aria-label={`${field.name || `Field ${index + 1}`}, ${latest ? `${latest.moisturePercent}% farmer-entered moisture reading` : 'no moisture reading recorded'}, ${status}`}
+                  onClick={() => setSelectedFieldId(fieldId)}
+                >
+                  <span className="irrigation-field-card-heading">
+                    <span><small>FIELD {index + 1}</small><strong>{field.name || `Field ${index + 1}`}</strong><span>{field.crop || 'Crop not recorded'}</span></span>
+                    <span className={`irrigation-field-status${isBelowTarget ? ' alert' : ''}`}>{status}</span>
+                  </span>
+                  <span className="irrigation-field-card-data">
+                    <span className={`irrigation-moisture-ring${latest ? '' : ' empty'}${isBelowTarget ? ' alert' : ''}`} aria-hidden="true">
+                      <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" />
+                        <circle className="value" cx="50" cy="50" r="40" style={{ strokeDashoffset: ringOffset }} />
+                      </svg>
+                      <strong>{latest ? `${latest.moisturePercent}%` : '—'}</strong>
+                    </span>
+                    <span className="irrigation-field-reading">
+                      <small>{latest ? 'Latest farmer-entered reading' : 'Moisture reading'}</small>
+                      <strong>{latest ? formatDate(latest.date) : 'Not recorded'}</strong>
+                      <span className="irrigation-reading-sparkline" aria-hidden="true">
+                        {recentReadings.length ? recentReadings.map((reading) => (
+                          <i key={reading.id} style={{ height: `${Math.max(4, Number(reading.moisturePercent))}%` }} />
+                        )) : <span>No sensor data</span>}
+                      </span>
+                    </span>
+                  </span>
+                  <span className="irrigation-field-card-footer">
+                    <span>{field.area ? `${field.area} acres` : 'Area not recorded'}</span>
+                    <span>{field.soil?.type || field.soil?.soilType || 'Soil not recorded'}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="irrigation-no-fields">
+            <span className="material-symbols-outlined" aria-hidden="true">agriculture</span>
+            <p>Add a field in Digital Farm to see field-by-field water records here.</p>
+            <button type="button" className="irrigation-secondary-button" onClick={() => onNavigate?.('fields')}>Open Digital Farm</button>
+          </div>
+        )}
       </section>
+
+      <details className="irrigation-reading-entry">
+        <summary><span className="material-symbols-outlined" aria-hidden="true">add_chart</span>Record a manual moisture reading</summary>
+        <form onSubmit={saveMoistureReading}>
+          <label>Field
+            <select value={selectedFieldId} onChange={(event) => setSelectedFieldId(event.target.value)} disabled={!fields.length}>
+              {fields.map((field, index) => <option value={fieldRecordId(field, index)} key={fieldRecordId(field, index)}>{field.name || `Field ${index + 1}`}</option>)}
+              {!fields.length && <option value="">No fields available</option>}
+            </select>
+          </label>
+          <label>Measured moisture (%)
+            <input type="number" min="0" max="100" step="any" value={moisturePercent} onChange={(event) => setMoisturePercent(event.target.value)} placeholder="0–100" />
+          </label>
+          <label>Reading date
+            <input required type="date" max={today()} value={moistureDate} onChange={(event) => setMoistureDate(event.target.value)} />
+          </label>
+          <button type="submit" className="irrigation-primary-button" disabled={!fields.length}><span className="material-symbols-outlined">save</span>Save reading</button>
+          <p>Enter a reading from your own observation or meter. It is not independently verified and will not trigger irrigation.</p>
+        </form>
+      </details>
 
       <section className="irrigation-core-grid">
         <article className="irrigation-card">
-          <div className="irrigation-card-heading"><span className="material-symbols-outlined">cloud</span><div><h2>Weather &amp; external data</h2><p>{weather?.location || weatherStatus || 'Farm weather unavailable'}</p></div></div>
+          <div className="irrigation-card-heading"><span className="material-symbols-outlined">cloud</span><div><h2>Weather &amp; rainfall outlook</h2><p>{weather?.location || weatherStatus || 'Farm weather unavailable'}</p></div></div>
           {weather?.source === 'default' && <p className="irrigation-footnote">Regional weather reference only; your field location has not been confirmed.</p>}
           {weather ? (
             <div className="irrigation-weather-data">
@@ -187,7 +311,7 @@ export default function IrrigationWorkspace({
             </div>
           )}
           <div className="irrigation-integration-note"><strong>Evapotranspiration</strong><span>Not provided by the connected weather feed.</span></div>
-          <div className="irrigation-integration-note"><strong>NIRC water allocation</strong><span>No NIRC connection or verified status is available.</span></div>
+          <div className="irrigation-integration-note"><strong>Crop-water guidance</strong><span>Not calculated from this weather feed.</span></div>
         </article>
 
         <article className="irrigation-card irrigation-ledger-card">
@@ -230,7 +354,6 @@ export default function IrrigationWorkspace({
             <label>Note (optional)<input maxLength="240" value={logNote} onChange={(event) => setLogNote(event.target.value)} placeholder="Method or other details" /></label>
             <button type="submit" className="irrigation-primary-button"><span className="material-symbols-outlined">save</span>Record irrigation</button>
           </form>
-          {notice && <p className="irrigation-status" role="status">{notice}</p>}
           <div className="irrigation-recent-heading"><h3>Recent records{selectedField?.name ? ` · ${selectedField.name}` : ''}</h3></div>
           {fieldLogs.length ? (
             <ul className="irrigation-log-list">
@@ -257,22 +380,33 @@ export default function IrrigationWorkspace({
                   </div>
                 ))}
               </div>
-            ) : <p className="irrigation-empty-note">Log irrigation to see recorded water use here. No soil-moisture measurements are available.</p>}
+            ) : <p className="irrigation-empty-note">No irrigation records for this field selection yet.</p>}
           </article>
 
-          <article className="irrigation-card">
-            <div className="irrigation-card-heading"><span className="material-symbols-outlined">tune</span><div><h2>Moisture reminder</h2><p>Manual reference only</p></div></div>
+          <article className="irrigation-card irrigation-nirc-card">
+            <div className="irrigation-card-heading"><span className="material-symbols-outlined">gavel</span><div><h2>NIRC &amp; compliance</h2><p>External verification status</p></div></div>
+            <div className="irrigation-nirc-status"><span className="material-symbols-outlined" aria-hidden="true">link_off</span><span><strong>Not connected</strong><small>Permit status and regional water allocations are not available in AGRI-NEST.</small></span></div>
+            <div className="irrigation-integration-note"><strong>Water-use summary</strong><span>{formatLiters(sevenDayTotal)} recorded in 7 days for this selection</span></div>
+            <p className="irrigation-footnote">Recorded usage is not a compliance determination or a comparison with a regional benchmark.</p>
+            <button type="button" className="irrigation-secondary-button" onClick={() => onNavigate?.('compliance')}>Open compliance tasks</button>
+          </article>
+
+          <article className="irrigation-card irrigation-reminder-card">
+            <div className="irrigation-card-heading"><span className="material-symbols-outlined">tune</span><div><h2>Configure reminder</h2><p>{selectedField?.name || 'Select a field above'}</p></div></div>
             <label className="irrigation-threshold-label">Reminder target (%)<input type="number" min="0" max="100" step="1" value={moistureThreshold} onChange={(event) => setMoistureThreshold(event.target.value)} placeholder="Set a value from 0 to 100" /></label>
-            <p className="irrigation-footnote">No soil-moisture sensor or irrigation controller is connected. This setting will not automatically start, skip, or schedule watering.</p>
-            <button type="button" className="irrigation-secondary-button" onClick={saveSettings} disabled={!selectedFieldId}>Save reminder target</button>
+            <p className="irrigation-footnote">Manual reference only. It will not send an alert or automatically start, skip, or schedule watering.</p>
+            <button type="button" className="irrigation-secondary-button" onClick={saveSettings} disabled={!selectedFieldId}>Save configuration</button>
           </article>
 
-          <article className="irrigation-card irrigation-equipment-card">
-            <div className="irrigation-card-heading"><span className="material-symbols-outlined">storefront</span><div><h2>Equipment</h2><p>Find supplies through the marketplace</p></div></div>
-            <p className="irrigation-empty-note">No verified equipment inventory, prices, or compatibility recommendations are connected here.</p>
-            <button type="button" className="irrigation-secondary-button" onClick={() => onNavigate?.('agrishop')}>Open Agrishop Network</button>
-          </article>
         </div>
+      </section>
+
+      <section className="irrigation-equipment-section" aria-label="Irrigation equipment">
+        <article className="irrigation-card">
+          <div className="irrigation-card-heading"><span className="material-symbols-outlined">storefront</span><div><h2>Irrigation equipment</h2><p>Browse supplies through Agrishop Network</p></div></div>
+          <p className="irrigation-empty-note">Inventory, pricing, and equipment compatibility are not verified here. Confirm product details with the seller.</p>
+          <button type="button" className="irrigation-secondary-button" onClick={() => onNavigate?.('agrishop')}>Browse Agrishop Network</button>
+        </article>
       </section>
     </main>
   );

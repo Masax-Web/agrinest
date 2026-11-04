@@ -68,6 +68,7 @@ describe('Authenticated farmer profile API', () => {
       ndvi: [{ id: 'ndvi-1', fieldId: 'field-1', date: '2026-11-03', value: 0.62, source: 'Test sensor' }],
       irrigationLogs: [{ id: 'irrigation-1', fieldId: 'field-1', waterLiters: 250, date: '2026-11-03' }],
       irrigationSettings: [{ id: 'irrigation-setting-1', fieldId: 'field-1', moistureThresholdPercent: 40 }],
+      moistureReadings: [{ id: 'moisture-1', fieldId: 'field-1', moisturePercent: 45, date: '2026-11-03', source: 'farmer-entered' }],
       livestock: [],
       groups: [],
       activities: [],

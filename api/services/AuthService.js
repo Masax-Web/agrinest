@@ -513,7 +513,7 @@ function sanitizeFarmerProfile(profile) {
   if (Object.hasOwn(sanitized, 'farmRecords')) {
     const records = sanitized.farmRecords;
     const recordCollections = ['fields', 'listings', 'income', 'livestock', 'groups', 'activities', 'requests', 'payroll'];
-    const optionalCollections = ['expenses', 'crowdfunding', 'carbon', 'sustainability', 'ndvi', 'irrigationLogs', 'irrigationSettings'];
+    const optionalCollections = ['expenses', 'crowdfunding', 'carbon', 'sustainability', 'ndvi', 'irrigationLogs', 'irrigationSettings', 'moistureReadings'];
     if (!records || typeof records !== 'object' || Array.isArray(records)
       || recordCollections.some((collection) => !Array.isArray(records[collection])
         || records[collection].length > 5000
@@ -533,6 +533,7 @@ function sanitizeFarmerProfile(profile) {
       ndvi: records.ndvi || [],
       irrigationLogs: records.irrigationLogs || [],
       irrigationSettings: records.irrigationSettings || [],
+      moistureReadings: records.moistureReadings || [],
     };
   }
   for (const field of ['avatar', 'coverPhoto']) {

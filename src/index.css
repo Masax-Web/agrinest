@@ -15485,29 +15485,20 @@ body.admin-impersonation-active #root {
 .irrigation-hub select:focus-visible { outline: 2px solid #28734e; outline-offset: 2px; }
 .irrigation-heading,
 .irrigation-disclaimer,
-.irrigation-field-row,
 .irrigation-core-grid,
 .irrigation-lower-grid { width: min(100%, 94rem); margin-right: auto; margin-left: auto; }
 .irrigation-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .irrigation-eyebrow { color: #26734f; font-size: 0.61rem; font-weight: 800; letter-spacing: 0.13em; }
 .irrigation-heading h1 { margin: 0.28rem 0 0.38rem; color: #183728; font: 700 clamp(1.55rem, 2.8vw, 2.25rem)/1.16 'Syne', sans-serif; letter-spacing: -0.045em; }
 .irrigation-heading p { max-width: 48rem; margin: 0; color: var(--irrigation-muted); font-size: 0.78rem; line-height: 1.55; }
-.irrigation-heading-mark { display: grid; width: 3.2rem; height: 3.2rem; flex: 0 0 auto; place-items: center; border-radius: 0.9rem; background: #e2efe6; color: #28734e; font-size: 1.65rem; }
 .irrigation-disclaimer { display: flex; align-items: flex-start; gap: 0.45rem; margin-bottom: 0.9rem; padding: 0.65rem 0.75rem; border: 1px solid #ecdcbf; border-radius: 0.5rem; background: #fff8e9; color: #705930; font-size: 0.63rem; line-height: 1.5; }
 .irrigation-disclaimer .material-symbols-outlined { flex: 0 0 auto; font-size: 1rem; }
-.irrigation-field-row { display: grid; grid-template-columns: minmax(13rem, 0.8fr) minmax(0, 2fr); gap: 0.85rem; margin-bottom: 0.85rem; }
 .irrigation-card { min-width: 0; padding: 1rem; border: 1px solid rgba(67, 93, 75, 0.13); border-radius: 0.72rem; background: #fff; box-shadow: 0 4px 16px rgba(35, 63, 45, 0.045); }
-.irrigation-field-picker { display: grid; align-content: center; gap: 0.45rem; }
-.irrigation-field-picker > label,
 .irrigation-form-grid > label,
 .irrigation-log-card form > label,
 .irrigation-threshold-label { display: grid; min-width: 0; gap: 0.3rem; color: #52635a; font-size: 0.62rem; font-weight: 750; }
 .irrigation-hub input,
 .irrigation-hub select { width: 100%; min-height: 2.45rem; padding: 0.5rem 0.62rem; border: 1px solid #dce5de; border-radius: 0.45rem; background: #fff; color: #27382f; font-size: 0.68rem; }
-.irrigation-field-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.8rem; align-items: center; }
-.irrigation-field-summary > div { display: grid; min-width: 0; gap: 0.24rem; }
-.irrigation-field-summary small { color: #7a877f; font-size: 0.56rem; }
-.irrigation-field-summary strong { overflow: hidden; color: #25392e; font: 600 0.82rem/1.35 'Syne', sans-serif; text-overflow: ellipsis; }
 .irrigation-core-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 0.85rem; margin-bottom: 0.85rem; }
 .irrigation-card-heading { display: flex; align-items: flex-start; gap: 0.55rem; margin-bottom: 0.85rem; }
 .irrigation-card-heading > .material-symbols-outlined { flex: 0 0 auto; color: #28734e; font-size: 1.18rem; }
@@ -15567,24 +15558,196 @@ body.admin-impersonation-active #root {
 .irrigation-chart-track i { display: block; width: min(1.3rem, 68%); border-radius: 0.25rem 0.25rem 0 0; background: linear-gradient(180deg, #61ad79, #26734e); }
 .irrigation-chart-day small { color: #7a877f; font-size: 0.49rem; }
 .irrigation-threshold-label { margin-bottom: 0.55rem; }
-.irrigation-equipment-card .irrigation-secondary-button,
-.irrigation-side-column > .irrigation-card:nth-child(2) .irrigation-secondary-button { width: 100%; margin-top: 0.6rem; }
+.irrigation-reminder-card .irrigation-secondary-button { width: 100%; margin-top: 0.6rem; }
 
 @media (max-width: 1050px) {
   .irrigation-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .irrigation-estimator-card { grid-column: 1 / -1; }
 }
 @media (max-width: 760px) {
-  .irrigation-field-row,
   .irrigation-lower-grid { grid-template-columns: minmax(0, 1fr); }
-  .irrigation-field-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .irrigation-heading { align-items: flex-start; }
-  .irrigation-heading-mark { width: 2.6rem; height: 2.6rem; font-size: 1.35rem; }
   .irrigation-core-grid { grid-template-columns: minmax(0, 1fr); }
   .irrigation-estimator-card { grid-column: auto; }
   .irrigation-log-fields { grid-template-columns: minmax(0, 1fr); }
   .irrigation-rain-forecast { gap: 0.12rem; }
   .irrigation-rain-forecast span { font-size: 0.4rem; }
+}
+
+.irrigation-hub {
+  background-color: #f6f8fc;
+  background-image: radial-gradient(rgba(26, 61, 43, 0.045) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.irrigation-heading,
+.irrigation-disclaimer,
+.irrigation-field-dashboard,
+.irrigation-reading-entry,
+.irrigation-core-grid,
+.irrigation-lower-grid { width: min(100%, 94rem); margin-right: auto; margin-left: auto; }
+.irrigation-connection-status {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.72rem;
+  border: 1px solid #e0e5e8;
+  border-radius: 999px;
+  background: #e9edf0;
+  color: #4a5e54;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.irrigation-connection-status .material-symbols-outlined { color: #69796f; font-size: 0.95rem; }
+.irrigation-connection-status.available { border-color: #d3e8da; background: #e9f5ed; color: #286341; }
+.irrigation-connection-status.available .material-symbols-outlined { color: #28734e; }
+.irrigation-status {
+  width: min(100%, 94rem);
+  margin: 0 auto 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cfe7d7;
+  border-radius: 0.5rem;
+  background: #eff8f1;
+}
+.irrigation-field-dashboard { margin-bottom: 0.65rem; }
+.irrigation-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.55rem;
+}
+.irrigation-section-heading > div { display: flex; align-items: center; gap: 0.55rem; }
+.irrigation-section-heading > div > .material-symbols-outlined { color: #237249; font-size: 1.1rem; }
+.irrigation-section-heading h2 { margin: 0; color: #21382b; font: 600 0.92rem/1.3 'Syne', sans-serif; }
+.irrigation-section-heading p { margin: 0.12rem 0 0; color: #77847c; font-size: 0.56rem; }
+.irrigation-section-heading > span { color: #76847b; font-size: 0.56rem; }
+.irrigation-field-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.irrigation-field-card {
+  display: grid;
+  min-width: 0;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(67, 93, 75, 0.13);
+  border-radius: 0.72rem;
+  background: rgba(255,255,255,0.94);
+  color: inherit;
+  box-shadow: 0 4px 16px rgba(35, 63, 45, 0.045);
+  text-align: left;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.irrigation-field-card:hover { transform: translateY(-1px); border-color: #b7d6c3; }
+.irrigation-field-card.selected { border-color: #317b51; box-shadow: 0 0 0 1px #317b51, 0 5px 16px rgba(35, 63, 45, 0.08); }
+.irrigation-field-card.below-target { border-color: #eccdca; }
+.irrigation-field-card-heading,
+.irrigation-field-card-data,
+.irrigation-field-card-footer { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 0.55rem; }
+.irrigation-field-card-heading > span:first-child { display: grid; min-width: 0; gap: 0.1rem; }
+.irrigation-field-card-heading small { color: #758279; font-size: 0.5rem; font-weight: 750; letter-spacing: 0.1em; }
+.irrigation-field-card-heading strong { overflow: hidden; color: #21382b; font: 600 0.93rem/1.3 'Syne', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+.irrigation-field-card-heading > span:first-child > span { color: #758279; font-size: 0.56rem; }
+.irrigation-field-status {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  background: #eef2ef;
+  color: #58685d;
+  font-size: 0.5rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+}
+.irrigation-field-status.alert { background: #fff0ef; color: #a33c36; }
+.irrigation-field-card-data { align-items: center; justify-content: flex-start; gap: 0.75rem; }
+.irrigation-moisture-ring {
+  position: relative;
+  display: grid;
+  width: 3.35rem;
+  height: 3.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #1d714b;
+}
+.irrigation-moisture-ring.alert { color: #b83e39; }
+.irrigation-moisture-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.irrigation-moisture-ring circle { fill: none; stroke: #e1e7e4; stroke-width: 8; }
+.irrigation-moisture-ring circle.value {
+  stroke: currentColor;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 251;
+  stroke-linecap: round;
+  transition: stroke-dashoffset .2s ease;
+}
+.irrigation-moisture-ring strong { position: relative; color: #263d30; font: 600 0.82rem 'Syne', sans-serif; }
+.irrigation-moisture-ring.empty strong { color: #89948c; font-size: 0.95rem; }
+.irrigation-field-reading { display: grid; min-width: 0; flex: 1; gap: 0.16rem; }
+.irrigation-field-reading > small { color: #77847c; font-size: 0.52rem; }
+.irrigation-field-reading > strong { color: #334b3c; font-size: 0.62rem; }
+.irrigation-reading-sparkline { display: flex; height: 1.4rem; align-items: flex-end; gap: 0.18rem; margin-top: 0.1rem; }
+.irrigation-reading-sparkline i { width: 0.6rem; min-height: 0.12rem; border-radius: 0.12rem 0.12rem 0 0; background: #52a67a; }
+.irrigation-field-card.below-target .irrigation-reading-sparkline i { background: #d96963; }
+.irrigation-reading-sparkline > span { align-self: center; color: #8a948d; font-size: 0.5rem; }
+.irrigation-field-card-footer { padding-top: 0.5rem; border-top: 1px solid #edf1ed; color: #77847c; font-size: 0.52rem; }
+.irrigation-no-fields { display: grid; justify-items: center; gap: 0.45rem; padding: 1.1rem; border: 1px dashed #cbd9ce; border-radius: 0.72rem; background: #fff; text-align: center; }
+.irrigation-no-fields > .material-symbols-outlined { color: #28734e; font-size: 1.6rem; }
+.irrigation-no-fields p { margin: 0; color: #68786d; font-size: 0.62rem; }
+.irrigation-reading-entry {
+  margin: 0 auto 0.85rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #dfe8e1;
+  border-radius: 0.62rem;
+  background: rgba(255,255,255,0.8);
+}
+.irrigation-reading-entry summary { display: flex; align-items: center; gap: 0.45rem; color: #285d3f; font-size: 0.62rem; font-weight: 750; cursor: pointer; list-style: none; }
+.irrigation-reading-entry summary::-webkit-details-marker { display: none; }
+.irrigation-reading-entry summary::after { margin-left: auto; color: #718077; content: "+"; font-size: 1rem; }
+.irrigation-reading-entry[open] summary::after { content: "−"; }
+.irrigation-reading-entry summary .material-symbols-outlined { font-size: 1rem; }
+.irrigation-reading-entry form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 0.6rem; padding-top: 0.7rem; }
+.irrigation-reading-entry label { display: grid; min-width: 0; gap: 0.28rem; color: #52635a; font-size: 0.57rem; font-weight: 750; }
+.irrigation-reading-entry p { grid-column: 1 / -1; margin: 0; color: #7b8780; font-size: 0.52rem; }
+.irrigation-reading-entry .irrigation-primary-button { min-width: 8.5rem; }
+.irrigation-nirc-card { background: linear-gradient(145deg, #fff, #f8faf8); }
+.irrigation-nirc-status { display: flex; align-items: flex-start; gap: 0.55rem; padding: 0.65rem; border: 1px solid #e5e9e6; border-radius: 0.5rem; background: #f5f7f5; }
+.irrigation-nirc-status > .material-symbols-outlined { color: #737f77; font-size: 1rem; }
+.irrigation-nirc-status > span:last-child { display: grid; gap: 0.16rem; }
+.irrigation-nirc-status strong { color: #46564b; font-size: 0.62rem; }
+.irrigation-nirc-status small { color: #78847c; font-size: 0.52rem; line-height: 1.45; }
+.irrigation-nirc-card > .irrigation-secondary-button { width: 100%; margin-top: 0.6rem; }
+.irrigation-equipment-section { width: min(100%, 94rem); margin: 0.85rem auto 0; }
+.irrigation-equipment-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-bottom: 0.55rem; }
+.irrigation-equipment-heading h2 { display: flex; align-items: center; gap: 0.4rem; margin: 0; color: #21382b; font: 600 0.92rem/1.3 'Syne', sans-serif; }
+.irrigation-equipment-heading h2 .material-symbols-outlined { color: #876820; font-size: 1.05rem; }
+.irrigation-equipment-section .irrigation-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.irrigation-equipment-section .irrigation-card .irrigation-card-heading { margin: 0; }
+.irrigation-equipment-section .irrigation-card > .irrigation-secondary-button { flex: 0 0 auto; margin: 0; }
+.irrigation-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.irrigation-core-grid > .irrigation-card:first-child { grid-column: 1 / -1; }
+.irrigation-core-grid > .irrigation-estimator-card { grid-column: auto; }
+
+@media (max-width: 1000px) {
+  .irrigation-field-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .irrigation-reading-entry form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .irrigation-reading-entry .irrigation-primary-button { grid-column: 2; }
+}
+@media (max-width: 760px) {
+  .irrigation-connection-status { font-size: 0.55rem; }
+  .irrigation-reading-entry form { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-reading-entry .irrigation-primary-button { grid-column: auto; }
+  .irrigation-equipment-section .irrigation-card { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 560px) {
+  .irrigation-heading { flex-direction: column; }
+  .irrigation-field-cards { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-core-grid { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-core-grid > .irrigation-card:first-child { grid-column: auto; }
+  .irrigation-field-card { padding: 0.75rem; }
+  .irrigation-reading-entry { padding: 0.6rem; }
+  .irrigation-reading-entry form { grid-template-columns: minmax(0, 1fr); }
+  .irrigation-reading-entry .irrigation-primary-button { grid-column: auto; }
+  .irrigation-equipment-heading { align-items: flex-start; flex-direction: column; }
+  .irrigation-equipment-section .irrigation-card .irrigation-card-heading { align-items: flex-start; }
 }
