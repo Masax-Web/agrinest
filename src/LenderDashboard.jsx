@@ -27,6 +27,28 @@ const demoRepayments = [
   { id: 'PAY-DEMO-107', applicationId: 'DEMO-2047', date: '2026-10-30', amount: 1200000, status: 'Recorded' },
   { id: 'PAY-DEMO-106', applicationId: 'DEMO-2046', date: '2026-10-29', amount: 550000, status: 'Reconciliation needed' },
 ];
+const financingTemplates = [
+  {
+    id: 'irrigation',
+    title: 'Irrigation equipment request',
+    purpose: 'Irrigation equipment',
+    crop: 'Other',
+    term: '6',
+    category: 'Equipment',
+    icon: 'water_drop',
+    description: 'A local workflow template for reviewing an irrigation-equipment funding request.',
+  },
+  {
+    id: 'seasonal-inputs',
+    title: 'Seasonal input request',
+    purpose: 'Seeds and farm inputs',
+    crop: 'Maize',
+    term: '6',
+    category: 'Farm inputs',
+    icon: 'grass',
+    description: 'A local workflow template for reviewing a seed or input funding request.',
+  },
+];
 const formatTzs = (amount) => `TZS ${Number(amount || 0).toLocaleString('en-TZ', { maximumFractionDigits: 0 })}`;
 const today = () => {
   const date = new Date();
@@ -162,6 +184,8 @@ export default function LenderDashboard({ user, persona, onLogout }) {
   }), [applications, query, statusFilter]);
   const activeApplications = applications.filter((application) => !['Closed', 'Decision recorded'].includes(application.status));
   const activeCapital = activeApplications.reduce((total, application) => total + application.amount, 0);
+  const resolvedApplications = applications.filter((application) => ['Closed', 'Decision recorded'].includes(application.status));
+  const reviewCoverage = applications.length ? Math.round((resolvedApplications.length / applications.length) * 100) : 0;
   const applicationCounts = applicationStatuses.reduce((counts, status) => {
     counts[status] = applications.filter((application) => application.status === status).length;
     return counts;
@@ -193,7 +217,7 @@ export default function LenderDashboard({ user, persona, onLogout }) {
   const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'FI';
   const isDemo = applications.some((application) => application.demo);
   const pageTitles = {
-    overview: ['Lender Hub', 'Review local application workflows. Escrow, vendor verification, and payment services are not connected.'],
+    overview: ['Smart Loan Hub', 'Manage agricultural finance workflows without implying live loan, balance, or payment services.'],
     applications: ['Loan Applications', 'Review incoming application records and document human follow-ups.'],
     portfolio: ['Capital Overview', 'Review requested amounts in local workflow records, not escrow balances.'],
     disbursements: ['Disbursement Queue', 'Track application hand-offs locally. Nothing on this page authorizes or sends a payment.'],
@@ -302,6 +326,18 @@ export default function LenderDashboard({ user, persona, onLogout }) {
     setNotice('');
   };
 
+  const openFinancingTemplate = (template) => {
+    setNewTrade({
+      farmerRef: '',
+      crop: template.crop,
+      amount: '',
+      term: template.term,
+      region: '',
+      purpose: template.purpose,
+    });
+    setShowNewTrade(true);
+  };
+
   const currentPageTitle = pageTitles[activePage] || pageTitles.overview;
 
   return (
@@ -350,32 +386,63 @@ export default function LenderDashboard({ user, persona, onLogout }) {
 
           {activePage === 'overview' && (
             <>
-              <section className="lender-metrics" aria-label="Portfolio metrics">
-                <MetricCard icon="account_balance" label="Requested in open reviews" value={formatTzs(activeCapital)} detail="Not escrowed" tone="warm" />
-                <MetricCard icon="payments" label="Funds disbursed" value="Not connected" detail="No payment integration" tone="risk" />
-                <MetricCard icon="assignment" label="Open workflow records" value={activeApplications.length.toLocaleString()} detail="Not funded loans" tone="neutral" />
-                <MetricCard icon="verified_user" label="Verified vendors" value="Unavailable" detail="No verification service" tone="mint" />
-              </section>
+              <div className="lender-loan-hub">
+                <section className="lender-loan-summary-grid" aria-label="Loan workflow summary">
+                  <article className="lender-card lender-loan-evidence">
+                    <div className="lender-loan-card-heading"><div><span className="lender-eyebrow">HUMAN REVIEW WORKFLOW</span><h2>Review coverage</h2></div><span className="material-symbols-outlined" title="Not a borrower credit score">info</span></div>
+                    <div className="lender-review-ring" style={{ '--review-coverage': `${reviewCoverage}%` }} role="img" aria-label={`${reviewCoverage}% of local workflow records are marked decision recorded or closed`}>
+                      <div><strong>{reviewCoverage}%</strong><span>review records</span></div>
+                    </div>
+                    <p className="lender-review-ring-caption">{resolvedApplications.length} of {applications.length} local records marked decision recorded or closed</p>
+                    <div className="lender-loan-evidence-stats">
+                      <div><span>Open review records</span><strong>{activeApplications.length}</strong></div>
+                      <div><span>Credit scoring</span><strong>Not connected</strong></div>
+                    </div>
+                    <p className="lender-loan-disclaimer">Workflow coverage is not an Agri-Trust Score, credit score, sustainability rating, or eligibility assessment.</p>
+                  </article>
 
-              <section className="lender-overview-grid">
-                <article className="lender-card lender-application-preview">
-                  <div className="lender-section-heading"><div><span className="lender-eyebrow">LOCAL WORKFLOW QUEUE</span><h2>Recent disbursement requests</h2><p>Requested amounts only; no release or transfer action is available.</p></div><button type="button" onClick={() => openPage('disbursements')}>View queue<span className="material-symbols-outlined">arrow_forward</span></button></div>
-                  {applications.length ? (
-                    <div className="lender-table-scroll"><table className="lender-table"><thead><tr><th>Reference</th><th>Enterprise</th><th>Requested amount</th><th>Workflow status</th></tr></thead><tbody>
-                      {applications.slice(0, 5).map((application) => <tr key={application.id} onClick={() => setSelectedId(application.id)}><td><strong>{application.id}</strong><small>{application.farmerRef}</small></td><td>{application.crop}<small>{application.region}</small></td><td>{formatTzs(application.amount)}</td><td><StatusBadge status={application.status} /></td></tr>)}
-                    </tbody></table></div>
-                  ) : <div className="lender-empty"><span className="material-symbols-outlined">inbox</span><strong>No request records yet</strong><p>Create a local workflow record for human review.</p><button type="button" onClick={() => setShowNewTrade(true)}>Create a record</button></div>}
-                </article>
-                <aside className="lender-overview-side">
-                  <article className="lender-card lender-queue-card"><div className="lender-section-heading"><div><span className="lender-eyebrow">APPLICATION PIPELINE</span><h2>Review queue</h2></div></div>{applicationStatuses.slice(0, 4).map((status) => <button type="button" key={status} onClick={() => { setStatusFilter(status); openPage('applications'); }}><span><i className={`lender-queue-dot ${status.toLowerCase().replaceAll(' ', '-')}`} />{status}</span><strong>{applicationCounts[status] || 0}</strong></button>)}</article>
-                  <article className="lender-card lender-activity-card"><span className="lender-eyebrow">VENDOR STATUS</span><h2>Verification unavailable</h2><p>This workspace has no vendor directory or connected verification provider. No vendor is marked verified.</p><button type="button" onClick={() => openPage('vendors')}>View vendor records<span className="material-symbols-outlined">arrow_forward</span></button></article>
-                </aside>
-              </section>
-              <section className="lender-card lender-audit-preview">
-                <div className="lender-section-heading"><div><span className="lender-eyebrow">RECENT ACTIVITY · LOCAL ONLY</span><h2>Workspace activity</h2></div><button type="button" onClick={() => openPage('audit')}>Open audit log<span className="material-symbols-outlined">arrow_forward</span></button></div>
-                {auditEntries.length ? <div className="lender-activity-list">{auditEntries.slice(0, 3).map((entry) => <div key={entry.id}><span className="material-symbols-outlined">history</span><div><strong>{entry.action}</strong><p>{entry.applicationId} · {entry.detail}</p></div><time>{entry.date}</time></div>)}</div> : <p className="lender-empty-copy">No local activity has been recorded.</p>}
-                <p className="lender-activity-disclaimer">Entries can be edited or cleared in this browser; this is not an immutable or synced audit system.</p>
-              </section>
+                  <article className="lender-card lender-loan-balance">
+                    <div className="lender-loan-card-heading"><div><span className="lender-eyebrow">LOCAL APPLICATION REGISTER</span><h2>Amount in open requests</h2></div><span className="lender-status lender-status-in-review">REQUESTED</span></div>
+                    <div className="lender-loan-balance-value"><strong>{formatTzs(activeCapital)}</strong><span>requested · not a loan balance</span></div>
+                    <div className="lender-loan-progress-heading"><span>Workflow records with a closed decision</span><strong>{reviewCoverage}%</strong></div>
+                    <div className="lender-loan-progress" role="img" aria-label={`Review workflow coverage ${reviewCoverage}%`}><span style={{ width: `${reviewCoverage}%` }} /></div>
+                    <div className="lender-loan-inline-note"><span className="material-symbols-outlined">info</span><p>Figures reflect {isDemo ? 'illustrative examples and ' : ''}local application records only. No borrower loan balance, repayment schedule, or lender account is connected.</p></div>
+                    <div className="lender-loan-balance-actions">
+                      <button type="button" className="lender-primary-button" onClick={() => setShowNewTrade(true)}>New request record</button>
+                      <button type="button" className="lender-secondary-button" onClick={() => openPage('applications')}>Review applications</button>
+                    </div>
+                  </article>
+                </section>
+
+                <section className="lender-loan-detail-grid">
+                  <article className="lender-card lender-loan-timeline">
+                    <div className="lender-section-heading"><div><span className="lender-eyebrow">LOCAL WORKSPACE ACTIVITY</span><h2>Recent review timeline</h2></div><button type="button" onClick={() => openPage('audit')}>Audit log<span className="material-symbols-outlined">arrow_forward</span></button></div>
+                    {auditEntries.length ? (
+                      <ol>{auditEntries.slice(0, 4).map((entry) => (
+                        <li key={entry.id}>
+                          <span className="lender-timeline-marker"><span className="material-symbols-outlined">{entry.action.includes('updated') ? 'check' : 'radio_button_unchecked'}</span></span>
+                          <div><small>{entry.date} · {entry.demo ? 'Illustrative example' : 'Local record'}</small><strong>{entry.action}</strong><p>{entry.applicationId} · {entry.detail}</p></div>
+                        </li>
+                      ))}</ol>
+                    ) : <div className="lender-empty"><span className="material-symbols-outlined">history</span><strong>No review activity yet</strong><p>Local application records and manual review notes will appear here.</p></div>}
+                    <p className="lender-loan-disclaimer">This editable browser activity is not a payment history, immutable audit, or synced lender record.</p>
+                  </article>
+
+                  <section className="lender-loan-templates" aria-labelledby="lender-template-heading">
+                    <div className="lender-section-heading"><div><span className="lender-eyebrow">REQUEST WORKFLOW</span><h2 id="lender-template-heading">Financing request templates</h2><p>Example categories to start a local review record—not live offers or approved products.</p></div><button type="button" onClick={() => openPage('applications')}>View applications<span className="material-symbols-outlined">arrow_forward</span></button></div>
+                    <div className="lender-loan-template-list">
+                      {financingTemplates.map((template, index) => (
+                        <article className={`lender-card lender-loan-template lender-loan-template-${index + 1}`} key={template.id}>
+                          <span className="lender-template-art" aria-hidden="true"><span className="material-symbols-outlined">{template.icon}</span></span>
+                          <div className="lender-template-content"><span className="lender-template-category">{template.category} · Example template</span><h3>{template.title}</h3><p>{template.description}</p></div>
+                          <button type="button" className="lender-primary-button" onClick={() => openFinancingTemplate(template)}>Use template</button>
+                        </article>
+                      ))}
+                    </div>
+                    <div className="lender-model-note"><span className="material-symbols-outlined">info</span><p>No live financing offers, APRs, eligibility decisions, or repayments are connected. Using a template only opens a form to create a local record for human review.</p></div>
+                  </section>
+                </section>
+              </div>
             </>
           )}
 

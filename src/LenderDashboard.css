@@ -1604,3 +1604,401 @@
     flex-direction: column;
   }
 }
+
+.lender-dashboard .lender-loan-hub {
+  display: grid;
+  gap: 1.15rem;
+  color: #24352e;
+}
+
+.lender-dashboard .lender-loan-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.88fr) minmax(0, 1.55fr);
+  gap: 1rem;
+}
+
+.lender-dashboard .lender-loan-summary-grid > .lender-card,
+.lender-dashboard .lender-loan-timeline,
+.lender-dashboard .lender-loan-templates {
+  border: 1px solid #e3e9e3;
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 0.35rem 1.25rem rgba(35, 57, 42, 0.045);
+}
+
+.lender-dashboard .lender-loan-summary-grid > .lender-card {
+  min-width: 0;
+  padding: 1.2rem;
+}
+
+.lender-dashboard .lender-loan-card-heading,
+.lender-dashboard .lender-loan-progress-heading,
+.lender-dashboard .lender-loan-balance-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.lender-dashboard .lender-loan-card-heading h2,
+.lender-dashboard .lender-loan-templates h2,
+.lender-dashboard .lender-loan-timeline h2 {
+  margin: 0.28rem 0 0;
+  color: #263a30;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.08rem;
+}
+
+.lender-dashboard .lender-loan-card-heading > .material-symbols-outlined {
+  color: #829287;
+}
+
+.lender-dashboard .lender-review-ring {
+  display: grid;
+  width: 10.1rem;
+  aspect-ratio: 1;
+  place-items: center;
+  margin: 1.15rem auto 0.65rem;
+  border-radius: 50%;
+  background: conic-gradient(#2c7952 var(--review-coverage, 0%), #e9eee9 0);
+}
+
+.lender-dashboard .lender-review-ring > div {
+  display: grid;
+  width: 76%;
+  aspect-ratio: 1;
+  align-content: center;
+  justify-items: center;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.lender-dashboard .lender-review-ring strong {
+  color: #285d42;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.lender-dashboard .lender-review-ring span,
+.lender-dashboard .lender-review-ring-caption {
+  color: #738078;
+  font-size: 0.69rem;
+}
+
+.lender-dashboard .lender-review-ring-caption {
+  margin: 0;
+  text-align: center;
+}
+
+.lender-dashboard .lender-loan-evidence-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid #edf0ed;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.lender-dashboard .lender-loan-evidence-stats div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.lender-dashboard .lender-loan-evidence-stats span,
+.lender-dashboard .lender-loan-progress-heading {
+  color: #738078;
+  font-size: 0.7rem;
+}
+
+.lender-dashboard .lender-loan-evidence-stats strong {
+  color: #30453a;
+  font-size: 0.89rem;
+}
+
+.lender-dashboard .lender-loan-disclaimer {
+  margin: 0.75rem 0 0;
+  color: #818a83;
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.lender-dashboard .lender-loan-balance {
+  display: flex;
+  flex-direction: column;
+}
+
+.lender-dashboard .lender-loan-balance .lender-status {
+  flex: 0 0 auto;
+}
+
+.lender-dashboard .lender-loan-balance-value {
+  display: grid;
+  gap: 0.25rem;
+  margin: 1.2rem 0;
+}
+
+.lender-dashboard .lender-loan-balance-value strong {
+  color: #2b3f34;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  letter-spacing: -0.035em;
+}
+
+.lender-dashboard .lender-loan-balance-value span {
+  color: #738078;
+  font-size: 0.72rem;
+}
+
+.lender-dashboard .lender-loan-progress-heading strong {
+  color: #315d43;
+}
+
+.lender-dashboard .lender-loan-progress {
+  height: 0.52rem;
+  overflow: hidden;
+  margin-top: 0.55rem;
+  border-radius: 1rem;
+  background: #edf1ed;
+}
+
+.lender-dashboard .lender-loan-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #39805a;
+  transition: width 180ms ease;
+}
+
+.lender-dashboard .lender-loan-inline-note,
+.lender-dashboard .lender-model-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border-radius: 0.55rem;
+  background: #f3f7f3;
+  color: #627268;
+}
+
+.lender-dashboard .lender-loan-inline-note {
+  margin-top: 1rem;
+  padding: 0.75rem;
+}
+
+.lender-dashboard .lender-loan-inline-note .material-symbols-outlined,
+.lender-dashboard .lender-model-note .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #588268;
+  font-size: 1.05rem;
+}
+
+.lender-dashboard .lender-loan-inline-note p,
+.lender-dashboard .lender-model-note p {
+  margin: 0;
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.lender-dashboard .lender-loan-balance-actions {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.lender-dashboard .lender-loan-balance-actions button {
+  min-height: 2.4rem;
+  padding: 0.55rem 0.85rem;
+}
+
+.lender-dashboard .lender-loan-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.lender-dashboard .lender-loan-timeline,
+.lender-dashboard .lender-loan-templates {
+  min-width: 0;
+  padding: 1.15rem;
+}
+
+.lender-dashboard .lender-loan-timeline .lender-section-heading,
+.lender-dashboard .lender-loan-templates .lender-section-heading {
+  align-items: flex-start;
+}
+
+.lender-dashboard .lender-loan-timeline .lender-section-heading > button,
+.lender-dashboard .lender-loan-templates .lender-section-heading > button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
+  color: #39734e;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.lender-dashboard .lender-loan-timeline ol {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lender-dashboard .lender-loan-timeline li {
+  display: grid;
+  grid-template-columns: 1.7rem minmax(0, 1fr);
+  gap: 0.65rem;
+}
+
+.lender-dashboard .lender-timeline-marker {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf5ee;
+  color: #39805a;
+}
+
+.lender-dashboard .lender-timeline-marker .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.lender-dashboard .lender-loan-timeline li > div {
+  display: grid;
+  gap: 0.2rem;
+  padding-bottom: 0.72rem;
+  border-bottom: 1px solid #eff2ef;
+}
+
+.lender-dashboard .lender-loan-timeline li small {
+  color: #859087;
+  font-size: 0.62rem;
+}
+
+.lender-dashboard .lender-loan-timeline li strong {
+  color: #34493c;
+  font-size: 0.74rem;
+}
+
+.lender-dashboard .lender-loan-timeline li p {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #758078;
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+.lender-dashboard .lender-loan-templates .lender-section-heading {
+  margin-bottom: 0.9rem;
+}
+
+.lender-dashboard .lender-loan-templates .lender-section-heading p {
+  max-width: 29rem;
+}
+
+.lender-dashboard .lender-loan-template-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.lender-dashboard .lender-loan-template {
+  display: grid;
+  grid-template-columns: 2.8rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid #e8ede8;
+  border-radius: 0.65rem;
+  background: #fff;
+}
+
+.lender-dashboard .lender-template-art {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: #eff5ef;
+  color: #34714d;
+}
+
+.lender-dashboard .lender-template-art .material-symbols-outlined {
+  font-size: 1.4rem;
+}
+
+.lender-dashboard .lender-template-category {
+  color: #6b8a73;
+  font-size: 0.59rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lender-dashboard .lender-template-content h3 {
+  margin: 0.2rem 0;
+  color: #34483b;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.79rem;
+}
+
+.lender-dashboard .lender-template-content p {
+  margin: 0;
+  color: #778179;
+  font-size: 0.64rem;
+  line-height: 1.4;
+}
+
+.lender-dashboard .lender-loan-template .lender-primary-button {
+  min-height: 2rem;
+  padding: 0.42rem 0.62rem;
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+.lender-dashboard .lender-model-note {
+  margin-top: 0.85rem;
+  padding: 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .lender-dashboard .lender-loan-summary-grid,
+  .lender-dashboard .lender-loan-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .lender-dashboard .lender-loan-summary-grid > .lender-card,
+  .lender-dashboard .lender-loan-timeline,
+  .lender-dashboard .lender-loan-templates {
+    padding: 0.85rem;
+  }
+
+  .lender-dashboard .lender-loan-template {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+
+  .lender-dashboard .lender-template-art {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .lender-dashboard .lender-loan-template .lender-primary-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .lender-dashboard .lender-loan-timeline .lender-section-heading,
+  .lender-dashboard .lender-loan-templates .lender-section-heading {
+    flex-direction: column;
+  }
+
+  .lender-dashboard .lender-loan-balance-actions {
+    align-items: stretch;
+  }
+}
