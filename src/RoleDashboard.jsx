@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import RoleWorkspace from './RoleWorkspace';
+import LabourWorkspace from './LabourWorkspace';
+import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import roleModel from '../shared/role-model.json';
 
 const dashboards = {
@@ -7,7 +9,7 @@ const dashboards = {
     title: 'Commercial Farm',
     greeting: 'Farm Operations',
     summary: 'Coordinate fields, produce, workforce, and sales from one workspace.',
-    navigation: [['fields', 'agriculture', 'Fields'], ['listings', 'storefront', 'Produce'], ['income', 'payments', 'Sales'], ['logistics', 'local_shipping', 'Logistics'], ['workforce', 'groups', 'Workforce'], ['analytics', 'analytics', 'Analytics'], ['settings', 'settings', 'Settings']],
+    navigation: [['fields', 'agriculture', 'Fields'], ['listings', 'storefront', 'Produce'], ['income', 'payments', 'Sales'], ['logistics', 'local_shipping', 'Logistics'], ['workforce', 'groups', 'Workforce & Tasks'], ['payroll', 'payments', 'Payroll'], ['analytics', 'analytics', 'Analytics'], ['settings', 'settings', 'Settings']],
     metrics: [['fields', 'agriculture', 'Field Records'], ['listings', 'storefront', 'Produce Offers'], ['income', 'payments', 'Sales Records'], ['workforce', 'groups', 'Workforce Records']],
   },
   bank: {
@@ -42,8 +44,22 @@ function loadRecords(storageKey) {
   }
 }
 
+function loadLabourRecords(storageKey) {
+  try {
+    const records = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
+    return { records: {
+      requests: Array.isArray(records.requests) ? records.requests : [],
+      payroll: Array.isArray(records.payroll) ? records.payroll : [],
+    }, error: '' };
+  } catch (error) {
+    console.error('Could not read workforce records:', error);
+    return { records: { requests: [], payroll: [] }, error: 'Workforce records could not be read from this browser.' };
+  }
+}
+
 export default function RoleDashboard({ role, persona, user, onLogout, initialView = 'overview' }) {
   const recordsStorageKey = `agrinest-${role}-workspace-records:${user?.user_id || 'anonymous'}:${persona?.id || 'unknown'}`;
+  const labourStorageKey = `agrinest-commercial-labour-records:${user?.user_id || 'anonymous'}`;
   const journey = roleModel.coreRoles.find((coreRole) => coreRole.id === user?.role)?.journey || [];
   const personaDashboard = persona ? {
     title: persona.label,
@@ -69,11 +85,23 @@ export default function RoleDashboard({ role, persona, user, onLogout, initialVi
   };
   const [activeView, setActiveView] = useState(initialView);
   const [records, setRecords] = useState(() => loadRecords(recordsStorageKey));
+  const [labourState, setLabourState] = useState(() => loadLabourRecords(labourStorageKey));
+  const labourRecords = labourState.records;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
   const recordCounts = (view) => records.filter((record) => record.module === view).length;
   const visibleRecords = records.filter((record) => Object.values(record).join(' ').toLowerCase().includes(search.trim().toLowerCase()));
+  const updateLabourRecords = (key, nextRecords) => {
+    const next = { ...labourRecords, [key]: nextRecords };
+    try {
+      window.localStorage.setItem(labourStorageKey, JSON.stringify(next));
+      setLabourState({ records: next, error: '' });
+    } catch (error) {
+      console.error('Could not save workforce records:', error);
+      setLabourState((current) => ({ ...current, error: 'Workforce changes could not be saved in this browser.' }));
+    }
+  };
 
   return (
     <div className={isSidebarOpen ? 'role-dashboard-shell' : 'role-dashboard-shell sidebar-collapsed'}>
@@ -102,6 +130,27 @@ export default function RoleDashboard({ role, persona, user, onLogout, initialVi
             <section className="role-dashboard-metrics">{dashboard.metrics.map(([view, icon, label]) => <button type="button" key={view} onClick={() => setActiveView(view)}><span className="material-symbols-outlined">{icon}</span><strong>{recordCounts(view)}</strong><small>{label}</small></button>)}</section>
             <section className="role-dashboard-quick-links"><div><span>WORKSPACES</span><h2>Recent records</h2></div>{visibleRecords.length ? visibleRecords.slice(0, 5).map((record) => <button type="button" key={record.id} onClick={() => setActiveView(record.module)}><span className="material-symbols-outlined">{dashboard.navigation.find(([view]) => view === record.module)?.[1] || 'task_alt'}</span><span><strong>{record.title || record.name || record.module}</strong><small>{record.details || 'Open saved record'}</small></span></button>) : <p>{records.length ? 'No records match this search.' : 'No records yet. Open a workspace to add the first one.'}</p>}</section>
           </>
+        ) : role === 'commercial' && ['workforce', 'payroll'].includes(activeView) ? (
+          <>
+            {labourState.error && <div className="role-workspace-notice" role="alert">{labourState.error}</div>}
+            <LabourWorkspace
+              page={activeView === 'payroll' ? 'payroll' : 'labour'}
+              profile={{ name: user?.name || 'Farm manager', location: user?.region || '' }}
+              records={labourRecords}
+              onRecordsChange={updateLabourRecords}
+              onNavigate={(target) => setActiveView(target === 'payroll' ? 'payroll' : 'workforce')}
+              onBack={() => setActiveView('overview')}
+            />
+          </>
+        ) : role === 'equipment' && ['equipment', 'availability', 'bookings', 'maintenance'].includes(activeView) ? (
+          <EquipmentRentalWorkspace
+            mode="owner"
+            section={activeView}
+            user={user}
+            profile={{ name: user?.name || 'Equipment owner' }}
+            onBack={() => setActiveView('overview')}
+            onNavigate={setActiveView}
+          />
         ) : (
           <RoleWorkspace
             role={role}

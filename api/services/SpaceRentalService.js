@@ -101,8 +101,9 @@ async function createSpace({ ownerId, title, type, description = '', region, qua
   if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000000) throw rentalError('invalid_quantity');
   if (!Number.isFinite(cost) || cost < 0 || cost > 1000000000000) throw rentalError('invalid_price');
   if (!pricePeriods.includes(pricePeriod)) throw rentalError('invalid_price_period');
-  if (typeof imageUrl !== 'string' || imageUrl.length > 2048) throw rentalError('invalid_image_url');
-  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) throw rentalError('invalid_image_url');
+  if (typeof imageUrl !== 'string' || imageUrl.length > 1400000) throw rentalError('invalid_image_url');
+  if (imageUrl && !/^https?:\/\//i.test(imageUrl)
+    && !/^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/]+=*$/i.test(imageUrl)) throw rentalError('invalid_image_url');
   const [space] = await knex('space_rental_listings').insert({
     owner_id: ownerId,
     title: normalizedTitle,

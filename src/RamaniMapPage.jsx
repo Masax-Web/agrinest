@@ -370,6 +370,7 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
   const [showMapDrawings, setShowMapDrawings] = useState(true);
   const [showLandmarks, setShowLandmarks] = useState(true);
   const [showWeather, setShowWeather] = useState(true);
+  const [isLayerPanelExpanded, setIsLayerPanelExpanded] = useState(false);
   const [isOnline, setIsOnline] = useState(() => globalThis.navigator?.onLine !== false);
   const [includeFarmLocation, setIncludeFarmLocation] = useState(false);
   const [gpsLocation, setGpsLocation] = useState(null);
@@ -632,6 +633,7 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
   };
 
   const startDrawing = (mode) => {
+    setIsLayerPanelExpanded(false);
     if (gpsTraceWatchRef.current !== null) {
       globalThis.navigator?.geolocation?.clearWatch(gpsTraceWatchRef.current);
       gpsTraceWatchRef.current = null;
@@ -644,19 +646,20 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
     setSelectedTrainingIndex(null);
     setSelectedDrawingIndex(null);
     const instructions = {
-      field: 'Click the map to outline a field boundary.',
-      training: `Click the map to outline a ${trainingLabels[trainingLabel].toLowerCase()}.`,
-      landmark: `Click the map to place a ${landmarkTypes[landmarkType].label.toLowerCase()}.`,
-      point: 'Click the map to place a point.',
-      line: 'Click the map to add line vertices.',
-      circle: 'Click the center, then a point on the edge of the circle.',
-      distance: 'Click the map to add distance measurement points.',
-      area: 'Click the map to outline an area to measure.',
+      field: 'Tap or click the map to outline a field boundary.',
+      training: `Tap or click the map to outline a ${trainingLabels[trainingLabel].toLowerCase()}.`,
+      landmark: `Tap or click the map to place a ${landmarkTypes[landmarkType].label.toLowerCase()}.`,
+      point: 'Tap or click the map to place a point.',
+      line: 'Tap or click the map to add line vertices.',
+      circle: 'Tap the center, then tap a point on the edge of the circle.',
+      distance: 'Tap or click the map to add distance measurement points.',
+      area: 'Tap or click the map to outline an area to measure.',
     };
     setStatus(`${instructions[mode]} ${['point', 'circle'].includes(mode) ? '' : 'Finish when ready.'}`);
   };
 
   const startGpsTrace = () => {
+    setIsLayerPanelExpanded(false);
     if (!globalThis.navigator?.geolocation) {
       setStatus('This device does not provide GPS location. Draw the plot boundary manually instead.');
       return;
@@ -1153,8 +1156,9 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
         </>
       )}
 
-      <div className="ramani-overlay ramani-layer-panel">
-        <div className="ramani-panel-heading"><div><span>GIS DASHBOARD</span><h2>Farm map</h2></div><span className={isOnline ? 'ramani-data-badge' : 'ramani-data-badge muted'}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span></div>
+      <div className={`ramani-overlay ramani-layer-panel${isLayerPanelExpanded ? ' is-mobile-expanded' : ' is-mobile-collapsed'}`}>
+        <div className="ramani-panel-heading"><div><span>GIS DASHBOARD</span><h2>Farm map</h2></div><div className="ramani-panel-heading-actions"><span className={isOnline ? 'ramani-data-badge' : 'ramani-data-badge muted'}>{isOnline ? 'ONLINE' : 'OFFLINE'}</span><button type="button" className="ramani-mobile-panel-toggle" aria-expanded={isLayerPanelExpanded} aria-controls="ramani-layer-controls" onClick={() => setIsLayerPanelExpanded((expanded) => !expanded)}>{isLayerPanelExpanded ? 'Hide layers' : 'Layers'}<span className="material-symbols-outlined">{isLayerPanelExpanded ? 'expand_less' : 'tune'}</span></button></div></div>
+        <div id="ramani-layer-controls">
         <label className="ramani-mobile-search"><span className="material-symbols-outlined">search</span><input type="search" value={search} onChange={(event) => onSearch(event.target.value)} placeholder="Search coordinates or place" aria-label="Search map coordinates or locations" /></label>
         <label className="ramani-layer-row"><span><i className="ramani-layer-dot profile-dot" />Saved farm location</span><input type="checkbox" checked={showFarmLocation && Boolean(profileLocation)} onChange={(event) => setShowFarmLocation(event.target.checked)} disabled={!profileLocation} /></label>
         <label className="ramani-layer-row"><span><i className="ramani-layer-dot field-dot" />Farm plots ({drawnFields.length})</span><input type="checkbox" checked={showFieldBoundaries} onChange={(event) => setShowFieldBoundaries(event.target.checked)} /></label>
@@ -1195,6 +1199,7 @@ export default function RamaniMapPage({ profile, search = '', onSearch = () => {
             startDrawing('training');
           }}>Draw training sample</button>
           <button type="button" className="ramani-training-export" onClick={exportTrainingData} disabled={!trainingSamples.length}>Export training GeoJSON ({trainingSamples.length})</button>
+        </div>
         </div>
       </div>
 

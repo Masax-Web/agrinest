@@ -1638,7 +1638,7 @@ components:
         name: { type: string }
         category: { type: string }
         description: { type: string }
-        image_url: { type: string, nullable: true }
+        image_url: { type: string, nullable: true, maxLength: 1400000 }
         seller_name: { type: string, nullable: true }
         region: { type: string, nullable: true }
         unit: { type: string, nullable: true }
@@ -1672,7 +1672,7 @@ components:
         price: { type: number, minimum: 0, maximum: 1000000000000 }
         price_period: { type: string, enum: [day, month, season, year, ton, acre] }
         available_from: { type: string, format: date, nullable: true }
-        image_url: { type: string, maxLength: 2048 }
+        image_url: { type: string, maxLength: 1400000 }
 
     SpaceRentalRequestCreate:
       type: object

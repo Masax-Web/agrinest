@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
 import AgrishopNetwork from './AgrishopNetwork';
+import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import ExportReadinessWorkspace from './ExportReadinessWorkspace';
 import HabariIntelligence from './HabariIntelligence';
 import TransportLogisticsWorkspace from './TransportLogisticsWorkspace';
@@ -32,6 +33,7 @@ const workspaceDetails = {
   transport: { title: 'Harvest-to-Market Logistics', icon: 'local_shipping', description: 'Plan an illustrative harvest transport and storage estimate.', recordType: 'requests', submitLabel: 'Save transport request', fields: [['title', 'Route or destination', 'text'], ['amount', 'Load size (kg)', 'number'], ['details', 'Cargo and pickup details', 'textarea']] },
   activity: { title: 'Farm Activity Log', icon: 'edit_calendar', description: 'Record completed farm work. Activity entries are stored on this device.', recordType: 'activities', submitLabel: 'Log activity', fields: [['title', 'Activity', 'text'], ['date', 'Date', 'date'], ['details', 'Field, crop, or notes', 'textarea']] },
   'rent-space': { title: 'Rent Space or Land', icon: 'landscape', description: 'Save a request for land, storage, or farm space.', recordType: 'requests', submitLabel: 'Save space request', fields: [['title', 'Space needed', 'text'], ['amount', 'Area or capacity', 'number'], ['details', 'Location and dates', 'textarea']] },
+  'equipment-rent': { title: 'Rent Farm Equipment', icon: 'precision_manufacturing', description: 'Browse illustrative machinery listings and save local rental notes.', recordType: 'requests' },
   labour: { title: 'Vibarua Network', icon: 'engineering', description: 'Find work, organise worker profiles, and manage hire requests.', recordType: 'requests' },
   insurance: { title: 'Insurance', icon: 'shield', description: 'Record a request for crop, livestock, or equipment cover.', recordType: 'requests', submitLabel: 'Save insurance request', fields: [['title', 'Cover type', 'text'], ['amount', 'Estimated value (TZS)', 'number'], ['details', 'Farm and risk details', 'textarea']] },
   waste: { title: 'Waste Exchange', icon: 'recycling', description: 'Record agricultural waste or by-products available for exchange.', recordType: 'requests', submitLabel: 'Save exchange offer', fields: [['title', 'Material', 'text'], ['amount', 'Available quantity', 'number'], ['details', 'Condition and pickup location', 'textarea']] },
@@ -523,6 +525,10 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
 
   if (page === 'rent-space') {
     return <SpaceRentalWorkspace user={user} profile={profile} search={search} />;
+  }
+
+  if (page === 'equipment-rent') {
+    return <EquipmentRentalWorkspace mode="browse" user={user} profile={profile} onBack={onBack} />;
   }
 
   const saveRecord = (event) => {

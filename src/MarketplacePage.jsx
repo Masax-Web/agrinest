@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import api from './lib/api';
 import BarterExchange from './BarterExchange';
+import { resizeImageForUpload } from './lib/image-uploads';
 
 const listingTypes = ['All listings', 'Livestock', 'Animal products', 'Farm inputs'];
 const formListingTypes = listingTypes.slice(1);
@@ -21,6 +22,8 @@ function listingType(listing) {
 
 function safeImageUrl(value) {
   if (!value) return '';
+  if (typeof value === 'string' && value.length <= 1_400_000
+    && /^data:image\/(?:webp|jpeg|png);base64,[a-z0-9+/]+=*$/i.test(value)) return value;
   try {
     const url = new URL(value);
     return url.protocol === 'https:' ? url.href : '';
@@ -91,6 +94,9 @@ export default function MarketplacePage({ profile, user, search = '', onTranspor
   const [isListingFormOpen, setIsListingFormOpen] = useState(false);
   const [isPublishingListing, setIsPublishingListing] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [listingImageName, setListingImageName] = useState('');
+  const [listingImageError, setListingImageError] = useState('');
+  const [isProcessingListingImage, setIsProcessingListingImage] = useState(false);
   const [listingDraft, setListingDraft] = useState({
     name: '', category: 'Livestock', description: '', price: '', quantity: '',
     unit: '', region: profile.region || profile.location || '', imageUrl: '',
@@ -230,9 +236,12 @@ export default function MarketplacePage({ profile, user, search = '', onTranspor
       setListingProducts((current) => [product, ...(current || []).filter((item) => item.id !== product.id)]);
       setIsListingFormOpen(false);
       setListingDraft({ name: '', category: 'Livestock', description: '', price: '', quantity: '', unit: '', region, imageUrl: '' });
+      setListingImageName('');
+      setListingImageError('');
       setNotice(`${product.name} is now listed in the marketplace.`);
-    } catch {
-      setNotice('Could not publish the listing. Check your connection and try again.');
+    } catch (error) {
+      console.error('Could not publish marketplace listing:', error);
+      setNotice(error.message || 'Could not publish the listing. Check your connection and try again.');
     } finally {
       setIsPublishingListing(false);
     }
@@ -401,9 +410,28 @@ export default function MarketplacePage({ profile, user, search = '', onTranspor
             <label>Available quantity<input required type="number" min="1" step="any" value={listingDraft.quantity} onChange={(event) => setListingDraft((current) => ({ ...current, quantity: event.target.value }))} /></label>
             <label>Unit<input required maxLength="40" value={listingDraft.unit} onChange={(event) => setListingDraft((current) => ({ ...current, unit: event.target.value }))} placeholder="per animal, litre, tray, or kg" /></label>
             <label>Region<input maxLength="100" value={listingDraft.region} onChange={(event) => setListingDraft((current) => ({ ...current, region: event.target.value }))} placeholder="Your district or region" /></label>
-            <label className="marketplace-listing-full">Photo URL (optional)<input type="url" value={listingDraft.imageUrl} onChange={(event) => setListingDraft((current) => ({ ...current, imageUrl: event.target.value }))} placeholder="https://…" /></label>
-            <p className="marketplace-listing-note">Listing information and prices are provided by the seller. Only secure (HTTPS) photo URLs are displayed.</p>
-            <div className="marketplace-listing-actions-row"><button type="button" onClick={() => setIsListingFormOpen(false)}>Cancel</button><button type="submit" disabled={isPublishingListing}>{isPublishingListing ? 'Publishing…' : 'Publish listing'}</button></div>
+            <label className="marketplace-listing-full">Upload photo from this device<input type="file" accept="image/*" disabled={isProcessingListingImage} onChange={async (event) => {
+              const [file] = event.target.files || [];
+              event.target.value = '';
+              if (!file) return;
+              setIsProcessingListingImage(true);
+              try {
+                const imageUrl = await resizeImageForUpload(file);
+                setListingDraft((current) => ({ ...current, imageUrl }));
+                setListingImageName(file.name);
+                setListingImageError('');
+                setNotice('');
+              } catch (error) {
+                setListingImageError(error.message);
+              } finally {
+                setIsProcessingListingImage(false);
+              }
+            }} />{isProcessingListingImage && <span>Preparing image…</span>}{listingImageError && <span className="marketplace-listing-image-error" role="alert">{listingImageError}</span>}</label>
+            {listingImageName && <div className="marketplace-listing-image-selection"><span>Selected: {listingImageName}</span><button type="button" onClick={() => { setListingImageName(''); setListingDraft((current) => ({ ...current, imageUrl: '' })); }}>Remove photo</button></div>}
+            <label className="marketplace-listing-full">Or use a secure photo URL<input type="url" value={listingImageName ? '' : listingDraft.imageUrl} onChange={(event) => { setListingImageName(''); setListingDraft((current) => ({ ...current, imageUrl: event.target.value })); }} placeholder="https://…" /></label>
+            {listingDraft.imageUrl && <img className="marketplace-listing-image-preview" src={listingDraft.imageUrl} alt="Listing image preview" />}
+            <p className="marketplace-listing-note">Photo uploads are resized before sending and are visible with the published listing. Listing information and prices are provided by the seller.</p>
+            <div className="marketplace-listing-actions-row"><button type="button" onClick={() => setIsListingFormOpen(false)}>Cancel</button><button type="submit" disabled={isPublishingListing || isProcessingListingImage}>{isPublishingListing ? 'Publishing…' : 'Publish listing'}</button></div>
           </form>
         </section>
       </div>}

@@ -13549,6 +13549,337 @@ body.admin-impersonation-active #root {
   }
 }
 
+.labour-manager-page {
+  gap: 0.9rem;
+}
+
+.labour-manager-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.labour-manager-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.labour-manager-kpis article {
+  display: grid;
+  min-width: 0;
+  gap: 0.28rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.8rem;
+}
+
+.labour-manager-kpis article > .material-symbols-outlined {
+  color: #438069;
+  font-size: 1.15rem;
+}
+
+.labour-manager-kpis article > small {
+  color: var(--labour-muted);
+  font-size: 0.63rem;
+}
+
+.labour-manager-kpis article > strong {
+  overflow: hidden;
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labour-manager-kpis article > em {
+  color: var(--labour-muted);
+  font-size: 0.6rem;
+  font-style: normal;
+}
+
+.labour-manager-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(16rem, 0.9fr);
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.labour-manager-primary,
+.labour-manager-secondary {
+  display: grid;
+  min-width: 0;
+  gap: 0.8rem;
+}
+
+.labour-task-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+}
+
+.labour-task-filter select {
+  min-height: 2rem;
+  border: 1px solid var(--labour-line);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--labour-ink);
+  padding: 0.3rem 0.45rem;
+  font: inherit;
+}
+
+.labour-task-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.labour-task-card {
+  border: 1px solid var(--labour-line);
+  border-radius: 0.6rem;
+  background: #fff;
+  padding: 0.75rem;
+}
+
+.labour-task-meta,
+.labour-task-footer,
+.labour-task-assignee {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.labour-task-meta {
+  flex-wrap: wrap;
+  color: var(--labour-muted);
+  font-size: 0.61rem;
+}
+
+.labour-task-meta > span:not(.labour-task-priority) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+}
+
+.labour-task-meta .material-symbols-outlined {
+  font-size: 0.85rem;
+}
+
+.labour-task-priority,
+.labour-task-status {
+  border-radius: 999px;
+  background: #efefed;
+  color: #625e54;
+  padding: 0.23rem 0.48rem;
+  font-size: 0.57rem;
+  font-weight: 750;
+}
+
+.labour-task-priority.is-high {
+  background: #fbe4df;
+  color: #a63b28;
+}
+
+.labour-task-priority.is-medium {
+  background: #fbf0d8;
+  color: #886018;
+}
+
+.labour-task-priority.is-low {
+  background: #e6f0e5;
+  color: #3a714b;
+}
+
+.labour-task-card h3 {
+  margin: 0.55rem 0 0.25rem;
+  color: var(--labour-primary);
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+}
+
+.labour-task-card > p {
+  margin: 0.2rem 0 0.65rem;
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+.labour-task-footer {
+  justify-content: space-between;
+  border-top: 1px solid var(--labour-line);
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+}
+
+.labour-task-assignee {
+  color: var(--labour-ink);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.labour-task-assignee .labour-avatar,
+.labour-attendance-row .labour-avatar {
+  width: 1.8rem;
+  height: 1.8rem;
+  font-size: 0.75rem;
+}
+
+.labour-task-footer .labour-outline-button,
+.labour-roster-panel .labour-outline-button {
+  min-height: 1.9rem;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.61rem;
+}
+
+.labour-inline-action {
+  border: 0;
+  background: transparent;
+  color: #327557;
+  padding: 0.25rem;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.labour-attendance-list {
+  display: grid;
+}
+
+.labour-attendance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--labour-line);
+  padding: 0.55rem 0;
+}
+
+.labour-attendance-row > div {
+  display: grid;
+  flex: 1;
+  gap: 0.16rem;
+}
+
+.labour-attendance-row strong {
+  color: var(--labour-ink);
+  font-size: 0.66rem;
+}
+
+.labour-attendance-row small,
+.labour-attendance-method {
+  color: var(--labour-muted);
+  font-size: 0.58rem;
+}
+
+.labour-attendance-method {
+  border-radius: 999px;
+  background: #e7f2eb;
+  color: #276047;
+  padding: 0.2rem 0.4rem;
+}
+
+.labour-payroll-summary > div:not(.labour-section-heading) {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--labour-line);
+  padding: 0.55rem 0;
+  color: var(--labour-muted);
+  font-size: 0.66rem;
+}
+
+.labour-payroll-summary > div strong {
+  color: var(--labour-primary);
+}
+
+.labour-payroll-summary > .labour-primary-button {
+  width: 100%;
+  margin-top: 0.65rem;
+}
+
+.labour-payroll-summary > small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--labour-muted);
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+.labour-completed-tasks {
+  display: grid;
+  gap: 0.35rem;
+  border-top: 1px solid var(--labour-line);
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+}
+
+.labour-completed-tasks > h3 {
+  margin: 0 0 0.2rem;
+  color: var(--labour-muted);
+  font-size: 0.65rem;
+}
+
+.labour-completed-tasks > div {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-bottom: 1px solid var(--labour-line);
+  padding: 0.4rem 0;
+}
+
+.labour-completed-tasks > div > .material-symbols-outlined {
+  color: #438069;
+  font-size: 1rem;
+}
+
+.labour-completed-tasks > div > span:nth-child(2) {
+  display: grid;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.labour-completed-tasks strong {
+  overflow: hidden;
+  color: var(--labour-ink);
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labour-completed-tasks small {
+  color: var(--labour-muted);
+  font-size: 0.57rem;
+}
+
+@media (max-width: 860px) {
+  .labour-manager-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .labour-manager-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .labour-manager-actions {
+    justify-content: stretch;
+  }
+
+  .labour-manager-actions > button {
+    flex: 1;
+  }
+
+  .labour-tabs {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
 .digital-farm-field-actions {
   display: flex;
   flex-wrap: wrap;

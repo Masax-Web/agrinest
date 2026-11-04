@@ -1,0 +1,203 @@
+:root {
+  color-scheme: light;
+  --agri-forest: #143321;
+  --agri-forest-dark: #0d2818;
+  --agri-green: #276747;
+  --agri-yellow: #e9c46a;
+  --agri-white: #ffffff;
+  --agri-ink: #203229;
+  --agri-muted: #617067;
+  --agri-line: #dfe7df;
+  --agri-body-font: 'DM Sans', 'Segoe UI', sans-serif;
+  --agri-display-font: 'Syne', 'DM Sans', sans-serif;
+  --agri-text-caption: 0.75rem;
+  --agri-text-control: 0.8125rem;
+  --agri-text-body: 0.875rem;
+  --agri-text-h3: 1.125rem;
+  --agri-text-h2: 1.375rem;
+  --agri-text-h1: clamp(1.75rem, 2.7vw, 2.375rem);
+  font-family: var(--agri-body-font);
+  font-size: 16px;
+  color: var(--agri-ink);
+  background: var(--agri-white);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--agri-white);
+  color: var(--agri-ink);
+  font-family: var(--agri-body-font);
+}
+
+#root :is(h1, h2, h3) {
+  color: var(--agri-forest);
+  font-family: var(--agri-display-font);
+  line-height: 1.2;
+}
+
+#root h1 {
+  font-size: var(--agri-text-h1);
+}
+
+#root h2 {
+  font-size: var(--agri-text-h2);
+}
+
+#root h3 {
+  font-size: var(--agri-text-h3);
+}
+
+#root :is(p, li) {
+  font-size: var(--agri-text-body);
+}
+
+#root :is(label, input, select, textarea, button, td, th) {
+  font-family: var(--agri-body-font);
+  font-size: var(--agri-text-control);
+}
+
+#root small,
+#root [class*='eyebrow'] {
+  font-size: var(--agri-text-caption);
+}
+
+#root :is(.account-security-launch, .farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']) {
+  border-color: var(--agri-forest);
+  background-color: var(--agri-forest);
+  color: var(--agri-white);
+}
+
+#root :is(.account-security-launch, .farmer-workspace-submit, .labour-primary-button, .equipment-primary-button, .rental-primary-button, .role-workspace-form button[type='submit'], button[class*='primary'], a[class*='primary'], button[class*='submit']):hover {
+  background-color: var(--agri-green);
+}
+
+#root :is(.labour-tabs button.active, .equipment-owner-tabs button.active, .rental-tabs button.active, .ramani-map-modes button.active) {
+  border-color: var(--agri-yellow);
+  background-color: var(--agri-yellow);
+  color: var(--agri-forest);
+}
+
+#root :is(button, input, select, textarea, a):focus-visible {
+  outline: 3px solid var(--agri-yellow);
+  outline-offset: 2px;
+}
+
+.account-security-launch {
+  right: 1rem;
+  background: var(--agri-forest);
+}
+
+.marketplace-listing-image-preview {
+  grid-column: 1 / -1;
+  width: min(100%, 24rem);
+  max-height: 14rem;
+  justify-self: start;
+  border: 1px solid var(--agri-line);
+  border-radius: 0.6rem;
+  object-fit: cover;
+}
+
+.marketplace-listing-image-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+  color: var(--agri-muted);
+  font-size: var(--agri-text-caption);
+}
+
+.marketplace-listing-image-error,
+.rental-image-error {
+  color: #a63b28;
+  font-size: var(--agri-text-caption);
+}
+
+.marketplace-listing-image-selection button,
+.rental-image-preview button {
+  border: 1px solid var(--agri-line);
+  border-radius: 0.4rem;
+  background: var(--agri-white);
+  color: var(--agri-forest);
+  padding: 0.35rem 0.55rem;
+}
+
+.rental-image-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.rental-image-preview img {
+  width: min(100%, 18rem);
+  max-height: 10rem;
+  border: 1px solid var(--agri-line);
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.ramani-panel-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ramani-mobile-panel-toggle {
+  display: none;
+}
+
+.ramani-page .leaflet-container {
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 540px) {
+  .ramani-layer-panel.is-mobile-collapsed {
+    max-height: 3.35rem;
+    overflow: hidden;
+  }
+
+  .ramani-layer-panel.is-mobile-collapsed #ramani-layer-controls {
+    display: none;
+  }
+
+  .ramani-layer-panel .ramani-panel-heading {
+    min-height: 2.2rem;
+  }
+
+  .ramani-panel-heading-actions {
+    margin-left: auto;
+  }
+
+  .ramani-mobile-panel-toggle {
+    display: inline-flex;
+    min-height: 2.35rem;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--agri-line);
+    border-radius: 0.4rem;
+    background: var(--agri-white);
+    color: var(--agri-forest);
+    padding: 0.35rem 0.5rem;
+    font: inherit;
+    font-size: var(--agri-text-caption);
+    font-weight: 700;
+  }
+
+  .ramani-mobile-panel-toggle .material-symbols-outlined {
+    font-size: 1rem;
+  }
+
+  .ramani-page .leaflet-control-zoom a {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.4rem;
+    line-height: 2.75rem;
+  }
+
+  .rental-image-preview {
+    flex-direction: column;
+  }
+}

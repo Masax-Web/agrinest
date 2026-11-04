@@ -1,0 +1,647 @@
+.equipment-rental-page {
+  --equipment-ink: #1d3129;
+  --equipment-muted: #63756c;
+  --equipment-line: #dce5df;
+  --equipment-green: #176a49;
+  display: grid;
+  width: min(100%, 88rem);
+  gap: 1.15rem;
+  margin: 0 auto;
+  color: var(--equipment-ink);
+}
+
+.equipment-rental-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.equipment-rental-header h1 {
+  margin: 0.25rem 0 0;
+  color: #173c2b;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  letter-spacing: -0.035em;
+}
+
+.equipment-rental-header p {
+  max-width: 46rem;
+  margin: 0.35rem 0 0;
+  color: var(--equipment-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.equipment-back-button,
+.equipment-owner-tabs button,
+.equipment-primary-button,
+.equipment-secondary-button {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--equipment-line);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--equipment-ink);
+  padding: 0.5rem 0.8rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.equipment-back-button .material-symbols-outlined,
+.equipment-primary-button .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.equipment-primary-button {
+  border-color: var(--equipment-green);
+  background: var(--equipment-green);
+  color: #fff;
+}
+
+.equipment-primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.equipment-secondary-button {
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.equipment-message,
+.equipment-local-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border: 1px solid #d5e8dc;
+  border-radius: 0.55rem;
+  background: #f0f8f2;
+  color: #28523a;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.72rem;
+}
+
+.equipment-message.is-error {
+  border-color: #efc9c4;
+  background: #fff4f2;
+  color: #8a3026;
+}
+
+.equipment-message > button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.equipment-local-note {
+  border-color: #d9e3ed;
+  background: #f4f8fc;
+  color: #3b536b;
+}
+
+.equipment-local-note .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+}
+
+.equipment-local-note p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.equipment-owner-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.equipment-owner-tabs button {
+  justify-content: flex-start;
+  color: #52665c;
+}
+
+.equipment-owner-tabs button.active {
+  border-color: #b6d6c3;
+  background: #e7f2eb;
+  color: #17593c;
+}
+
+.equipment-tab-count {
+  display: inline-grid;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #dcece2;
+  font-size: 0.62rem;
+}
+
+.equipment-owner-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.equipment-owner-summary article,
+.equipment-market-summary > div,
+.equipment-panel,
+.equipment-rental-card,
+.equipment-owner-card {
+  border: 1px solid var(--equipment-line);
+  border-radius: 0.8rem;
+  background: #fff;
+  box-shadow: 0 0.2rem 0.8rem rgba(23, 60, 43, 0.04);
+}
+
+.equipment-owner-summary article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+}
+
+.equipment-owner-summary article > span {
+  color: var(--equipment-muted);
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.equipment-owner-summary article strong {
+  color: #194d36;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.5rem;
+}
+
+.equipment-owner-summary article small {
+  color: var(--equipment-muted);
+  font-size: 0.62rem;
+}
+
+.equipment-owner-grid,
+.equipment-maintenance-grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: 0.85rem;
+}
+
+.equipment-panel {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.equipment-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-bottom: 1px solid var(--equipment-line);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.7rem;
+}
+
+.equipment-panel-heading > .material-symbols-outlined {
+  color: var(--equipment-green);
+  font-size: 1.3rem;
+}
+
+.equipment-panel-heading h2 {
+  margin: 0;
+  color: #214432;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1rem;
+}
+
+.equipment-panel-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--equipment-muted);
+  font-size: 0.65rem;
+}
+
+.equipment-listing-form,
+.equipment-maintenance-grid > form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.equipment-rental-page label {
+  display: grid;
+  gap: 0.3rem;
+  color: #40564a;
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.equipment-rental-page input,
+.equipment-rental-page select,
+.equipment-rental-page textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d7e1da;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: var(--equipment-ink);
+  padding: 0.55rem 0.6rem;
+  font: inherit;
+  font-size: 0.72rem;
+}
+
+.equipment-rental-page textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.equipment-owner-list,
+.equipment-inquiry-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.equipment-owner-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: none;
+}
+
+.equipment-card-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: #e8f2eb;
+  color: #1d6544;
+}
+
+.equipment-card-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.equipment-card-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.equipment-card-title h3,
+.equipment-rental-card h2 {
+  margin: 0.1rem 0;
+  color: #1d382b;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+}
+
+.equipment-card-title > div > span,
+.equipment-rental-card-body .equipment-card-title > div > span {
+  color: var(--equipment-muted);
+  font-size: 0.61rem;
+}
+
+.equipment-card-content > p {
+  margin: 0.25rem 0;
+  color: var(--equipment-muted);
+  font-size: 0.65rem;
+}
+
+.equipment-card-content > strong {
+  display: block;
+  margin: 0.35rem 0 0.5rem;
+  color: #20553a;
+  font-size: 0.8rem;
+}
+
+.equipment-card-content > strong small {
+  color: var(--equipment-muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+}
+
+.equipment-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #edf0ed;
+  color: #58665c;
+  padding: 0.23rem 0.5rem;
+  font-size: 0.58rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.equipment-status.is-available {
+  background: #e5f3e8;
+  color: #23663e;
+}
+
+.equipment-status.is-paused {
+  background: #f7eddf;
+  color: #8b5a16;
+}
+
+.equipment-status.is-local {
+  background: #edf1f8;
+  color: #435c83;
+}
+
+.equipment-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 2rem 1rem;
+  color: var(--equipment-muted);
+  text-align: center;
+}
+
+.equipment-empty > .material-symbols-outlined {
+  color: #568366;
+  font-size: 1.8rem;
+}
+
+.equipment-empty strong {
+  color: #244333;
+  font-size: 0.85rem;
+}
+
+.equipment-empty p,
+.equipment-empty-copy {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--equipment-muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.equipment-availability-row,
+.equipment-inquiry-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  border-bottom: 1px solid #e8eeea;
+  padding: 0.7rem 0;
+}
+
+.equipment-availability-row > div,
+.equipment-inquiry-list article > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.equipment-availability-row strong,
+.equipment-inquiry-list strong {
+  color: #284534;
+  font-size: 0.74rem;
+}
+
+.equipment-availability-row small,
+.equipment-inquiry-list p,
+.equipment-inquiry-list small {
+  margin: 0;
+  color: var(--equipment-muted);
+  font-size: 0.63rem;
+}
+
+.equipment-market-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.equipment-market-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+
+.equipment-market-summary > div > .material-symbols-outlined {
+  color: #28714d;
+  font-size: 1.3rem;
+}
+
+.equipment-market-summary > div > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.equipment-market-summary strong {
+  color: #214b35;
+  font-size: 0.86rem;
+}
+
+.equipment-market-summary small {
+  color: var(--equipment-muted);
+  font-size: 0.62rem;
+}
+
+.equipment-market-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.equipment-search {
+  display: flex !important;
+  min-height: 2.65rem;
+  flex: 1;
+  align-items: center;
+  gap: 0.45rem !important;
+  border: 1px solid var(--equipment-line);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0 0.6rem;
+}
+
+.equipment-search .material-symbols-outlined {
+  color: var(--equipment-muted);
+  font-size: 1.05rem;
+}
+
+.equipment-search input {
+  border: 0;
+  outline: 0;
+  padding-inline: 0;
+}
+
+.equipment-category-filter {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem !important;
+}
+
+.equipment-category-filter select {
+  width: auto;
+  min-width: 9rem;
+}
+
+.equipment-listing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.equipment-rental-card {
+  overflow: hidden;
+}
+
+.equipment-card-illustration {
+  display: flex;
+  min-height: 9rem;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(140deg, #e1eee2, #cddfce);
+  color: #367049;
+}
+
+.equipment-card-illustration > .material-symbols-outlined {
+  font-size: 3.5rem;
+}
+
+.equipment-card-illustration .equipment-status {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+}
+
+.equipment-rental-card-body {
+  padding: 0.8rem;
+}
+
+.equipment-location {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0.4rem 0;
+  color: var(--equipment-muted);
+  font-size: 0.65rem;
+}
+
+.equipment-location .material-symbols-outlined {
+  font-size: 0.9rem;
+}
+
+.equipment-description {
+  min-height: 2.1rem;
+  margin: 0.4rem 0 0.75rem;
+  color: var(--equipment-muted);
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.equipment-rental-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid #e6ece8;
+  padding-top: 0.7rem;
+}
+
+.equipment-rental-card-footer > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.equipment-rental-card-footer strong {
+  color: #20553a;
+  font-size: 0.78rem;
+}
+
+.equipment-rental-card-footer small {
+  color: var(--equipment-muted);
+  font-size: 0.58rem;
+}
+
+.equipment-local-inquiries {
+  margin-top: 0.25rem;
+}
+
+.equipment-inquiry-dialog {
+  width: min(100%, 36rem);
+}
+
+.equipment-inquiry-dialog form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.equipment-inquiry-dialog form > label:has(textarea),
+.equipment-inquiry-dialog form > .digital-farm-dialog-note,
+.equipment-inquiry-dialog form > .farmer-workspace-submit {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 850px) {
+  .equipment-listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .equipment-owner-grid,
+  .equipment-maintenance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .equipment-rental-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .equipment-owner-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .equipment-market-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .equipment-market-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .equipment-category-filter {
+    justify-content: space-between;
+  }
+
+  .equipment-category-filter select {
+    flex: 1;
+  }
+
+  .equipment-listing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .equipment-availability-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .equipment-availability-row > div {
+    width: calc(100% - 1rem);
+  }
+
+  .equipment-inquiry-dialog form {
+    grid-template-columns: 1fr;
+  }
+
+  .equipment-inquiry-dialog form > label:has(textarea),
+  .equipment-inquiry-dialog form > .digital-farm-dialog-note,
+  .equipment-inquiry-dialog form > .farmer-workspace-submit {
+    grid-column: auto;
+  }
+}

@@ -62,7 +62,7 @@ describe('AGRI-NEST API integration', () => {
     });
     SpaceRentalService.listSpaces = async () => [{ space_id: '00000000-0000-4000-8000-000000000201', title: 'North plot', space_type: 'farmland' }];
     SpaceRentalService.listOwnedSpaces = async () => [{ space_id: '00000000-0000-4000-8000-000000000201', owner_id: user.user_id, title: 'North plot' }];
-    SpaceRentalService.createSpace = async (data) => ({ space_id: '00000000-0000-4000-8000-000000000201', owner_id: data.ownerId, title: data.title, space_type: data.type });
+    SpaceRentalService.createSpace = async (data) => ({ space_id: '00000000-0000-4000-8000-000000000201', owner_id: data.ownerId, title: data.title, space_type: data.type, image_url: data.imageUrl });
     SpaceRentalService.setSpaceStatus = async (data) => ({ space_id: data.spaceId, status: data.status });
     SpaceRentalService.listSpaceRequests = async () => [{ request_id: '00000000-0000-4000-8000-000000000202', owner_id: user.user_id, status: 'pending' }];
     SpaceRentalService.createSpaceRequest = async (data) => ({ request_id: '00000000-0000-4000-8000-000000000202', space_id: data.spaceId, requester_id: data.requesterId, status: 'pending' });
@@ -128,9 +128,10 @@ describe('AGRI-NEST API integration', () => {
     expect(fieldResponse.body.field).to.deep.equal(field);
 
     const created = await authenticatedRequest('post', '/soko/listings')
-      .send({ crop_type: 'Maize', quantity: 100, price: 20000 })
+      .send({ crop_type: 'Maize', quantity: 100, price: 20000, image_url: 'data:image/webp;base64,AAAA' })
       .expect(201);
     expect(created.body.listing_id).to.equal(listing.listing_id);
+    expect(created.body.image_url).to.equal('data:image/webp;base64,AAAA');
 
     const listed = await authenticatedRequest('get', '/soko/listings').expect(200);
     expect(listed.body.items).to.deep.equal([listing]);
@@ -178,9 +179,10 @@ describe('AGRI-NEST API integration', () => {
         unit: 'acres',
         price: 120000,
         price_period: 'season',
+        image_url: 'data:image/webp;base64,AAAA',
       })
       .expect(201);
-    expect(created.body).to.include({ owner_id: user.user_id, title: 'North plot' });
+    expect(created.body).to.include({ owner_id: user.user_id, title: 'North plot', image_url: 'data:image/webp;base64,AAAA' });
     const paused = await authenticatedRequest('patch', '/soko/spaces/00000000-0000-4000-8000-000000000201/status')
       .send({ status: 'inactive' })
       .expect(200);

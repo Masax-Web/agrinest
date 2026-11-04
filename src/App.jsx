@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { cloneElement, useEffect, useRef, useState } from 'react';
 import api from './lib/api';
 import { calculateFarmerTrust } from './lib/farmer-trust';
 import { fetchWeatherData, geocodeSavedWeatherLocation, getSavedWeatherLocation } from './lib/weather';
@@ -25,6 +25,7 @@ import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import VerifiedActivityArchive from './VerifiedActivityArchive';
+import FoundationImpactPortal from './FoundationImpactPortal';
 import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import TransporterFleetWorkspace from './TransporterFleetWorkspace';
 import TransporterRouteWorkspace from './TransporterRouteWorkspace';
@@ -69,8 +70,11 @@ function getPersonaDashboard(personaId) {
   })[persona.dashboard] || persona.id;
 }
 
-function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation }) {
+function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, impersonationError, onEndImpersonation, injectSecurityOpener = false }) {
   const [isOpen, setIsOpen] = useState(false);
+  const secureChildren = injectSecurityOpener && children && typeof children.type === 'function'
+    ? cloneElement(children, { onOpenSecurity: () => setIsOpen(true) })
+    : children;
   useEffect(() => {
     if (!impersonationInfo) return undefined;
     document.body.classList.add('admin-impersonation-active');
@@ -83,7 +87,7 @@ function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, im
         <div><strong><span className="material-symbols-outlined">switch_account</span>Acting as {user?.name || user?.email || 'user'}</strong><span>Changes affect this account · session ends {new Date(impersonationInfo.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>{impersonationError && <span className="admin-impersonation-error">{impersonationError}</span>}</div>
         <button type="button" onClick={onEndImpersonation}><span className="material-symbols-outlined">undo</span>Return to super admin</button>
       </div>}
-      {children}
+      {secureChildren}
       {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
@@ -757,7 +761,7 @@ function App() {
   }
 
   if (loggedIn && activeDashboard === 'gov') {
-    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation}><InstitutionalDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
+    return <DashboardWithSecurity user={authUser} onLogout={handleLogout} impersonationInfo={impersonationInfo} impersonationError={impersonationError} onEndImpersonation={handleEndImpersonation} injectSecurityOpener><FoundationInstitutionalDashboard user={authUser} onLogout={handleLogout} /></DashboardWithSecurity>;
   }
 
   if (loggedIn && activeDashboard === 'student') {
@@ -1962,12 +1966,12 @@ function SmallholderDashboard({ user, onLogout }) {
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
     Analytics: 'analytics', 'Farmer Forum': 'farmer-forum', 'Traceability & QR': 'traceability', 'Compliance & Export': 'compliance',
     'Farm ERP': 'farm-erp', 'Rentals & Labour': 'labour', 'Kupanga Nafasi': 'rent-space', 'Rent Space / Land': 'rent-space', 'Hire / Find Work': 'labour',
-    'Rent Equipment': 'agrishop', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Sustainability: 'sustainability', Crowdfunding: 'crowdfunding',
+    'Rent Equipment': 'equipment-rent', 'Waste Exchange': 'waste', 'Carbon Credits': 'carbon', Sustainability: 'sustainability', Crowdfunding: 'crowdfunding',
     'AGRI-NEST Foundation': 'foundation',
   };
   const farmerActionViews = {
     'Sell Produce': 'marketplace', 'Scan Crop': 'jicho', 'Get Expert': 'experts',
-    'Book Transport': 'transport', 'Log Activity': 'activity', 'Rent Space': 'rent-space', 'Hire Labour': 'labour',
+    'Book Transport': 'transport', 'Log Activity': 'activity', 'Rent Space': 'rent-space', 'Rent Equipment': 'equipment-rent', 'Hire Labour': 'labour',
     'Sell Waste': 'waste', 'Get Insurance': 'insurance', 'Apply Loan': 'smart-loan', 'Smart Loan': 'smart-loan',
   };
 
@@ -3512,6 +3516,27 @@ function NotificationCenter({ notifications, onNotificationsChange, onBackToDash
         </aside>
       </div>
     </main>
+  );
+}
+
+function FoundationInstitutionalDashboard({ user, onLogout, onOpenSecurity }) {
+  const [activeView, setActiveView] = useState('dashboard');
+
+  if (activeView === 'evidence') {
+    return <VerifiedActivityArchive user={user} onLogout={onLogout} onNavigate={setActiveView} />;
+  }
+  if (activeView === 'community') {
+    return <CommunityChat onBackToDashboard={() => setActiveView('dashboard')} viewerProfile={{ id: 'institutional-demo', name: user?.name || 'Impact Portfolio Team', role: 'Institution', location: 'Tanzania' }} />;
+  }
+
+  return (
+    <FoundationImpactPortal
+      user={user}
+      onLogout={onLogout}
+      onOpenSecurity={onOpenSecurity}
+      onOpenEvidence={() => setActiveView('evidence')}
+      onOpenCommunity={() => setActiveView('community')}
+    />
   );
 }
 

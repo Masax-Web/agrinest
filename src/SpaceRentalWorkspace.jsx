@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from './lib/api';
+import { resizeImageForUpload } from './lib/image-uploads';
 
 const spaceTypes = [
   { value: 'farmland', label: 'Farmland', icon: 'agriculture' },
@@ -48,6 +49,9 @@ export default function SpaceRentalWorkspace({ user, profile, search = '' }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [imageName, setImageName] = useState('');
+  const [imageError, setImageError] = useState('');
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [draft, setDraft] = useState({
     title: '', space_type: 'farmland', description: '', region: profile?.region || '',
     quantity: '', unit: 'acres', price: '', price_period: 'season', available_from: '', image_url: '',
@@ -125,6 +129,8 @@ export default function SpaceRentalWorkspace({ user, profile, search = '' }) {
         title: '', space_type: 'farmland', description: '', region: profile?.region || '',
         quantity: '', unit: 'acres', price: '', price_period: 'season', available_from: '', image_url: '',
       });
+      setImageName('');
+      setImageError('');
       setNotice('Your space listing is live. It is owner-provided and has not been independently verified.');
       await load();
     } catch (requestError) {
@@ -294,9 +300,27 @@ export default function SpaceRentalWorkspace({ user, profile, search = '' }) {
           <label>Description<textarea maxLength="2000" rows="3" value={draft.description} onChange={(event) => updateDraft('description', event.target.value)} placeholder="Describe access, facilities, conditions, and important terms." /></label>
           <div className="rental-form-row"><label>Available quantity<input required type="number" min="0.01" step="any" value={draft.quantity} onChange={(event) => updateDraft('quantity', event.target.value)} /></label><label>Unit<input required maxLength="40" value={draft.unit} onChange={(event) => updateDraft('unit', event.target.value)} placeholder="acres, tonnes, rooms…" /></label></div>
           <div className="rental-form-row"><label>Total price per period (TZS)<input required type="number" min="0" step="1" value={draft.price} onChange={(event) => updateDraft('price', event.target.value)} /></label><label>Price period<select value={draft.price_period} onChange={(event) => updateDraft('price_period', event.target.value)}>{pricePeriods.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
-          <div className="rental-form-row"><label>Available from (optional)<input type="date" min={today()} value={draft.available_from} onChange={(event) => updateDraft('available_from', event.target.value)} /></label><label>Image URL (optional)<input type="url" maxLength="2048" value={draft.image_url} onChange={(event) => updateDraft('image_url', event.target.value)} placeholder="https://…" /></label></div>
+          <div className="rental-form-row"><label>Available from (optional)<input type="date" min={today()} value={draft.available_from} onChange={(event) => updateDraft('available_from', event.target.value)} /></label><label>Upload a photo from this device<input type="file" accept="image/*" disabled={isProcessingImage || busy} onChange={async (event) => {
+            const [file] = event.target.files || [];
+            event.target.value = '';
+            if (!file) return;
+            setIsProcessingImage(true);
+            setImageError('');
+            setError('');
+            try {
+              const imageUrl = await resizeImageForUpload(file);
+              updateDraft('image_url', imageUrl);
+              setImageName(file.name);
+            } catch (uploadError) {
+              setImageError(uploadError.message);
+            } finally {
+              setIsProcessingImage(false);
+            }
+          }} />{isProcessingImage ? <small>Preparing image…</small> : imageName && <small>Selected: {imageName}</small>}{imageError && <small className="rental-image-error" role="alert">{imageError}</small>}</label></div>
+          <label>Or use a secure image URL (optional)<input type="url" maxLength="2048" value={imageName ? '' : draft.image_url} onChange={(event) => { setImageName(''); updateDraft('image_url', event.target.value); }} placeholder="https://…" /></label>
+          {draft.image_url && <div className="rental-image-preview"><img src={draft.image_url} alt="Space listing preview" /><button type="button" className="rental-secondary-button" onClick={() => { setImageName(''); updateDraft('image_url', ''); }}>Remove photo</button></div>}
           <p className="rental-form-disclaimer">Your listing will be visible to signed-in and public visitors. Do not include private documents, precise home addresses, or sensitive location details.</p>
-          <div className="rental-modal-actions"><button type="button" className="rental-secondary-button" disabled={busy} onClick={() => setListingOpen(false)}>Cancel</button><button type="submit" className="rental-primary-button" disabled={busy}>{busy ? 'Publishing…' : 'Publish listing'}</button></div>
+          <div className="rental-modal-actions"><button type="button" className="rental-secondary-button" disabled={busy} onClick={() => setListingOpen(false)}>Cancel</button><button type="submit" className="rental-primary-button" disabled={busy || isProcessingImage}>{busy ? 'Publishing…' : 'Publish listing'}</button></div>
         </form>
       </RentalModal>}
 

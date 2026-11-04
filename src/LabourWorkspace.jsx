@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const skills = ['Harvesting', 'Weeding', 'Spraying', 'Irrigation', 'Management', 'Planting', 'Livestock care'];
 const requestModules = {
@@ -22,19 +22,33 @@ function formatShortDate(value) {
   return Number.isNaN(date.getTime()) ? 'Date not set' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function localDateKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 10);
+}
+
 function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNavigate }) {
-  const [mode, setMode] = useState('hire');
+  const [mode, setMode] = useState(page === 'payroll' ? 'payroll' : 'tasks');
   const [query, setQuery] = useState('');
   const [activeSkill, setActiveSkill] = useState('');
+  const [taskPriority, setTaskPriority] = useState('');
   const [dialog, setDialog] = useState('');
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [notice, setNotice] = useState('');
   const [jobDraft, setJobDraft] = useState({ title: '', skill: 'Harvesting', location: profile.location || profile.region || '', workersNeeded: '1', dailyRate: '', startDate: '', durationDays: '', details: '' });
   const [workerDraft, setWorkerDraft] = useState({ name: profile.name || '', skill: '', location: profile.location || profile.region || '', dailyRate: '', experience: '', availability: 'available', bio: '' });
-  const [paymentDraft, setPaymentDraft] = useState({ contractId: '', amount: '', date: new Date().toISOString().slice(0, 10), method: 'Cash', reference: '', notes: '' });
+  const [paymentDraft, setPaymentDraft] = useState({ contractId: '', amount: '', units: '1', date: new Date().toISOString().slice(0, 10), method: 'Cash', reference: '', notes: '' });
+  const [taskDraft, setTaskDraft] = useState({ title: '', workerId: '', priority: 'Medium', dueDate: new Date().toISOString().slice(0, 10), details: '' });
+  useEffect(() => {
+    setMode(page === 'payroll' ? 'payroll' : 'tasks');
+  }, [page]);
 
   const requests = Array.isArray(records.requests) ? records.requests : [];
   const payrollRecords = Array.isArray(records.payroll) ? records.payroll : [];
+  const tasks = requests.filter((item) => item.module === 'labour-task');
+  const attendanceRecords = requests.filter((item) => item.module === 'labour-attendance');
   const workers = requests.filter((item) => item.module === requestModules.worker);
   const jobs = requests.filter((item) => item.module === requestModules.job);
   const contracts = requests.filter((item) => item.module === requestModules.contract);
@@ -65,6 +79,11 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
     return counts;
   }, new Map()).entries()].sort((left, right) => right[1] - left[1]);
   const payrollTotal = payrollRecords.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  const activeTasks = tasks.filter((task) => task.status !== 'Complete');
+  const todayKey = localDateKey(new Date());
+  const completedTasksToday = tasks.filter((task) => task.status === 'Complete' && localDateKey(task.completedAt) === todayKey);
+  const activeDailyWages = activeContracts.reduce((total, contract) => total + Number(contract.dailyRate || 0), 0);
+  const todayAttendance = attendanceRecords.filter((record) => localDateKey(record.checkedInAt) === todayKey);
 
   const updateRequests = (next) => onRecordsChange('requests', next);
 
@@ -150,8 +169,9 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
     event.preventDefault();
     const contract = contracts.find((item) => item.id === paymentDraft.contractId);
     const amount = Number(paymentDraft.amount);
-    if (!contract || contract.status !== 'active' || !Number.isFinite(amount) || amount <= 0 || !paymentDraft.date) {
-      setNotice('Select an active contract and enter a valid payment amount and date.');
+    const units = Number(paymentDraft.units);
+    if (!contract || contract.status !== 'active' || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(units) || units <= 0 || !paymentDraft.date) {
+      setNotice('Select an active contract and enter a valid amount, work units, and date.');
       return;
     }
     onRecordsChange('payroll', [...payrollRecords, {
@@ -161,29 +181,145 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
       workerName: contract.workerName,
       contractId: contract.id,
       amount,
+      units,
       date: paymentDraft.date,
       module: 'labour-payment',
       createdAt: new Date().toISOString(),
     }]);
-    setPaymentDraft({ contractId: '', amount: '', date: new Date().toISOString().slice(0, 10), method: 'Cash', reference: '', notes: '' });
+    setPaymentDraft({ contractId: '', amount: '', units: '1', date: new Date().toISOString().slice(0, 10), method: 'Cash', reference: '', notes: '' });
     setDialog('');
     setNotice('Payroll payment recorded on this account. No money was transferred by AGRI-NEST.');
+  };
+
+  const saveTask = (event) => {
+    event.preventDefault();
+    const title = taskDraft.title.trim();
+    if (!title || !taskDraft.dueDate) {
+      setNotice('Enter a task and due date before assigning it.');
+      return;
+    }
+    const worker = workers.find((item) => item.id === taskDraft.workerId);
+    updateRequests([...requests, {
+      id: createId(),
+      module: 'labour-task',
+      title,
+      workerId: worker?.id || '',
+      workerName: worker?.name || '',
+      priority: taskDraft.priority,
+      dueDate: taskDraft.dueDate,
+      details: taskDraft.details.trim(),
+      status: 'To Do',
+      createdAt: new Date().toISOString(),
+    }]);
+    setTaskDraft({ title: '', workerId: '', priority: 'Medium', dueDate: new Date().toISOString().slice(0, 10), details: '' });
+    setDialog('');
+    setNotice('Task saved to this account. Assignments are not shared with workers yet.');
+  };
+
+  const updateTaskStatus = (task, status) => {
+    updateRequests(requests.map((item) => item.id === task.id
+      ? { ...item, status, ...(status === 'Complete' ? { completedAt: new Date().toISOString() } : { completedAt: '' }) }
+      : item));
+  };
+
+  const checkInWorker = (worker) => {
+    const checkedInToday = todayAttendance.some((entry) => entry.workerId === worker.id);
+    if (checkedInToday) return;
+    updateRequests([...requests, {
+      id: createId(),
+      module: 'labour-attendance',
+      workerId: worker.id,
+      workerName: worker.name,
+      checkedInAt: new Date().toISOString(),
+      method: 'Manual supervisor entry',
+    }]);
+    setNotice(`Manual check-in recorded for ${worker.name}. No biometric verification was performed.`);
   };
 
   const topNavigation = () => (
     <header className="labour-heading">
       <div>
         <span className="farmer-workspace-eyebrow">VIBARUA NETWORK</span>
-        <h1>{page === 'payroll' ? 'Labour & Payroll' : 'Find agricultural work'}</h1>
-        <p>{page === 'payroll' ? 'Keep contract terms and payments together.' : 'Find local opportunities or organise farm labour.'}</p>
+        <h1>{page === 'payroll' ? 'AgriOS Payroll' : mode === 'tasks' ? 'Labour & Tasks' : mode === 'attendance' ? 'Attendance' : mode === 'hire' ? 'Workforce' : 'Find agricultural work'}</h1>
+        <p>{page === 'payroll' ? 'Keep agreed contract terms and payment records together.' : mode === 'tasks' ? 'Coordinate your workforce and track daily farm operations.' : mode === 'attendance' ? 'Review worker check-ins entered by a supervisor.' : 'Organise workers, local opportunities, and farm labour.'}</p>
       </div>
       <div className="labour-tabs" role="tablist" aria-label="Labour workspace">
-        <button type="button" className={page === 'labour' && mode === 'hire' ? 'active' : ''} onClick={() => page !== 'labour' ? onNavigate('labour') : setMode('hire')}><span className="material-symbols-outlined">group_add</span>Hire Workers</button>
+        <button type="button" className={page === 'labour' && mode === 'tasks' ? 'active' : ''} onClick={() => page !== 'labour' ? onNavigate('labour') : setMode('tasks')}><span className="material-symbols-outlined">dashboard</span>Tasks</button>
+        <button type="button" className={page === 'labour' && mode === 'hire' ? 'active' : ''} onClick={() => page !== 'labour' ? onNavigate('labour') : setMode('hire')}><span className="material-symbols-outlined">group_add</span>Workforce</button>
+        <button type="button" className={page === 'labour' && mode === 'attendance' ? 'active' : ''} onClick={() => page !== 'labour' ? onNavigate('labour') : setMode('attendance')}><span className="material-symbols-outlined">fact_check</span>Attendance</button>
         <button type="button" className={page === 'labour' && mode === 'find' ? 'active' : ''} onClick={() => { if (page !== 'labour') onNavigate('labour'); setMode('find'); }}><span className="material-symbols-outlined">work</span>Find Work</button>
         <button type="button" className={page === 'payroll' ? 'active' : ''} onClick={() => onNavigate('payroll')}><span className="material-symbols-outlined">payments</span>Payroll</button>
       </div>
     </header>
   );
+
+  if (page === 'labour' && mode === 'tasks') {
+    const roster = workers.map((worker) => {
+      const contract = activeContracts.find((item) => item.workerId === worker.id);
+      const units = payrollRecords.filter((payment) => payment.workerId === worker.id).reduce((total, payment) => total + Number(payment.units || 0), 0);
+      const balance = payrollRecords.filter((payment) => payment.workerId === worker.id).reduce((total, payment) => total + Number(payment.amount || 0), 0);
+      return { worker, contract, units, balance };
+    });
+    return (
+      <main className="farmer-workspace labour-page labour-manager-page" aria-label="Labour tasks">
+        {topNavigation()}
+        {notice && <div className="farmer-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
+        <div className="labour-manager-actions">
+          <button type="button" className="labour-outline-button" onClick={() => setDialog('worker')}><span className="material-symbols-outlined">person_add</span>Add Worker</button>
+          <button type="button" className="labour-primary-button" onClick={() => setDialog('task')}><span className="material-symbols-outlined">add_task</span>Assign Task</button>
+        </div>
+        <section className="labour-manager-kpis" aria-label="Workforce summary">
+          <article><span className="material-symbols-outlined">groups</span><small>Active Workforce</small><strong>{workers.length}</strong><em>{workers.length === 1 ? 'worker profile' : 'worker profiles'} saved</em></article>
+          <article><span className="material-symbols-outlined">pending_actions</span><small>Open Tasks</small><strong>{activeTasks.length}</strong><em>{tasks.length ? 'Across assigned work' : 'No tasks assigned yet'}</em></article>
+          <article><span className="material-symbols-outlined">task_alt</span><small>Completed Today</small><strong>{completedTasksToday.length}</strong><em>Tasks marked complete today</em></article>
+          <article><span className="material-symbols-outlined">payments</span><small>Daily Contract Wages</small><strong>{formatTzs(activeDailyWages)}</strong><em>From active labour contracts</em></article>
+        </section>
+        <section className="labour-manager-grid">
+          <div className="labour-manager-primary">
+            <section className="labour-panel labour-task-board">
+              <div className="labour-section-heading"><div><h2>Active Tasks</h2><p>Saved task assignments for this account.</p></div><label className="labour-task-filter">Filter<select value={taskPriority} onChange={(event) => setTaskPriority(event.target.value)}><option value="">All tasks</option><option value="High">High priority</option><option value="Medium">Medium priority</option><option value="Low">Low priority</option></select></label></div>
+              {activeTasks.filter((task) => !taskPriority || task.priority === taskPriority).length ? <div className="labour-task-list">{activeTasks.filter((task) => !taskPriority || task.priority === taskPriority).map((task) => <article className="labour-task-card" key={task.id}>
+                <div className="labour-task-meta"><span className={`labour-task-priority is-${String(task.priority || 'Medium').toLowerCase()}`}>{task.priority || 'Medium'} Priority</span><span><span className="material-symbols-outlined">schedule</span>{formatShortDate(task.dueDate)}</span><span className="labour-task-status">{task.status || 'To Do'}</span></div>
+                <h3>{task.title}</h3>
+                {task.details && <p>{task.details}</p>}
+                <div className="labour-task-footer"><span className="labour-task-assignee"><span className="labour-avatar">{String(task.workerName || 'Unassigned').slice(0, 1).toUpperCase()}</span>{task.workerName || 'Unassigned'}</span><button type="button" className="labour-outline-button" onClick={() => updateTaskStatus(task, 'Complete')}>Mark complete</button></div>
+              </article>)}</div> : <div className="labour-empty"><span className="material-symbols-outlined">assignment</span><strong>{tasks.length ? 'No tasks match this filter' : 'No tasks assigned yet'}</strong><p>Assign a task to track work and follow its status from this page.</p><button type="button" onClick={() => setDialog('task')}>Assign first task</button></div>}
+              {tasks.some((task) => task.status === 'Complete') && <div className="labour-completed-tasks"><h3>Completed Tasks</h3>{tasks.filter((task) => task.status === 'Complete').slice(0, 5).map((task) => <div key={task.id}><span className="material-symbols-outlined">task_alt</span><span><strong>{task.title}</strong><small>{task.workerName || 'Unassigned'} · {formatShortDate(task.completedAt)}</small></span><button type="button" className="labour-inline-action" onClick={() => updateTaskStatus(task, 'To Do')}>Reopen</button></div>)}</div>}
+            </section>
+            <section className="labour-panel labour-roster-panel">
+              <div className="labour-section-heading"><div><h2>Workforce Roster &amp; Balances</h2><p>Current worker profiles and locally recorded wage totals.</p></div><button type="button" className="labour-outline-button" onClick={() => setMode('hire')}>View Workforce</button></div>
+              {roster.length ? <div className="labour-table-wrap"><table className="labour-table"><thead><tr><th>Worker</th><th>Role</th><th>Wage Type</th><th>Units/Days</th><th>Recorded Pay</th><th>Actions</th></tr></thead><tbody>{roster.map(({ worker, contract, units, balance }) => <tr key={worker.id}><td>{worker.name}</td><td>{worker.skill || 'Farm worker'}</td><td>{contract ? 'Daily rate' : 'Not set'}</td><td>{units || '—'}</td><td>{formatTzs(balance)}</td><td>{contract ? <button type="button" className="labour-inline-action" onClick={() => { setPaymentDraft((current) => ({ ...current, contractId: contract.id })); onNavigate('payroll'); }}>Payroll</button> : <span>No active contract</span>}</td></tr>)}</tbody></table></div> : <div className="labour-empty compact"><p>Add worker profiles to build your roster. Worker information is private to this account.</p><button type="button" onClick={() => setDialog('worker')}>Add first worker</button></div>}
+            </section>
+          </div>
+          <aside className="labour-manager-secondary">
+            <section className="labour-panel labour-attendance-panel"><div className="labour-section-heading"><div><h2>Today’s Attendance</h2><p>Supervisor-entered check-ins. No biometric verification.</p></div><button type="button" className="labour-inline-action" onClick={() => setMode('attendance')}>View log</button></div>
+              {workers.length ? <div className="labour-attendance-list">{workers.slice(0, 4).map((worker) => {
+                const checkedIn = todayAttendance.find((entry) => entry.workerId === worker.id);
+                return <div className="labour-attendance-row" key={worker.id}><span className="labour-avatar">{String(worker.name || '?').slice(0, 1).toUpperCase()}</span><div><strong>{worker.name}</strong><small>{checkedIn ? new Date(checkedIn.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not checked in'}</small></div>{checkedIn ? <span className="labour-attendance-method">Manual entry</span> : <button type="button" className="labour-inline-action" onClick={() => checkInWorker(worker)}>Check in</button>}</div>;
+              })}</div> : <div className="labour-empty compact"><p>Add worker profiles to record supervisor check-ins.</p></div>}
+            </section>
+            <section className="labour-panel labour-payroll-summary"><div className="labour-section-heading"><div><h2>Payroll Summary</h2><p>This account · all recorded time</p></div></div><div><span>Total recorded</span><strong>{formatTzs(payrollTotal)}</strong></div><div><span>Active contracts</span><strong>{activeContracts.length}</strong></div><button type="button" className="labour-primary-button" onClick={() => onNavigate('payroll')}>Open Payroll</button><small>No money is transferred by AGRI-NEST.</small></section>
+          </aside>
+        </section>
+        {dialog && <div className="digital-farm-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}><section className="digital-farm-dialog labour-dialog" role="dialog" aria-modal="true" aria-labelledby="labour-dialog-title"><div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">VIBARUA NETWORK</span><h2 id="labour-dialog-title">{dialog === 'task' ? 'Assign farm task' : 'Add worker profile'}</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div>
+          {dialog === 'task' ? <form onSubmit={saveTask}>
+            <label>Task<input required maxLength="120" value={taskDraft.title} onChange={(event) => setTaskDraft((current) => ({ ...current, title: event.target.value }))} placeholder="e.g. Weeding - North Plot A" /></label>
+            <label>Assign worker<select value={taskDraft.workerId} onChange={(event) => setTaskDraft((current) => ({ ...current, workerId: event.target.value }))}><option value="">Unassigned</option>{workers.map((worker) => <option key={worker.id} value={worker.id}>{worker.name}</option>)}</select></label>
+            <label>Priority<select value={taskDraft.priority} onChange={(event) => setTaskDraft((current) => ({ ...current, priority: event.target.value }))}><option>High</option><option>Medium</option><option>Low</option></select></label>
+            <label>Due date<input required type="date" value={taskDraft.dueDate} onChange={(event) => setTaskDraft((current) => ({ ...current, dueDate: event.target.value }))} /></label>
+            <label className="wide">Task details<textarea maxLength="500" value={taskDraft.details} onChange={(event) => setTaskDraft((current) => ({ ...current, details: event.target.value }))} /></label>
+            <p className="digital-farm-dialog-note">Task details are saved to this account. Assignments are not sent to workers.</p><button type="submit" className="farmer-workspace-submit">Save task</button>
+          </form> : <form onSubmit={saveWorkerProfile}>
+            <label>Worker name<input required value={workerDraft.name} onChange={(event) => setWorkerDraft((current) => ({ ...current, name: event.target.value }))} /></label><label>Primary skill<input required list="labour-skills" value={workerDraft.skill} onChange={(event) => setWorkerDraft((current) => ({ ...current, skill: event.target.value }))} placeholder="e.g. Harvesting" /></label><datalist id="labour-skills">{skills.map((skill) => <option key={skill} value={skill} />)}</datalist><label>Location<input required value={workerDraft.location} onChange={(event) => setWorkerDraft((current) => ({ ...current, location: event.target.value }))} placeholder="Village, ward, or district" /></label><label>Daily rate (TZS)<input required type="number" min="1" step="1" value={workerDraft.dailyRate} onChange={(event) => setWorkerDraft((current) => ({ ...current, dailyRate: event.target.value }))} /></label><label>Experience<input value={workerDraft.experience} onChange={(event) => setWorkerDraft((current) => ({ ...current, experience: event.target.value }))} /></label><label>Availability<select value={workerDraft.availability} onChange={(event) => setWorkerDraft((current) => ({ ...current, availability: event.target.value }))}><option value="available">Available</option><option value="busy">Busy</option><option value="seasonal">Seasonal</option></select></label><p className="digital-farm-dialog-note">Self-reported information; this profile is not independently verified and is currently private to this account.</p><button type="submit" className="farmer-workspace-submit">Save worker profile</button>
+          </form>}
+        </section></div>}
+      </main>
+    );
+  }
+
+  if (page === 'labour' && mode === 'attendance') {
+    return <main className="farmer-workspace labour-page labour-manager-page" aria-label="Labour attendance">{topNavigation()}{notice && <div className="farmer-workspace-notice" role="status">{notice}</div>}<section className="labour-panel"><div className="labour-section-heading"><div><h2>Attendance Log</h2><p>Supervisor-entered time records for your workforce.</p></div></div>{todayAttendance.length ? <div className="labour-attendance-list">{todayAttendance.map((entry) => <div className="labour-attendance-row" key={entry.id}><span className="labour-avatar">{String(entry.workerName || '?').slice(0, 1).toUpperCase()}</span><div><strong>{entry.workerName}</strong><small>{new Date(entry.checkedInAt).toLocaleString()}</small></div><span className="labour-attendance-method">{entry.method}</span></div>)}</div> : <div className="labour-empty"><span className="material-symbols-outlined">fact_check</span><strong>No check-ins recorded today</strong><p>Record check-ins manually from the task dashboard. No face recognition or biometric checks are performed.</p><button type="button" onClick={() => setMode('tasks')}>Return to Tasks</button></div>}</section></main>;
+  }
 
   if (page === 'payroll') {
     return (
@@ -198,7 +334,7 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
         </section>
         <section className="labour-panel">
           <div className="labour-section-heading"><div><h2>Active Contracts</h2><p>Confirm agreed work terms before recording pay.</p></div>
-            {activeContracts.length > 0 && <button type="button" className="labour-primary-button" onClick={() => setDialog('payment')}><span className="material-symbols-outlined">add</span>Record payment</button>}
+            {activeContracts.length > 0 && <button type="button" className="labour-primary-button" onClick={() => setDialog('payment')}><span className="material-symbols-outlined">add</span>Record Payment</button>}
           </div>
           {contracts.length ? <div className="labour-contract-list">{contracts.map((contract) => {
             const contractPayments = payrollRecords.filter((payment) => payment.contractId === contract.id);
@@ -212,6 +348,7 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
           <div className="labour-section-heading"><div><h2>Payment Ledger</h2><p>Farmer-entered records only; payments are not processed by AGRI-NEST.</p></div></div>
           {payrollRecords.length ? <div className="labour-table-wrap"><table className="labour-table"><thead><tr><th>Date</th><th>Worker</th><th>Method</th><th>Reference</th><th>Amount</th></tr></thead><tbody>{[...payrollRecords].sort((a, b) => String(b.date).localeCompare(String(a.date))).map((payment) => <tr key={payment.id}><td>{formatShortDate(payment.date)}</td><td>{payment.workerName || 'Worker'}</td><td>{payment.method || 'Not set'}</td><td>{payment.reference || '—'}</td><td>{formatTzs(payment.amount)}</td></tr>)}</tbody></table></div> : <div className="labour-empty compact"><p>No payroll payments recorded.</p></div>}
         </section>
+        {dialog === 'payment' && <div className="digital-farm-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}><section className="digital-farm-dialog labour-dialog" role="dialog" aria-modal="true" aria-labelledby="labour-dialog-title"><div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">AGRIOS PAYROLL</span><h2 id="labour-dialog-title">Record worker payment</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div><form onSubmit={savePayment}><label>Active contract<select required value={paymentDraft.contractId} onChange={(event) => setPaymentDraft((current) => ({ ...current, contractId: event.target.value }))}><option value="">Select a worker</option>{activeContracts.map((contract) => <option key={contract.id} value={contract.id}>{contract.workerName} · {contract.skill}</option>)}</select></label><label>Amount paid (TZS)<input required type="number" min="1" step="1" value={paymentDraft.amount} onChange={(event) => setPaymentDraft((current) => ({ ...current, amount: event.target.value }))} /></label><label>Units / days<input required type="number" min="0.25" step="0.25" value={paymentDraft.units} onChange={(event) => setPaymentDraft((current) => ({ ...current, units: event.target.value }))} /></label><label>Payment date<input required type="date" value={paymentDraft.date} onChange={(event) => setPaymentDraft((current) => ({ ...current, date: event.target.value }))} /></label><label>Payment method<select value={paymentDraft.method} onChange={(event) => setPaymentDraft((current) => ({ ...current, method: event.target.value }))}><option>Cash</option><option>Mobile money</option><option>Bank transfer</option><option>Other</option></select></label><label>Reference (optional)<input value={paymentDraft.reference} onChange={(event) => setPaymentDraft((current) => ({ ...current, reference: event.target.value }))} /></label><label>Notes<textarea value={paymentDraft.notes} onChange={(event) => setPaymentDraft((current) => ({ ...current, notes: event.target.value }))} /></label><p className="digital-farm-dialog-note">This records a payment you made; it does not initiate a transfer or prove receipt by the worker.</p><button type="submit" className="farmer-workspace-submit">Save payment record</button></form></section></div>}
       </main>
     );
   }
@@ -284,6 +421,7 @@ function LabourWorkspace({ page, profile, records, onRecordsChange, onBack, onNa
           </form> : <form onSubmit={savePayment}>
             <label>Active contract<select required value={paymentDraft.contractId} onChange={(event) => setPaymentDraft((current) => ({ ...current, contractId: event.target.value }))}><option value="">Select a worker</option>{activeContracts.map((contract) => <option key={contract.id} value={contract.id}>{contract.workerName} · {contract.skill}</option>)}</select></label>
             <label>Amount paid (TZS)<input required type="number" min="1" step="1" value={paymentDraft.amount} onChange={(event) => setPaymentDraft((current) => ({ ...current, amount: event.target.value }))} /></label>
+            <label>Units / days<input required type="number" min="0.25" step="0.25" value={paymentDraft.units} onChange={(event) => setPaymentDraft((current) => ({ ...current, units: event.target.value }))} /></label>
             <label>Payment date<input required type="date" value={paymentDraft.date} onChange={(event) => setPaymentDraft((current) => ({ ...current, date: event.target.value }))} /></label>
             <label>Payment method<select value={paymentDraft.method} onChange={(event) => setPaymentDraft((current) => ({ ...current, method: event.target.value }))}><option>Cash</option><option>Mobile money</option><option>Bank transfer</option><option>Other</option></select></label>
             <label>Reference (optional)<input value={paymentDraft.reference} onChange={(event) => setPaymentDraft((current) => ({ ...current, reference: event.target.value }))} /></label>
