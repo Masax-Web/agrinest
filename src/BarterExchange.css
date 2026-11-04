@@ -1,0 +1,713 @@
+.barter-exchange {
+  --barter-ink: #271a11;
+  --barter-muted: #6d625b;
+  --barter-border: #e8dfda;
+  --barter-surface: #fff;
+  --barter-soft: #f7f1ee;
+  --barter-peach: #e8cbbb;
+  display: grid;
+  gap: 20px;
+  padding: clamp(18px, 3vw, 36px);
+  color: var(--barter-ink);
+}
+
+.barter-heading,
+.barter-heading-actions,
+.barter-offer-owner,
+.barter-offer-owner > div,
+.barter-filter-bar,
+.barter-card-actions,
+.barter-panel h2,
+.barter-guidelines h2 {
+  display: flex;
+  align-items: center;
+}
+
+.barter-heading {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.barter-heading h1 {
+  margin: 6px 0 8px;
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(27px, 3vw, 36px);
+}
+
+.barter-heading h1 span {
+  color: var(--barter-muted);
+  font-size: .56em;
+  font-weight: 400;
+}
+
+.barter-heading > div:first-child > p:last-child {
+  max-width: 720px;
+  margin: 0;
+  color: var(--barter-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.barter-eyebrow {
+  color: #947c6d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.barter-heading-actions {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.barter-heading-actions button,
+.barter-offer-form > button,
+.barter-card-actions button,
+.barter-dialog > button {
+  min-height: 40px;
+  border: 1px solid var(--barter-ink);
+  border-radius: 8px;
+  padding: 0 13px;
+  background: var(--barter-ink);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.barter-heading-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.barter-heading-actions .barter-back-button {
+  background: transparent;
+  color: var(--barter-ink);
+}
+
+.barter-heading-actions button:hover,
+.barter-card-actions button:hover:not(:disabled),
+.barter-dialog > button:hover,
+.barter-offer-form > button:hover:not(:disabled) {
+  filter: brightness(1.2);
+}
+
+.barter-disclosure,
+.barter-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #e8d7c9;
+  border-radius: 9px;
+  padding: 12px 14px;
+  background: #fcf6f1;
+  color: #5b514a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.barter-disclosure > .material-symbols-outlined {
+  color: #976c51;
+}
+
+.barter-disclosure p {
+  margin: 0;
+}
+
+.barter-notice {
+  align-items: center;
+  justify-content: space-between;
+  border-color: #cbd9ce;
+  background: #f0f7f1;
+}
+
+.barter-notice button,
+.barter-dialog header > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.barter-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.barter-metrics article {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 3px 10px;
+  border: 1px solid var(--barter-border);
+  border-radius: 11px;
+  padding: 15px;
+  background: var(--barter-surface);
+  box-shadow: 0 4px 12px rgb(61 43 31 / 6%);
+}
+
+.barter-metrics article > .material-symbols-outlined {
+  grid-row: span 3;
+  color: #9c492f;
+}
+
+.barter-metrics small {
+  color: var(--barter-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.barter-metrics strong {
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 20px;
+}
+
+.barter-metrics em {
+  color: #877c75;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.barter-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(260px, .9fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.barter-market-column,
+.barter-sidebar {
+  display: grid;
+  gap: 14px;
+}
+
+.barter-filter-bar,
+.barter-panel,
+.barter-offer-card,
+.barter-guidelines {
+  border: 1px solid var(--barter-border);
+  border-radius: 11px;
+  background: var(--barter-surface);
+  box-shadow: 0 4px 12px rgb(61 43 31 / 6%);
+}
+
+.barter-filter-bar {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+}
+
+.barter-search {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid var(--barter-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #faf6f4;
+  color: var(--barter-muted);
+}
+
+.barter-search input {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--barter-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.barter-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.barter-filter-chips button {
+  min-height: 34px;
+  border: 1px solid var(--barter-border);
+  border-radius: 20px;
+  padding: 0 11px;
+  background: #faf6f4;
+  color: #4c4039;
+  font: inherit;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.barter-filter-chips button.active {
+  border-color: #3a281c;
+  background: #3a281c;
+  color: #fff;
+}
+
+.barter-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+.barter-offer-card {
+  position: relative;
+  padding: 16px;
+}
+
+.barter-offer-owner {
+  min-width: 0;
+  gap: 9px;
+}
+
+.barter-avatar {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #e5d7cf;
+  border-radius: 50%;
+  background: #efe3dc;
+  color: #513928;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+}
+
+.barter-offer-owner > div {
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.barter-offer-owner h2 {
+  overflow: hidden;
+  max-width: 100%;
+  margin: 0;
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barter-offer-owner p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: #72675f;
+  font-size: 10px;
+}
+
+.barter-offer-owner p .material-symbols-outlined {
+  color: #a64c32;
+  font-size: 14px;
+}
+
+.barter-offer-owner p i {
+  font-style: normal;
+}
+
+.barter-example-badge {
+  margin-left: auto;
+  border-radius: 20px;
+  padding: 4px 7px;
+  background: #f3ece8;
+  color: #76675d;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.barter-offer-disclosure {
+  min-height: 25px;
+  margin: 9px 0;
+  color: #8d7f75;
+  font-size: 9px;
+}
+
+.barter-trade-items {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  min-height: 130px;
+  border-radius: 9px;
+  padding: 12px 8px;
+  background: #f5eeeb;
+}
+
+.barter-trade-items > div {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  text-align: center;
+}
+
+.barter-trade-items small {
+  color: #70665f;
+  font-size: 9px;
+}
+
+.barter-trade-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f4d8cf;
+  color: #a64730;
+}
+
+.barter-trade-icon.needs {
+  background: #d8ded9;
+  color: #31483b;
+}
+
+.barter-trade-items strong {
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.barter-exchange-icon {
+  color: #c2b5ae;
+}
+
+.barter-card-actions {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.barter-card-actions button {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.barter-card-actions button:nth-child(2) {
+  background: white;
+  color: var(--barter-ink);
+}
+
+.barter-card-actions button:disabled {
+  border-color: #e3dad5;
+  background: #f5f2ef;
+  color: #968b83;
+  cursor: default;
+}
+
+.barter-panel,
+.barter-guidelines {
+  padding: 16px;
+}
+
+.barter-panel h2,
+.barter-guidelines h2 {
+  gap: 8px;
+  margin: 0 0 14px;
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+}
+
+.barter-panel h2 > .material-symbols-outlined,
+.barter-guidelines h2 > .material-symbols-outlined {
+  font-size: 19px;
+}
+
+.barter-empty-followups,
+.barter-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 20px 10px;
+  color: #7c7068;
+  text-align: center;
+}
+
+.barter-empty-followups > .material-symbols-outlined,
+.barter-empty > .material-symbols-outlined {
+  color: #a38e80;
+  font-size: 26px;
+}
+
+.barter-empty-followups p,
+.barter-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.barter-empty-followups small,
+.barter-empty small {
+  max-width: 260px;
+  color: #8b8078;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.barter-followups {
+  display: grid;
+  gap: 10px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.barter-followups article {
+  border-left: 2px solid #a95037;
+  padding: 3px 0 3px 10px;
+}
+
+.barter-followups strong {
+  color: #49382d;
+  font-size: 12px;
+}
+
+.barter-followups p {
+  margin: 5px 0;
+  color: #776b62;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.barter-followups small {
+  color: #96887e;
+  font-size: 9px;
+}
+
+.barter-guidelines {
+  border-color: #d8c0b1;
+  background: #ead2c1;
+}
+
+.barter-guidelines ul {
+  display: grid;
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barter-guidelines li {
+  display: flex;
+  gap: 7px;
+  color: #57463b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.barter-guidelines li .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 16px;
+}
+
+.barter-parity-panel > p,
+.barter-parity-panel > div {
+  margin: 0;
+  color: #766c65;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.barter-parity-panel > div {
+  display: grid;
+  grid-template-columns: 1fr 22px 1fr;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f5eeeb;
+  text-align: center;
+}
+
+.barter-offer-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+  border: 1px solid var(--barter-border);
+  border-radius: 11px;
+  padding: 16px;
+  background: white;
+}
+
+.barter-form-heading {
+  grid-column: 1 / -1;
+}
+
+.barter-form-heading h2 {
+  margin: 4px 0;
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+}
+
+.barter-form-heading p {
+  margin: 0;
+  color: var(--barter-muted);
+  font-size: 11px;
+}
+
+.barter-offer-form label,
+.barter-dialog label {
+  display: grid;
+  gap: 6px;
+  color: #5d5149;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.barter-offer-form input,
+.barter-offer-form select,
+.barter-dialog textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #e2d8d2;
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #fff;
+  color: var(--barter-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.barter-offer-form > button {
+  justify-self: start;
+}
+
+.barter-offer-form > button:disabled {
+  opacity: .7;
+  cursor: wait;
+}
+
+.barter-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(26 20 16 / 48%);
+}
+
+.barter-dialog {
+  width: min(100%, 470px);
+  border-radius: 13px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 18px 60px rgb(0 0 0 / 22%);
+}
+
+.barter-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.barter-dialog header h2 {
+  margin: 5px 0 12px;
+  color: var(--barter-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+}
+
+.barter-dialog > p {
+  color: #65584f;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.barter-dialog textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.barter-dialog .barter-dialog-disclosure {
+  border-radius: 7px;
+  padding: 9px;
+  background: #f8f2ee;
+  color: #6d5f55;
+  font-size: 10px;
+}
+
+.barter-dialog > button {
+  width: 100%;
+}
+
+@media (max-width: 950px) {
+  .barter-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .barter-sidebar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .barter-parity-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 660px) {
+  .barter-exchange {
+    padding: 18px 14px 28px;
+  }
+
+  .barter-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .barter-heading-actions {
+    width: 100%;
+  }
+
+  .barter-heading-actions button {
+    flex: 1;
+  }
+
+  .barter-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .barter-offer-grid,
+  .barter-sidebar,
+  .barter-offer-form {
+    grid-template-columns: 1fr;
+  }
+
+  .barter-parity-panel {
+    grid-column: auto;
+  }
+
+  .barter-filter-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .barter-filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+
+  .barter-filter-chips button {
+    flex: 0 0 auto;
+  }
+}

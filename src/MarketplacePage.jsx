@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import api from './lib/api';
+import BarterExchange from './BarterExchange';
 
 const listingTypes = ['All listings', 'Livestock', 'Animal products', 'Farm inputs'];
 const formListingTypes = listingTypes.slice(1);
@@ -77,7 +78,7 @@ function ListingImage({ product }) {
     : <div className="soko-listing-placeholder" aria-hidden="true"><span className="material-symbols-outlined">{product.type === 'Livestock' ? 'pets' : product.type === 'Animal products' ? 'egg_alt' : 'agriculture'}</span></div>;
 }
 
-export default function MarketplacePage({ profile, user, search = '', onTransport }) {
+export default function MarketplacePage({ profile, user, search = '', onTransport, records, onRecordsChange }) {
   const [selectedType, setSelectedType] = useState(listingTypes[0]);
   const [page, setPage] = useState('browse');
   const [cart, setCart] = useState([]);
@@ -263,6 +264,10 @@ export default function MarketplacePage({ profile, user, search = '', onTranspor
   const cartTotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
   const benchmarkCount = page === 'mine' ? myListings.length : catalog.length;
 
+  if (page === 'barter') {
+    return <BarterExchange profile={profile} user={user} records={records} onRecordsChange={onRecordsChange} onBack={() => setPage('browse')} />;
+  }
+
   return (
     <main className="marketplace-page soko-marketplace">
       <header className="soko-heading">
@@ -287,6 +292,7 @@ export default function MarketplacePage({ profile, user, search = '', onTranspor
         <button type="button" className={page === 'browse' ? 'active' : ''} onClick={() => setPage('browse')}><span className="material-symbols-outlined">storefront</span>Browse</button>
         <button type="button" className={page === 'mine' ? 'active' : ''} onClick={() => setPage('mine')}><span className="material-symbols-outlined">inventory_2</span>My listings <span className="soko-tab-count">{myListings.length}</span></button>
         <button type="button" className={page === 'benchmarks' ? 'active' : ''} onClick={() => setPage('benchmarks')}><span className="material-symbols-outlined">monitoring</span>Price benchmarks</button>
+        <button type="button" className={page === 'barter' ? 'active' : ''} onClick={() => setPage('barter')}><span className="material-symbols-outlined">handshake</span>Barter exchange</button>
       </nav>
 
       {notice && <div className="marketplace-notice" role="status"><span>{notice}</span><button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}

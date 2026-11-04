@@ -2349,7 +2349,7 @@ function SmallholderDashboard({ user, onLogout }) {
             onExpert={() => setActiveView('experts')}
           />
         ) : activeView === 'marketplace' ? (
-          <MarketplacePage profile={farmerProfile} user={user} search={marketplaceSearch} onSearch={setMarketplaceSearch} onTransport={() => setActiveView('transport')} />
+          <MarketplacePage profile={farmerProfile} user={user} search={marketplaceSearch} onSearch={setMarketplaceSearch} onTransport={() => setActiveView('transport')} records={farmerRecords} onRecordsChange={updateFarmerRecords} />
         ) : activeView === 'procurement' ? (
           <ProcurementWorkspace user={user} profile={farmerProfile} />
         ) : activeView === 'ramani' ? (
