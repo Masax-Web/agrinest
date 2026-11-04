@@ -26,6 +26,8 @@ import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import VerifiedActivityArchive from './VerifiedActivityArchive';
 import ExpertBookingWorkspace from './ExpertBookingWorkspace';
+import TransporterFleetWorkspace from './TransporterFleetWorkspace';
+import TransporterRouteWorkspace from './TransporterRouteWorkspace';
 import { personas } from '../shared/personas.json';
 import roleModel from '../shared/role-model.json';
 
@@ -3296,13 +3298,17 @@ function TransporterDashboard({ onLogout }) {
       <nav className="transporter-sidebar">
         <div className="transporter-brand"><span className="transporter-avatar">FM</span><div><strong>Fleet Dashboard</strong><small>Logistic Service Provider</small></div></div>
         <button type="button" className="transporter-post-button" onClick={() => setActiveView('availability')}>Post Availability</button>
-        {[['dashboard', 'Home', 'home'], ['work_history', 'Open Jobs', 'jobs'], ['distance', 'Active Trips', 'trips'], ['local_shipping', 'Fleet Management', 'fleet'], ['account_balance_wallet', 'Earnings', 'earnings'], ['map', 'Route Planner', 'route'], ['forum', 'Community', 'community']].map(([icon, label, id]) => <button type="button" key={id} className={activeView === id ? 'transporter-nav-item active' : 'transporter-nav-item'} onClick={() => setActiveView(id)}><span className="material-symbols-outlined">{icon}</span>{label}</button>)}
+        {[['dashboard', 'Home', 'home'], ['work_history', 'Open Jobs', 'jobs'], ['distance', 'Active Trips', 'trips'], ['local_shipping', 'Fleet Management', 'fleet'], ['account_balance_wallet', 'Earnings', 'earnings'], ['map', 'Route Intelligence', 'route'], ['forum', 'Community', 'community']].map(([icon, label, id]) => <button type="button" key={id} className={activeView === id ? 'transporter-nav-item active' : 'transporter-nav-item'} onClick={() => setActiveView(id)}><span className="material-symbols-outlined">{icon}</span>{label}</button>)}
         <div className="transporter-nav-bottom"><button type="button" className="transporter-nav-item" onClick={() => setActiveView('settings')}><span className="material-symbols-outlined">settings</span>Settings</button><button type="button" className="transporter-nav-item" onClick={onLogout}><span className="material-symbols-outlined">logout</span>Log Out</button></div>
       </nav>
       <main className="transporter-main">
         <header className="transporter-topbar"><h1>Agri-Nest Logistics</h1><div><button type="button" aria-label="Notifications" onClick={() => setActiveView('notifications')}><span className="material-symbols-outlined">notifications</span></button><button type="button" aria-label="Fleet support" onClick={() => setActiveView('support')}><span className="material-symbols-outlined">support</span></button><span className="transporter-mini-avatar">JK</span></div></header>
         {notice && <button type="button" className="transporter-notice" onClick={() => setNotice('')}>{notice}<span className="material-symbols-outlined">close</span></button>}
-        {activeView === 'community' ? (
+        {activeView === 'fleet' ? (
+          <TransporterFleetWorkspace />
+        ) : activeView === 'route' ? (
+          <TransporterRouteWorkspace />
+        ) : activeView === 'community' ? (
           <CommunityChat onBackToDashboard={() => setActiveView('home')} viewerProfile={{ id: 'transporter-james', name: 'James Kweka', role: 'Transporter', location: 'Tanzania', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80' }} farmerProfile={readStoredFarmerProfile()} />
         ) : activeView === 'home' ? <>
           <section className="transporter-heading"><div><h2>Habari za asubuhi, James! 🚛</h2><p>Road conditions to Dar es Salaam are clear. You have <b>3 active bids</b> and <b>1 trip in progress</b>.</p></div></section>
