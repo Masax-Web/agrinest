@@ -1,0 +1,540 @@
+.agri-floating-chat {
+  position: relative;
+  z-index: 1250;
+  font-family: var(--agri-body-font, 'DM Sans', 'Segoe UI', sans-serif);
+}
+
+.agri-floating-chat-toggle {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.15rem;
+  z-index: 1252;
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--agri-forest, #143321);
+  box-shadow: 0 0.5rem 1.5rem rgba(13, 40, 24, 0.26);
+  color: #fff;
+  cursor: pointer;
+  padding: 0 1rem;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 750;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.agri-floating-chat-toggle:hover {
+  transform: translateY(-2px);
+  background: var(--agri-green, #276747);
+}
+
+.agri-floating-chat-toggle .material-symbols-outlined {
+  font-size: 1.35rem;
+}
+
+.agri-floating-chat-toggle.is-open {
+  width: 3.25rem;
+  padding: 0;
+}
+
+.agri-chat-panel {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 5.25rem;
+  z-index: 1251;
+  display: flex;
+  width: min(25rem, calc(100vw - 2rem));
+  height: min(38rem, calc(100vh - 7rem));
+  height: min(38rem, calc(100dvh - 7rem));
+  min-height: 22rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dfe7df;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 1rem 3.5rem rgba(13, 40, 24, 0.24);
+  color: #203229;
+}
+
+.agri-chat-header {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid #e6ece7;
+  background: #fff;
+  padding: 0.7rem 0.9rem;
+}
+
+.agri-chat-brand,
+.agri-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.agri-chat-brand-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: #eaf3ec;
+  color: var(--agri-forest, #143321);
+}
+
+.agri-chat-brand > span:last-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.agri-chat-brand strong {
+  color: var(--agri-forest, #143321);
+  font-size: 0.9rem;
+}
+
+.agri-chat-brand small {
+  color: #617067;
+  font-size: 0.68rem;
+}
+
+.agri-chat-icon-button {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #4a5a50;
+  cursor: pointer;
+}
+
+.agri-chat-icon-button:hover {
+  background: #f0f5f1;
+}
+
+.agri-chat-choice-list {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  flex: 1;
+  padding: 1.2rem;
+}
+
+.agri-chat-choice-list > p:first-child {
+  margin: 0 0 0.2rem;
+  color: #263d30;
+  font-family: var(--agri-display-font, 'Syne', sans-serif);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.agri-chat-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  min-height: 4.7rem;
+  border: 1px solid #e1e9e2;
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #143321;
+  cursor: pointer;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.agri-chat-choice:hover,
+.agri-chat-choice:focus-visible {
+  border-color: #9cbea7;
+  background: #f6faf6;
+}
+
+.agri-chat-choice > .material-symbols-outlined:first-child {
+  color: #276747;
+  font-size: 1.35rem;
+}
+
+.agri-chat-choice > .material-symbols-outlined:last-child {
+  margin-left: auto;
+  color: #748278;
+}
+
+.agri-chat-choice > span:nth-child(2) {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.agri-chat-choice strong {
+  font-size: 0.82rem;
+}
+
+.agri-chat-choice small {
+  color: #617067;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.agri-chat-choice-list .agri-chat-note {
+  margin: 0.25rem 0 0;
+  color: #68776d;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.agri-chat-community {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.agri-chat-community .community-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.agri-chat-community .community-chat-layout {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.agri-chat-community .community-conversations {
+  width: 10.5rem;
+  min-width: 9rem;
+  flex: 0 0 10.5rem;
+  padding: 0.5rem;
+}
+
+.agri-chat-community .community-conversation {
+  gap: 0.45rem;
+  padding: 0.5rem 0.4rem;
+}
+
+.agri-chat-community .community-conversation img,
+.agri-chat-community .community-avatar-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-basis: 2rem;
+}
+
+.agri-chat-community .community-conversation-copy > span:last-child {
+  max-width: 6rem;
+}
+
+.agri-chat-community .community-thread {
+  min-height: 0;
+}
+
+.agri-chat-community .community-thread-header {
+  min-height: 3.2rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.agri-chat-community .community-security-banner {
+  padding: 0.4rem 0.65rem;
+}
+
+.agri-chat-community .community-security-banner p {
+  font-size: 0.62rem;
+}
+
+.agri-chat-community .community-messages {
+  min-height: 0;
+  padding: 0.65rem;
+}
+
+.agri-chat-community .community-composer-wrap {
+  padding: 0.5rem;
+}
+
+.agri-chat-community .community-composer-tools {
+  gap: 0;
+}
+
+.agri-chat-community .community-composer-tools button {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
+.agri-chat-community .community-composer > input {
+  font-size: 0.74rem;
+}
+
+.agri-chat-community .community-back-dashboard {
+  display: none !important;
+}
+
+.agri-jicho-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  border-bottom: 1px solid #e8eee8;
+  background: #f8faf8;
+  color: #58675e;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.63rem;
+  line-height: 1.4;
+}
+
+.agri-jicho-notice .material-symbols-outlined {
+  color: #557663;
+  font-size: 0.95rem;
+}
+
+.agri-jicho-messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  padding: 0.85rem;
+}
+
+.agri-jicho-message {
+  display: flex;
+  max-width: 94%;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.agri-jicho-message.is-user {
+  align-self: flex-end;
+}
+
+.agri-jicho-avatar {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 1.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf3ec;
+  color: #276747;
+  font-size: 1rem;
+}
+
+.agri-jicho-bubble {
+  border-radius: 0.85rem 0.85rem 0.85rem 0.25rem;
+  background: #f0f5f1;
+  color: #293d30;
+  padding: 0.65rem 0.75rem;
+}
+
+.is-user .agri-jicho-bubble {
+  border-radius: 0.85rem 0.85rem 0.25rem 0.85rem;
+  background: #143321;
+  color: #fff;
+}
+
+.agri-jicho-bubble p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.agri-jicho-bubble img {
+  display: block;
+  width: min(12rem, 100%);
+  max-height: 10rem;
+  margin-bottom: 0.4rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.agri-jicho-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #617067;
+  font-size: 0.7rem;
+}
+
+.agri-jicho-status .material-symbols-outlined {
+  animation: agri-chat-spin 1.2s linear infinite;
+  font-size: 1rem;
+}
+
+@keyframes agri-chat-spin {
+  to { transform: rotate(360deg); }
+}
+
+.agri-jicho-error {
+  margin: 0;
+  background: #fff4f1;
+  color: #a63b28;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.68rem;
+}
+
+.agri-jicho-quick-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.75rem 0.55rem;
+}
+
+.agri-jicho-quick-prompts button {
+  border: 1px solid #dce8df;
+  border-radius: 999px;
+  background: #fff;
+  color: #365d43;
+  cursor: pointer;
+  padding: 0.35rem 0.55rem;
+  font: inherit;
+  font-size: 0.62rem;
+}
+
+.agri-jicho-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid #e8eee8;
+  padding: 0.45rem 0.75rem;
+  color: #526357;
+  font-size: 0.66rem;
+}
+
+.agri-jicho-attachment img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.35rem;
+  object-fit: cover;
+}
+
+.agri-jicho-attachment span {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agri-jicho-attachment button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #58675e;
+  cursor: pointer;
+}
+
+.agri-jicho-composer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-top: 1px solid #e8eee8;
+  background: #fff;
+  padding: 0.6rem 0.65rem;
+}
+
+.agri-jicho-composer button {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 2.35rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.65rem;
+  background: #f1f5f2;
+  color: #345b43;
+  cursor: pointer;
+}
+
+.agri-jicho-composer button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.agri-jicho-composer textarea {
+  min-width: 0;
+  min-height: 2.35rem;
+  max-height: 6rem;
+  flex: 1;
+  resize: none;
+  border: 1px solid #dfe7df;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #203229;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  font-size: 0.74rem;
+}
+
+.agri-jicho-composer .agri-jicho-send {
+  background: #143321;
+  color: #fff;
+}
+
+.agri-jicho-disclaimer {
+  margin: 0;
+  border-top: 1px solid #f0f3f0;
+  color: #768178;
+  padding: 0.35rem 0.65rem 0.45rem;
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+.agri-floating-chat + .account-security-launch {
+  bottom: 5.2rem;
+}
+
+.agri-floating-chat :is(button, input, textarea):focus-visible {
+  outline: 3px solid #e9c46a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .agri-floating-chat-toggle {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .agri-chat-panel {
+    right: 0.5rem;
+    bottom: 4.8rem;
+    width: calc(100vw - 1rem);
+    height: min(42rem, calc(100vh - 5.5rem));
+    height: min(42rem, calc(100dvh - 5.5rem));
+    min-height: min(22rem, calc(100dvh - 5.5rem));
+  }
+
+  .agri-chat-panel.is-community .agri-chat-community .community-chat-layout {
+    flex-direction: column;
+  }
+
+  .agri-chat-panel.is-community .agri-chat-community .community-conversations {
+    width: 100%;
+    min-width: 0;
+    max-height: 8.5rem;
+    flex: 0 0 auto;
+    border-right: 0;
+    border-bottom: 1px solid rgba(193, 200, 193, 0.32);
+  }
+
+  .agri-chat-panel.is-community .agri-chat-community .community-conversation-list {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .agri-chat-panel.is-community .agri-chat-community .community-conversation {
+    min-width: 12rem;
+  }
+
+  .agri-chat-panel.is-community .agri-chat-community .community-thread {
+    min-height: 0;
+    flex: 1;
+  }
+}

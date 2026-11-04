@@ -29,6 +29,7 @@ import FoundationImpactPortal from './FoundationImpactPortal';
 import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import TransporterFleetWorkspace from './TransporterFleetWorkspace';
 import TransporterRouteWorkspace from './TransporterRouteWorkspace';
+import FloatingAgriChat from './FloatingAgriChat';
 import { personas } from '../shared/personas.json';
 import roleModel from '../shared/role-model.json';
 
@@ -49,6 +50,7 @@ function AdminDashboardWithSecurity({ user, onLogout, onImpersonate }) {
     <DashboardWithSecurity user={user} onLogout={onLogout}>
       <AdminDashboard user={user} onLogout={onLogout} onOpenSecurity={() => setIsOpen(true)} onImpersonate={onImpersonate} />
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
+      <FloatingAgriChat user={user} farmerProfile={readStoredFarmerProfile(user?.user_id, user)} CommunityChat={CommunityChat} />
     </DashboardWithSecurity>
   );
 }
@@ -88,6 +90,7 @@ function DashboardWithSecurity({ user, onLogout, children, impersonationInfo, im
         <button type="button" onClick={onEndImpersonation}><span className="material-symbols-outlined">undo</span>Return to super admin</button>
       </div>}
       {secureChildren}
+      {!user?.is_admin && <FloatingAgriChat user={user} farmerProfile={readStoredFarmerProfile(user?.user_id, user)} CommunityChat={CommunityChat} />}
       {!user?.is_admin && <button type="button" className="account-security-launch" onClick={() => setIsOpen(true)}>Account security</button>}
       {isOpen && <SecuritySettings user={user} onClose={() => setIsOpen(false)} onSignedOut={onLogout} />}
     </>
@@ -2895,7 +2898,7 @@ function CommunityPublicProfile({ profile, onBack, onMessage }) {
   );
 }
 
-function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, farmerProfile = readStoredFarmerProfile() }) {
+function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, farmerProfile = readStoredFarmerProfile(), floating = false }) {
   const [conversations, setConversations] = useState(initialChatConversations);
   const [directThreads, setDirectThreads] = useState(loadDirectMessageThreads);
   const [registeredPeople, setRegisteredPeople] = useState([]);
@@ -3157,7 +3160,7 @@ function CommunityChat({ onBackToDashboard, viewerProfile = defaultChatViewer, f
   };
 
   return (
-    <main className="community-page">
+    <main className={floating ? 'community-page community-page-floating' : 'community-page'}>
       <div className="community-chat-layout">
         <section className="community-conversations">
           <div className="community-directory-heading"><h2>Community</h2><span>{viewerProfile.role}</span></div>
