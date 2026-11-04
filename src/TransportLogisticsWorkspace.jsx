@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import './TransportLogisticsWorkspace.css';
 
 const drivers = [
@@ -26,27 +26,10 @@ const drivers = [
   },
 ];
 
-const warehouses = [
-  {
-    id: 'sample-pwani-cold',
-    name: 'Pwani Cold Storage',
-    type: 'Cold storage',
-    temperature: 'Sample range −4°C to −18°C',
-    occupancy: 65,
-    price: 180000,
-    badge: 'Sample listing',
-    icon: 'ac_unit',
-  },
-  {
-    id: 'sample-kijitonyama-silos',
-    name: 'Kijitonyama Dry Silos',
-    type: 'Dry grain storage',
-    temperature: 'Sample humidity control: 12% max',
-    occupancy: 30,
-    price: 120000,
-    badge: 'Sample listing',
-    icon: 'warehouse',
-  },
+const transportRoutes = [
+  { origin: 'Iringa', destination: 'Dar es Salaam', distance: '~500 km', vehicle: 'Standard lorry', estimate: 300000 },
+  { origin: 'Iringa', destination: 'Mbeya', distance: '~330 km', vehicle: 'Pickup', estimate: 150000 },
+  { origin: 'Morogoro', destination: 'Dar es Salaam', distance: '~200 km', vehicle: 'Cold chain', estimate: 250000 },
 ];
 
 const money = (value) => `TSh ${Number(value || 0).toLocaleString('en-TZ')}`;
@@ -56,31 +39,24 @@ export default function TransportLogisticsWorkspace({ user, profile, records, on
   const [pickup, setPickup] = useState(profile?.location || profile?.district || profile?.region || 'Iringa Farm, Section A4');
   const [destination, setDestination] = useState('Dar es Salaam Port, Terminal 3');
   const [selectedDriverId, setSelectedDriverId] = useState(drivers[0].id);
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState(warehouses[1].id);
+  const [search, setSearch] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('relevance');
+  const [jobFormOpen, setJobFormOpen] = useState(false);
+  const [cargo, setCargo] = useState('');
+  const [weight, setWeight] = useState('');
   const [notice, setNotice] = useState('');
-  const [savedRequestId, setSavedRequestId] = useState('');
 
   const selectedDriver = drivers.find((driver) => driver.id === selectedDriverId);
-  const selectedWarehouse = warehouses.find((warehouse) => warehouse.id === selectedWarehouseId);
-  const quote = useMemo(() => {
-    const transportEstimate = selectedDriver?.fare || 0;
-    const storageEstimate = selectedWarehouse?.price || 0;
-    const handlingEstimate = selectedWarehouse ? 15000 : 0;
-    const fuelEstimate = selectedDriver ? 45000 : 0;
-    const transitCoverEstimate = selectedDriver ? 25000 : 0;
-    const serviceEstimate = Math.round((transportEstimate + storageEstimate + handlingEstimate + fuelEstimate + transitCoverEstimate) * 0.01);
-    return {
-      transportEstimate,
-      storageEstimate,
-      handlingEstimate,
-      fuelEstimate,
-      transitCoverEstimate,
-      serviceEstimate,
-      total: transportEstimate + storageEstimate + handlingEstimate + fuelEstimate + transitCoverEstimate + serviceEstimate,
-    };
-  }, [selectedDriver, selectedWarehouse]);
+  const transportRequests = (Array.isArray(records?.requests) ? records.requests : []).filter((request) => request.module === 'transport');
+  const filteredDrivers = drivers
+    .filter((driver) => vehicleFilter === 'All' || (vehicleFilter === 'Cold chain' ? /refrigerated|reefer/i.test(driver.vehicle) : driver.vehicle.toLowerCase().includes(vehicleFilter.toLowerCase())))
+    .filter((driver) => `${driver.name} ${driver.vehicle} ${pickup} ${destination}`.toLowerCase().includes(search.toLowerCase()));
+  const sortedDrivers = [...filteredDrivers].sort((first, second) => sortBy === 'price' ? first.fare - second.fare : second.trips - first.trips);
+  const matchingRoute = transportRoutes.find((route) => pickup.toLowerCase().includes(route.origin.toLowerCase()) && destination.toLowerCase().includes(route.destination.toLowerCase()));
+  const estimatedFare = matchingRoute?.estimate || selectedDriver?.fare || 0;
 
-  const confirmRequest = () => {
+  const confirmRequest = (requestType = 'estimate', driverId = selectedDriverId) => {
     if (!user?.user_id) {
       setNotice('Sign in to save a transport and storage request.');
       return;
@@ -93,24 +69,33 @@ export default function TransportLogisticsWorkspace({ user, profile, records, on
       setNotice('Unable to save the request because farmer records are unavailable.');
       return;
     }
+    const requestDriver = drivers.find((driver) => driver.id === driverId);
+    const requestEstimate = requestType === 'carrier-request' && requestDriver ? requestDriver.fare : estimatedFare;
     const id = newRecordId();
     const request = {
       id,
       module: 'transport',
-      title: `Transport request: ${pickup.trim()} to ${destination.trim()}`,
+      requestType,
+      title: cargo.trim() ? `${cargo.trim()} transport: ${pickup.trim()} to ${destination.trim()}` : `Transport request: ${pickup.trim()} to ${destination.trim()}`,
+      pickup: pickup.trim(),
+      destination: destination.trim(),
+      cargo: cargo.trim(),
+      weightKg: weight ? Number(weight) : null,
+      driverId: requestDriver?.id || '',
+      estimateTzs: requestEstimate,
       details: [
-        'Illustrative route distance: 550 km.',
-        `Sample carrier profile: ${selectedDriver?.name || 'Not selected'} (${selectedDriver?.vehicle || 'no vehicle selected'}).`,
-        `Sample storage option: ${selectedWarehouse?.name || 'Not selected'}.`,
-        `Non-binding sample estimate: ${money(quote.total)}.`,
-        'This is a request note only; it has not been submitted to a provider. No driver or warehouse was contacted, no reservation was made, and no payment or escrow was initiated.',
+        `Illustrative route distance: ${matchingRoute?.distance || 'not available'}.`,
+        `Sample carrier profile: ${requestDriver?.name || 'Not selected'} (${requestDriver?.vehicle || 'no vehicle selected'}).`,
+        `Non-binding sample estimate: ${money(requestEstimate)}.`,
+        'This is a local request note only; it has not been submitted to a provider. No driver or warehouse was contacted, no reservation was made, and no payment or escrow was initiated.',
       ].join(' '),
       date: new Date().toISOString().slice(0, 10),
-      status: 'Request note · not submitted',
+      status: 'Saved locally · not submitted',
     };
     onRecordsChange('requests', [...records.requests, request]);
     setSavedRequestId(id);
-    setNotice('Request saved in farmer records. No transport or storage provider was contacted; nothing was booked or charged.');
+    setJobFormOpen(false);
+    setNotice('Transport request saved in farmer records. No provider was contacted; nothing was booked or charged.');
   };
 
   return (
@@ -118,102 +103,81 @@ export default function TransportLogisticsWorkspace({ user, profile, records, on
       {notice && <div className="transport-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
 
       <header className="transport-page-heading">
-        <div><p>FARMER WORKSPACE · MARKET &amp; LOGISTICS</p><h1>Harvest-to-Market Logistics</h1><span>Plan a sample transport and storage estimate for your harvest.</span></div>
-        <span className="transport-demo-badge"><span className="material-symbols-outlined">info</span>Demo directory · no live bookings</span>
+        <div><p>FARMER WORKSPACE · MARKET &amp; LOGISTICS</p><h1>Usafiri Transport</h1><span>Plan produce transport and cold-chain requests.</span></div>
+        <button type="button" className="transport-post-job-button" onClick={() => setJobFormOpen((open) => !open)}><span className="material-symbols-outlined">add_circle</span>{jobFormOpen ? 'Close transport job' : 'Post Transport Job'}</button>
       </header>
 
       <div className="transport-demo-disclosure" role="note">
         <span className="material-symbols-outlined">info</span>
-        <span>Driver profiles, availability, ratings, warehouse listings, route distance, and prices below are illustrative. AGRI-NEST is not connected to these providers and does not verify availability, reserve storage, process payment, or offer escrow.</span>
+        <span>Transporter profiles and route prices are illustrative examples, not verified or live listings. Saving a request creates a note in your farmer records only; it does not contact a carrier, confirm availability, book a trip, or initiate payment.</span>
       </div>
+
+      {jobFormOpen && <form className="transport-job-form" onSubmit={(event) => { event.preventDefault(); confirmRequest('transport-job'); }}>
+        <div><span className="transport-demo-label">LOCAL REQUEST FORM</span><h2>Post a transport job</h2><p>Save your cargo and route details for your own follow-up.</p></div>
+        <label>Cargo or produce<input required maxLength={120} value={cargo} onChange={(event) => setCargo(event.target.value)} placeholder="e.g. Tomatoes" /></label>
+        <label>Estimated weight (kg)<input type="number" min="1" step="1" value={weight} onChange={(event) => setWeight(event.target.value)} placeholder="Optional" /></label>
+        <button type="submit" className="transport-post-job-button"><span className="material-symbols-outlined">save</span>Save request note</button>
+      </form>}
+
+      <section className="transport-stats" aria-label="Transport workspace summary">
+        <article><span className="material-symbols-outlined">local_shipping</span><div><small>Sample transporter profiles</small><strong>{drivers.length}</strong><span>Illustrative only</span></div></article>
+        <article><span className="material-symbols-outlined">outbox</span><div><small>Your saved transport requests</small><strong>{transportRequests.length}</strong><span>Not submitted to providers</span></div></article>
+        <article><span className="material-symbols-outlined">route</span><div><small>Route estimate</small><strong>{money(estimatedFare)}</strong><span>{matchingRoute ? `${matchingRoute.distance} · sample rate` : 'Example only · confirm with carrier'}</span></div></article>
+        <article><span className="material-symbols-outlined">ac_unit</span><div><small>Live cold-chain status</small><strong>Not connected</strong><span>Confirm directly with providers</span></div></article>
+      </section>
 
       <div className="transport-layout">
         <section className="transport-main-column">
-          <section className="transport-card transport-booking-card">
-            <header className="transport-card-heading">
-              <div><span className="material-symbols-outlined">local_shipping</span><h2>Transport Fleet Booking</h2></div>
-              <span className="transport-directory-count">2 sample profiles</span>
-            </header>
-
-            <div className="transport-route-grid">
-              <label><span>Pickup location</span><div className="transport-input-wrap"><span className="material-symbols-outlined">my_location</span><input value={pickup} onChange={(event) => { setPickup(event.target.value); setSavedRequestId(''); }} maxLength={140} placeholder="Farm, village, or collection point" /></div></label>
-              <label><span>Destination</span><div className="transport-input-wrap"><span className="material-symbols-outlined">location_on</span><input value={destination} onChange={(event) => { setDestination(event.target.value); setSavedRequestId(''); }} maxLength={140} placeholder="Market, port, or storage site" /></div></label>
+          <div className="transport-filter-bar">
+            <label className="transport-search"><span className="material-symbols-outlined">search</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search driver, route, or vehicle..." aria-label="Search transport examples" /></label>
+            <div className="transport-filter-options" aria-label="Filter sample vehicle profiles">
+              {['All', 'Lorry', 'Pickup', 'Cold chain'].map((filter) => <button type="button" key={filter} className={vehicleFilter === filter ? 'active' : ''} aria-pressed={vehicleFilter === filter} onClick={() => setVehicleFilter(filter)}><span className="material-symbols-outlined">{filter === 'Pickup' ? 'directions_car' : filter === 'Cold chain' ? 'ac_unit' : 'local_shipping'}</span>{filter}</button>)}
             </div>
+          </div>
 
-            <div className="transport-section-title"><span>Sample carrier profiles</span><small>Illustrative only · not verified or available-to-book</small></div>
-            <div className="transport-driver-list">
-              {drivers.map((driver) => <button
-                type="button"
-                key={driver.id}
-                className={selectedDriverId === driver.id ? 'transport-driver selected' : 'transport-driver'}
-                aria-pressed={selectedDriverId === driver.id}
-                onClick={() => { setSelectedDriverId(driver.id); setSavedRequestId(''); }}
-              >
-                <span className="transport-driver-icon"><span className="material-symbols-outlined">{driver.icon}</span></span>
-                <span className="transport-driver-info">
-                  <strong>{driver.name}</strong>
-                  <span>{driver.vehicle} · ID {driver.vehicleId}</span>
-                  <small><span className="material-symbols-outlined">star</span>{driver.rating} · {driver.trips} sample trips</small>
-                </span>
-                <span className="transport-driver-price"><strong>{money(driver.fare + 70000)}</strong><small>{driver.availability}</small></span>
-              </button>)}
+          <section className="transport-card transport-map-card">
+            <header className="transport-card-heading"><div><span className="material-symbols-outlined">map</span><h2>Nearby Transporters</h2></div><span className="transport-demo-label">Illustrative route view · no live map</span></header>
+            <div className="transport-route-fields">
+              <label>Pickup<div className="transport-input-wrap"><span className="material-symbols-outlined">my_location</span><input value={pickup} onChange={(event) => setPickup(event.target.value)} maxLength={140} /></div></label>
+              <span className="material-symbols-outlined transport-route-arrow">east</span>
+              <label>Destination<div className="transport-input-wrap"><span className="material-symbols-outlined">location_on</span><input value={destination} onChange={(event) => setDestination(event.target.value)} maxLength={140} /></div></label>
+            </div>
+            <div className="transport-illustrative-map" role="img" aria-label="Illustrative transport route between the entered pickup and destination. Not a real-time map or vehicle location.">
+              <div className="transport-map-road transport-map-road-one" /><div className="transport-map-road transport-map-road-two" /><div className="transport-map-path" />
+              <span className="transport-map-stop transport-map-stop-start"><span className="material-symbols-outlined">agriculture</span><small>Pickup</small></span>
+              <span className="transport-map-stop transport-map-stop-truck"><span className="material-symbols-outlined">local_shipping</span><small>Sample lorry</small></span>
+              <span className="transport-map-stop transport-map-stop-cold"><span className="material-symbols-outlined">ac_unit</span><small>Cold chain</small></span>
+              <span className="transport-map-stop transport-map-stop-end"><span className="material-symbols-outlined">location_on</span><small>Destination</small></span>
+              <span className="transport-map-legend">Illustration only · no GPS data</span>
             </div>
           </section>
 
-          <section className="transport-card transport-storage-card">
-            <header className="transport-card-heading">
-              <div><span className="material-symbols-outlined">warehouse</span><h2>Warehouse Reservation</h2></div>
-              <span className="transport-demo-label">Sample facilities · 30-day estimate</span>
-            </header>
-            <div className="transport-warehouse-grid">
-              {warehouses.map((warehouse) => <article key={warehouse.id} className={selectedWarehouseId === warehouse.id ? 'transport-warehouse selected' : 'transport-warehouse'}>
-                <div className={`transport-warehouse-art ${warehouse.id === warehouses[0].id ? 'cold' : 'silo'}`} aria-hidden="true">
-                  <span className="material-symbols-outlined">{warehouse.icon}</span>
-                  <span>{warehouse.type}</span>
-                </div>
-                <div className="transport-warehouse-content">
-                  <div className="transport-warehouse-title"><div><h3>{warehouse.name}</h3><span>{warehouse.badge}</span></div><strong>{money(warehouse.price)}<small> / 30 days</small></strong></div>
-                  <p><span className="material-symbols-outlined">{warehouse.id === warehouses[0].id ? 'thermostat' : 'humidity_percentage'}</span>{warehouse.temperature}</p>
-                  <div className="transport-occupancy"><div><span>Sample occupancy</span><strong>{warehouse.occupancy}%</strong></div><span className="transport-progress"><i style={{ width: `${warehouse.occupancy}%` }} /></span></div>
-                  <button type="button" aria-pressed={selectedWarehouseId === warehouse.id} onClick={() => { setSelectedWarehouseId((current) => current === warehouse.id ? '' : warehouse.id); setSavedRequestId(''); }}>{selectedWarehouseId === warehouse.id ? 'Selected for estimate' : 'Add to estimate'}</button>
-                </div>
+          <section className="transport-available-section">
+            <div className="transport-available-heading"><div><span className="transport-demo-label">SAMPLE DIRECTORY</span><h2>Available Drivers</h2></div><label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="relevance">Relevance</option><option value="price">Example rate</option></select></label></div>
+            <div className="transport-driver-list">
+              {sortedDrivers.map((driver) => <article key={driver.id} className="transport-driver-card">
+                <span className="transport-driver-icon"><span className="material-symbols-outlined">{driver.icon}</span></span>
+                <div className="transport-driver-info"><strong>{driver.name}<span className="transport-sample-badge">Sample</span></strong><span>{driver.vehicle}</span><small><span className="material-symbols-outlined">star</span>{driver.rating} · {driver.trips} example trips</small></div>
+                <div className="transport-driver-route"><span className="material-symbols-outlined">route</span><div><strong>{pickup.split(',')[0]} <span className="material-symbols-outlined">east</span> {destination.split(',')[0]}</strong><small>Route not verified</small></div></div>
+                <div className="transport-driver-price"><strong>{money(driver.fare)}</strong><small>Illustrative rate</small><button type="button" onClick={() => { setSelectedDriverId(driver.id); confirmRequest('carrier-request', driver.id); }}>Save request</button></div>
               </article>)}
+              {!sortedDrivers.length && <div className="transport-empty"><span className="material-symbols-outlined">search_off</span><strong>No sample profiles match</strong><p>Try a different search or vehicle filter.</p></div>}
             </div>
+            <p className="transport-directory-disclaimer">Profiles, vehicle details, ratings, availability, and rates are fictional interface examples, not verified carrier listings.</p>
           </section>
         </section>
 
         <aside className="transport-summary-column">
-          <section className="transport-card transport-summary-card">
-            <header><h2>Booking Summary</h2><span>Illustrative estimate</span></header>
-            <div className="transport-summary-group">
-              <h3><span className="material-symbols-outlined">local_shipping</span>Transport</h3>
-              <div><span>Sample carrier estimate</span><strong>{money(quote.transportEstimate)}</strong></div>
-              <div><span>Sample fuel surcharge</span><strong>{money(quote.fuelEstimate)}</strong></div>
-              <div><span>Indicative transit cover</span><strong>{money(quote.transitCoverEstimate)}</strong></div>
-              <p>Cover is an example fee only. No insurer or carrier has confirmed it.</p>
-            </div>
-
-            <div className="transport-summary-group">
-              <h3><span className="material-symbols-outlined">warehouse</span>Storage · 30 days</h3>
-              <div><span>{selectedWarehouse?.name || 'No storage selected'}</span><strong>{money(quote.storageEstimate)}</strong></div>
-              {selectedWarehouse && <div><span>Sample handling fee</span><strong>{money(quote.handlingEstimate)}</strong></div>}
-            </div>
-
-            <div className="transport-summary-group service">
-              <h3><span className="material-symbols-outlined">receipt_long</span>Estimated service fee</h3>
-              <div><span>Example fee · 1%</span><strong>{money(quote.serviceEstimate)}</strong></div>
-              <p>Not escrow. No funds are collected or held.</p>
-            </div>
-
-            <div className="transport-total"><span><small>Sample total</small><strong>{money(quote.total)}</strong></span><small>Not a provider quote. Confirm costs directly with providers.</small></div>
-
-            <button type="button" className="transport-confirm-button" onClick={confirmRequest}>{savedRequestId ? 'Request note saved' : 'Save request note'}<span className="material-symbols-outlined">{savedRequestId ? 'check' : 'arrow_forward'}</span></button>
-            <p className="transport-confirm-disclaimer"><span className="material-symbols-outlined">lock</span>Saving records your request in AGRI-NEST. It does not book transport or storage, notify a provider, reserve funds, or create escrow.</p>
+          <section className="transport-card transport-trips-card">
+            <header><h2>My Transport Requests</h2><span>{transportRequests.length} saved</span></header>
+            <div className="transport-trip-list">{transportRequests.length ? transportRequests.slice(-4).reverse().map((request) => <article key={request.id}><div className="transport-trip-status">SAVED · NOT BOOKED</div><div className="transport-trip-title"><strong>{request.cargo || request.title || 'Transport request'}</strong><small>{request.id.slice(0, 8)}</small></div><p>{request.pickup || 'Pickup not recorded'} <span className="material-symbols-outlined">east</span> {request.destination || 'Destination not recorded'}</p><small>{request.weightKg ? `${Number(request.weightKg).toLocaleString()} kg · ` : ''}{request.date || 'Date not recorded'}</small><div className="transport-trip-actions"><strong>{request.estimateTzs ? money(request.estimateTzs) : 'No estimate'}</strong><span>Local note</span></div></article>) : <div className="transport-empty"><span className="material-symbols-outlined">local_shipping</span><strong>No transport requests yet</strong><p>Save a request note to keep its route details here.</p></div>}</div>
+            <p className="transport-confirm-disclaimer"><span className="material-symbols-outlined">info</span>These are request notes, not active trips. No live tracking or carrier connection is available.</p>
           </section>
 
-          <section className="transport-network-status">
-            <span className="material-symbols-outlined">map</span>
-            <div><strong>Logistics network status</strong><p>Live route and provider status are not connected. Ask your carrier about route conditions and transit time.</p></div>
+          <section className="transport-card transport-marketplace-card">
+            <h2>Transport Marketplace</h2><p>Example prices for popular routes. Confirm all costs and availability directly with a carrier.</p>
+            <div className="transport-marketplace-routes">{transportRoutes.map((route) => <button type="button" key={`${route.origin}-${route.destination}`} onClick={() => { setPickup(route.origin); setDestination(route.destination); }}><span><strong>{route.origin} to {route.destination}</strong><small>{route.distance} · {route.vehicle}</small></span><span>From {money(route.estimate)}</span></button>)}</div>
+            <p className="transport-marketplace-disclaimer">Sample route estimates only · not provider quotes.</p>
           </section>
         </aside>
       </div>
