@@ -507,7 +507,7 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       onNavigate={onNavigate}
     />;
   }
-  if (['fields', 'production', 'farm-operations', 'activity', 'livestock'].includes(page)) {
+  if (['fields', 'records', 'production', 'farm-operations', 'activity', 'livestock'].includes(page)) {
     return <DigitalFarmPage
       page={page}
       user={user}
