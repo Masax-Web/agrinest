@@ -12846,6 +12846,209 @@ body.admin-impersonation-active #root {
   .soko-filter-bar { align-items: flex-start; flex-direction: column; }
 }
 
+.digital-farm-next-step,
+.digital-farm-map-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #dce8d9;
+  border-radius: 0.85rem;
+  background: #f3f8f1;
+  color: #234c36;
+}
+
+.digital-farm-next-step > .material-symbols-outlined,
+.digital-farm-map-empty > .material-symbols-outlined {
+  flex: 0 0 auto;
+  color: #32774a;
+  font-size: 1.6rem;
+}
+
+.digital-farm-next-step > div,
+.digital-farm-map-empty > div {
+  display: grid;
+  flex: 1;
+  gap: 0.2rem;
+}
+
+.digital-farm-next-step strong,
+.digital-farm-map-empty strong {
+  font-size: 0.86rem;
+}
+
+.digital-farm-next-step p,
+.digital-farm-map-empty p {
+  margin: 0;
+  color: #65756a;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.digital-farm-next-step > button,
+.digital-farm-map-empty > button,
+.digital-farm-record-view-heading > button,
+.digital-farm-record-row > button,
+.digital-farm-unassigned > button {
+  min-height: 2.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: #2f7042;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.digital-farm-next-step.is-warning {
+  border-color: #efdfb9;
+  background: #fff9eb;
+  color: #62491c;
+}
+
+.digital-farm-next-step.is-warning > .material-symbols-outlined {
+  color: #9c742c;
+}
+
+.digital-farm-next-step > button:disabled,
+.digital-farm-record-view-heading > button:disabled,
+.digital-farm-record-row > button:disabled {
+  background: #aab4aa;
+  cursor: not-allowed;
+}
+
+.digital-farm-map-empty {
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.digital-farm-map-empty p {
+  max-width: 28rem;
+}
+
+.digital-farm-evidence-status {
+  display: block;
+  margin-top: 0.25rem;
+  color: #72796b;
+}
+
+.digital-farm-record-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.digital-farm-record-cards > button {
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+  min-height: 8rem;
+  padding: 1rem;
+  border: 1px solid #e4e8df;
+  border-radius: 0.8rem;
+  background: #fff;
+  color: #294d35;
+  cursor: pointer;
+  text-align: left;
+}
+
+.digital-farm-record-cards > button:hover,
+.digital-farm-record-row > button:hover,
+.digital-farm-next-step > button:hover {
+  filter: brightness(0.96);
+}
+
+.digital-farm-record-cards .material-symbols-outlined {
+  color: #36734a;
+  font-size: 1.45rem;
+}
+
+.digital-farm-record-cards strong {
+  font-size: 0.85rem;
+}
+
+.digital-farm-record-cards small {
+  color: #738075;
+  font-size: 0.68rem;
+}
+
+.digital-farm-unassigned,
+.digital-farm-record-view {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e6e8df;
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.digital-farm-unassigned > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.digital-farm-unassigned h2,
+.digital-farm-record-view h2 {
+  margin: 0;
+  color: #294d35;
+  font: 700 1rem 'Syne', 'DM Sans', sans-serif;
+}
+
+.digital-farm-unassigned > div:first-child p,
+.digital-farm-record-view-heading p {
+  margin: 0;
+  color: #738075;
+  font-size: 0.72rem;
+}
+
+.digital-farm-record-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid #edf0e9;
+}
+
+.digital-farm-record-row > div {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.digital-farm-record-row strong {
+  color: #354c3c;
+  font-size: 0.78rem;
+}
+
+.digital-farm-record-row small {
+  color: #788278;
+  font-size: 0.66rem;
+}
+
+.digital-farm-record-view-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.digital-farm-record-view-heading > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.digital-farm-record-empty {
+  margin: 0;
+  padding: 1rem 0;
+  color: #738075;
+  font-size: 0.74rem;
+}
+
 @media (max-width: 900px) {
   .digital-farm-overview {
     grid-template-columns: minmax(0, 1fr);
@@ -16759,4 +16962,43 @@ body.admin-impersonation-active #root {
   .irrigation-reading-entry .irrigation-primary-button { grid-column: auto; }
   .irrigation-equipment-heading { align-items: flex-start; flex-direction: column; }
   .irrigation-equipment-section .irrigation-card .irrigation-card-heading { align-items: flex-start; }
+}
+
+@media (max-width: 600px) {
+  .digital-farm-next-step {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 0.85rem;
+  }
+
+  .digital-farm-next-step > div {
+    flex-basis: calc(100% - 3rem);
+  }
+
+  .digital-farm-next-step > button {
+    width: 100%;
+  }
+
+  .digital-farm-record-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .digital-farm-record-cards > button {
+    min-height: 0;
+  }
+
+  .digital-farm-record-row,
+  .digital-farm-record-view-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .digital-farm-record-row > button,
+  .digital-farm-record-view-heading > button {
+    width: 100%;
+  }
+
+  .digital-farm-map-empty {
+    padding: 1rem;
+  }
 }

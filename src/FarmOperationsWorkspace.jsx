@@ -61,7 +61,7 @@ function Field({ label, children }) {
   return <label className="farm-operations-field">{label}{children}</label>;
 }
 
-export default function FarmOperationsWorkspace({ user, onBack }) {
+export default function FarmOperationsWorkspace({ user, onBack, activeFarmId, onActiveFarmChange }) {
   const [farms, setFarms] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [operations, setOperations] = useState(null);
@@ -146,8 +146,14 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
   }, []);
 
   useEffect(() => {
-    loadFarms();
-  }, [loadFarms, user?.user_id]);
+    loadFarms(activeFarmId || '');
+  }, [activeFarmId, loadFarms, user?.user_id]);
+
+  useEffect(() => {
+    if (selectedFarm?.status !== 'pending' && selectedFarmId && selectedFarmId !== activeFarmId) {
+      onActiveFarmChange?.(selectedFarmId);
+    }
+  }, [activeFarmId, onActiveFarmChange, selectedFarm, selectedFarmId]);
 
   useEffect(() => {
     let active = true;

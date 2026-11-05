@@ -81,7 +81,7 @@ function readableDate(value) {
   });
 }
 
-export default function FarmActivityLog({ user, profile, fields = [], onBack, onNavigate }) {
+export default function FarmActivityLog({ user, profile, fields = [], activeFarmId, onActiveFarmChange, onBack, onNavigate }) {
   const [farms, setFarms] = useState([]);
   const [farmId, setFarmId] = useState('');
   const [logs, setLogs] = useState([]);
@@ -129,7 +129,9 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
         if (!active) return;
         const nextFarms = Array.isArray(response.farms) ? response.farms : [];
         setFarms(nextFarms);
-        const preferred = nextFarms.find((farm) => farm.status === 'active') || nextFarms[0];
+        const preferred = nextFarms.find((farm) => farm.farm_id === activeFarmId)
+          || nextFarms.find((farm) => farm.status === 'active')
+          || nextFarms[0];
         setFarmId(preferred?.farm_id || '');
       } catch (requestError) {
         if (active) setError(requestError.message || 'Could not load your farms.');
@@ -139,7 +141,17 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
     };
     load();
     return () => { active = false; };
-  }, [user?.user_id]);
+  }, [activeFarmId, user?.user_id]);
+
+  useEffect(() => {
+    if (activeFarmId && activeFarmId !== farmId && activeFarms.some((farm) => farm.farm_id === activeFarmId)) {
+      setFarmId(activeFarmId);
+    }
+  }, [activeFarmId, activeFarms, farmId]);
+
+  useEffect(() => {
+    if (farmId && farmId !== activeFarmId) onActiveFarmChange?.(farmId);
+  }, [activeFarmId, farmId, onActiveFarmChange]);
 
   useEffect(() => {
     let active = true;
