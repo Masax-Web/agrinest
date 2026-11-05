@@ -198,6 +198,21 @@ export const api = {
     return apiRequest(`/farms/${encodeURIComponent(farmId)}/operations`);
   },
 
+  async listFarmActivityLogs(farmId) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/activity-logs`);
+  },
+
+  async createFarmActivityLog(farmId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/activity-logs`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getFarmActivityEvidence(farmId, activityId) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/activity-logs/${encodeURIComponent(activityId)}/evidence`);
+  },
+
   async createFarmBudget(farmId, data) {
     return apiRequest(`/farms/${encodeURIComponent(farmId)}/budgets`, {
       method: 'POST',

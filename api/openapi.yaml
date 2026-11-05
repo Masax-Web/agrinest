@@ -1221,6 +1221,160 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ApiError' }
 
+  /farms/{farmId}/activity-logs:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: List append-only farmer-signed activity records for a farm
+      responses:
+        '200':
+          description: Recent farm activity logs with their tamper-evident hash chain
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [logs]
+                properties:
+                  logs: { type: array, items: { type: object, additionalProperties: true } }
+        '403':
+          description: Active farm membership required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Farm not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        default:
+          description: Farm activity request failed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+    post:
+      summary: Finalize a farmer-signed farm activity record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [activity_date, crop, activity_type, details]
+              properties:
+                activity_date: { type: string, format: date }
+                crop: { type: string, minLength: 1, maxLength: 100 }
+                activity_type:
+                  type: string
+                  enum: [Planting, 'Spraying (Pest Control)', Irrigation, Harvest, Fertilizing, Other]
+                field_name: { type: string, maxLength: 120 }
+                details:
+                  type: object
+                  properties:
+                    product_name: { type: string, maxLength: 120 }
+                    dosage_rate: { type: string, maxLength: 80 }
+                    water_volume_liters: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                    equipment: { type: string, maxLength: 120 }
+                    notes: { type: string, maxLength: 1000 }
+                location:
+                  type: object
+                  required: [latitude, longitude]
+                  properties:
+                    latitude: { type: number, minimum: -90, maximum: 90 }
+                    longitude: { type: number, minimum: -180, maximum: 180 }
+                    accuracy_m: { type: number, minimum: 0, maximum: 1000000 }
+                    altitude_m: { type: number, minimum: -1000, maximum: 100000 }
+                    captured_at: { type: string, format: date-time }
+                weather:
+                  type: object
+                  required: [source]
+                  properties:
+                    temperature_c: { type: number, minimum: -80, maximum: 70 }
+                    humidity_percent: { type: number, minimum: 0, maximum: 100 }
+                    wind_kmh: { type: number, minimum: 0, maximum: 400 }
+                    wind_direction: { type: string, maxLength: 40 }
+                    conditions: { type: string, maxLength: 100 }
+                    source: { type: string, minLength: 1, maxLength: 120 }
+                    location: { type: string, maxLength: 160 }
+                    observed_at: { type: string, format: date-time }
+                evidence:
+                  type: object
+                  required: [name, mime_type, data_url]
+                  properties:
+                    name: { type: string, minLength: 1, maxLength: 160 }
+                    mime_type: { type: string, enum: [image/jpeg, image/png, image/webp] }
+                    data_url: { type: string, maxLength: 1500000 }
+      responses:
+        '201':
+          description: Finalized append-only activity record
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [log]
+                properties:
+                  log: { type: object, additionalProperties: true }
+        '400':
+          description: Activity record did not pass validation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '403':
+          description: Owner, manager, or worker access required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Farm not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        default:
+          description: Activity could not be finalized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/activity-logs/{activityId}/evidence:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: activityId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Retrieve evidence attached to an activity log
+      responses:
+        '200':
+          description: Evidence accessible to active farm members
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [evidence]
+                properties:
+                  evidence: { type: object, additionalProperties: true }
+        '403':
+          description: Active farm membership required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Activity evidence not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        default:
+          description: Evidence could not be retrieved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
   /farms/{farmId}/budgets:
     parameters:
       - in: path

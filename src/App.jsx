@@ -26,6 +26,7 @@ import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import VerifiedActivityArchive from './VerifiedActivityArchive';
+import FarmActivityLog from './FarmActivityLog';
 import FoundationImpactPortal from './FoundationImpactPortal';
 import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import TransporterFleetWorkspace from './TransporterFleetWorkspace';
@@ -2025,7 +2026,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
   };
 
   const farmerNavigationViews = {
-    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Farm Operations': 'farm-operations', 'Harvest Prediction': 'harvest-prediction', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
+    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Farm Operations': 'farm-operations', 'Activity Log': 'activity', 'Harvest Prediction': 'harvest-prediction', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
     'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'community-learning', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
@@ -2117,6 +2118,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
         { label: 'Farm Profile', icon: 'eco' },
         { label: 'Digital Farm', icon: 'agriculture' },
         { label: 'Farm Operations', icon: 'groups_2' },
+        { label: 'Activity Log', icon: 'fact_check' },
         { label: 'Harvest Prediction', icon: 'event_upcoming' },
         { label: 'Kadiria Maji', icon: 'water_drop' },
         { label: 'Jicho AI', icon: 'psychology' },
@@ -2701,6 +2703,14 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
           <LoanSpendingPage userId={user?.user_id} onBack={() => setActiveView('dashboard')} />
         ) : activeView === 'farm-operations' ? (
           <FarmOperationsWorkspace user={user} onBack={() => setActiveView('dashboard')} />
+        ) : activeView === 'activity' ? (
+          <FarmActivityLog
+            user={user}
+            profile={farmerProfile}
+            fields={farmerRecords.fields}
+            onBack={() => setActiveView('dashboard')}
+            onNavigate={setActiveView}
+          />
         ) : activeView === 'income' ? (
           <FinanceHub
             profile={farmerProfile}

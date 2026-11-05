@@ -134,6 +134,58 @@ router.patch('/:farmId/resource-requests/:requestId', async (req, res) => {
   }
 });
 
+router.get('/:farmId/activity-logs', async (req, res) => {
+  try {
+    const logs = await FarmOperations.listFarmActivityLogs({
+      farmId: req.params.farmId,
+      userId: req.authUser.user_id,
+    });
+    return res.json({ logs });
+  } catch (error) {
+    return handleOperationError(res, error, 'listFarmActivityLogs');
+  }
+});
+
+router.post('/:farmId/activity-logs', async (req, res) => {
+  try {
+    const log = await FarmOperations.createFarmActivityLog({
+      farmId: req.params.farmId,
+      actorId: req.authUser.user_id,
+      activityDate: req.body.activity_date,
+      crop: req.body.crop,
+      activityType: req.body.activity_type,
+      fieldName: req.body.field_name,
+      details: req.body.details,
+      location: req.body.location,
+      weather: req.body.weather,
+      evidence: req.body.evidence,
+    });
+    return res.status(201).json({ log });
+  } catch (error) {
+    return handleOperationError(res, error, 'createFarmActivityLog');
+  }
+});
+
+router.get('/:farmId/activity-logs/:activityId/evidence', async (req, res) => {
+  try {
+    const evidence = await FarmOperations.getFarmActivityEvidence({
+      farmId: req.params.farmId,
+      activityId: req.params.activityId,
+      userId: req.authUser.user_id,
+    });
+    return res.json({
+      evidence: {
+        name: evidence.photo_name,
+        mime_type: evidence.photo_mime_type,
+        data_url: evidence.photo_data,
+        sha256: evidence.photo_sha256,
+      },
+    });
+  } catch (error) {
+    return handleOperationError(res, error, 'getFarmActivityEvidence');
+  }
+});
+
 router.post('/:farmId/budgets', async (req, res) => {
   try {
     const budget = await FarmOperations.createFarmBudget({

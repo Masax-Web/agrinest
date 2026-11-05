@@ -17,6 +17,9 @@ describe('shared farm operations API', () => {
     'reviewResourceRequest',
     'createFarmBudget',
     'addFarmBudgetEntry',
+    'listFarmActivityLogs',
+    'createFarmActivityLog',
+    'getFarmActivityEvidence',
   ];
   const originals = new Map();
   const user = {
@@ -32,6 +35,7 @@ describe('shared farm operations API', () => {
   const membershipId = '00000000-0000-4000-8000-000000000501';
   const budgetId = '00000000-0000-4000-8000-000000000601';
   const entryId = '00000000-0000-4000-8000-000000000701';
+  const activityId = '00000000-0000-4000-8000-000000000801';
   let originalGetSessionUser;
 
   const authenticatedRequest = (method, path) => request(app)[method](path).set('Cookie', 'agrinest_session=operations-test-token');
@@ -75,6 +79,30 @@ describe('shared farm operations API', () => {
       amount: data.amount,
       entry_date: data.entryDate,
     });
+    FarmOperations.listFarmActivityLogs = async () => [{
+      activity_id: activityId,
+      farm_id: farmId,
+      activity_type: 'Spraying (Pest Control)',
+      crop: 'Maize',
+      content_hash: 'a'.repeat(64),
+      has_evidence: false,
+    }];
+    FarmOperations.createFarmActivityLog = async (data) => ({
+      activity_id: activityId,
+      farm_id: data.farmId,
+      activity_type: data.activityType,
+      activity_date: data.activityDate,
+      crop: data.crop,
+      content_hash: 'a'.repeat(64),
+      previous_hash: null,
+      has_evidence: Boolean(data.evidence),
+    });
+    FarmOperations.getFarmActivityEvidence = async () => ({
+      photo_name: 'field.jpg',
+      photo_mime_type: 'image/jpeg',
+      photo_data: 'data:image/jpeg;base64,ZmFrZQ==',
+      photo_sha256: 'b'.repeat(64),
+    });
   });
 
   afterEach(() => {
@@ -87,14 +115,31 @@ describe('shared farm operations API', () => {
     await request(app).get('/farms').expect(401);
   });
 
+  it('protects farm activity logs and validates finalized activity fields', async () => {
+    await request(app).get(`/farms/${farmId}/activity-logs`).expect(401);
+
+    await authenticatedRequest('post', `/farms/${farmId}/activity-logs`)
+      .send({
+        activity_date: '2026-11-05',
+        crop: 'Maize',
+        activity_type: 'Unrecognized activity',
+        details: {},
+      })
+      .expect(400);
+  });
+
   it('creates the base farms table before dependent workflow tables', async () => {
     const statements = [];
     await ensureCrossRoleWorkflowSchema({ raw: async (statement) => statements.push(statement) });
     const farmsTableIndex = statements.findIndex((statement) => statement.includes('CREATE TABLE IF NOT EXISTS farms ('));
     const membersTableIndex = statements.findIndex((statement) => statement.includes('CREATE TABLE IF NOT EXISTS farm_members ('));
+    const activityTableIndex = statements.findIndex((statement) => statement.includes('CREATE TABLE IF NOT EXISTS farm_activity_logs ('));
     expect(farmsTableIndex).to.equal(0);
     expect(membersTableIndex).to.be.greaterThan(farmsTableIndex);
+    expect(activityTableIndex).to.be.greaterThan(farmsTableIndex);
     expect(statements[farmsTableIndex]).to.include('REFERENCES users(user_id)');
+    expect(statements[activityTableIndex]).to.include('REFERENCES farms(farm_id) ON DELETE RESTRICT');
+    expect(statements.find((statement) => statement.includes('CREATE TRIGGER farm_activity_logs_append_only'))).to.be.a('string');
   });
 
   it('lists owned farms and invites team members with a pending status', async () => {
@@ -163,5 +208,35 @@ describe('shared farm operations API', () => {
       type: 'expense',
       amount: 120000,
     });
+  });
+
+  it('lists, finalizes, and retrieves append-only farm activity evidence', async () => {
+    const listed = await authenticatedRequest('get', `/farms/${farmId}/activity-logs`).expect(200);
+    expect(listed.body.logs[0]).to.include({
+      activity_id: activityId,
+      activity_type: 'Spraying (Pest Control)',
+    });
+
+    const finalized = await authenticatedRequest('post', `/farms/${farmId}/activity-logs`)
+      .send({
+        activity_date: '2026-11-05',
+        crop: 'Maize',
+        activity_type: 'Spraying (Pest Control)',
+        field_name: 'North field',
+        details: { product_name: 'Example product', dosage_rate: '2 L/ha', water_volume_liters: 200 },
+        location: { latitude: -7.77, longitude: 35.69, accuracy_m: 12, captured_at: '2026-11-05T10:00:00.000Z' },
+        weather: { temperature_c: 24, humidity_percent: 62, wind_kmh: 8, source: 'Open-Meteo', observed_at: '2026-11-05T10:00:00.000Z' },
+        evidence: { name: 'field.jpg', mime_type: 'image/jpeg', data_url: 'data:image/jpeg;base64,ZmFrZQ==' },
+      })
+      .expect(201);
+    expect(finalized.body.log).to.include({
+      activity_id: activityId,
+      farm_id: farmId,
+      activity_type: 'Spraying (Pest Control)',
+      has_evidence: true,
+    });
+
+    const evidence = await authenticatedRequest('get', `/farms/${farmId}/activity-logs/${activityId}/evidence`).expect(200);
+    expect(evidence.body.evidence).to.include({ name: 'field.jpg', mime_type: 'image/jpeg' });
   });
 });

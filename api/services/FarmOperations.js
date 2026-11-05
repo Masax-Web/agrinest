@@ -1,4 +1,14 @@
 const knex = require('../db');
+const crypto = require('crypto');
+
+const farmActivityTypes = new Set([
+  'Planting',
+  'Spraying (Pest Control)',
+  'Irrigation',
+  'Harvest',
+  'Fertilizing',
+  'Other',
+]);
 
 function operationError(message, status = 400) {
   const error = new Error(message);
@@ -271,6 +281,246 @@ async function addFarmBudgetEntry({ farmId, budgetId, actorId, type, category, a
   });
 }
 
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function boundedCoordinate(value, minimum, maximum, field) {
+  const coordinate = Number(value);
+  if (!Number.isFinite(coordinate) || coordinate < minimum || coordinate > maximum) {
+    throw operationError(`invalid_${field}`);
+  }
+  return coordinate;
+}
+
+function normalizeActivityLocation(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) throw operationError('invalid_location');
+  const accuracy = value.accuracy_m === undefined || value.accuracy_m === null || value.accuracy_m === ''
+    ? null
+    : Number(value.accuracy_m);
+  if (accuracy !== null && (!Number.isFinite(accuracy) || accuracy < 0 || accuracy > 1000000)) {
+    throw operationError('invalid_location_accuracy');
+  }
+  return {
+    latitude: boundedCoordinate(value.latitude, -90, 90, 'latitude'),
+    longitude: boundedCoordinate(value.longitude, -180, 180, 'longitude'),
+    accuracy_m: accuracy,
+    altitude_m: value.altitude_m === null || value.altitude_m === undefined
+      ? null
+      : boundedCoordinate(value.altitude_m, -1000, 100000, 'altitude'),
+    captured_at: typeof value.captured_at === 'string' && !Number.isNaN(Date.parse(value.captured_at))
+      ? new Date(value.captured_at).toISOString()
+      : null,
+  };
+}
+
+function normalizeActivityWeather(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) throw operationError('invalid_weather');
+  const numberOrNull = (number, field, minimum, maximum) => {
+    if (number === undefined || number === null || number === '') return null;
+    const parsed = Number(number);
+    if (!Number.isFinite(parsed) || parsed < minimum || parsed > maximum) throw operationError(`invalid_${field}`);
+    return parsed;
+  };
+  return {
+    temperature_c: numberOrNull(value.temperature_c, 'temperature', -80, 70),
+    humidity_percent: numberOrNull(value.humidity_percent, 'humidity', 0, 100),
+    wind_kmh: numberOrNull(value.wind_kmh, 'wind_speed', 0, 400),
+    wind_direction: optionalText(value.wind_direction, 'wind_direction', 40),
+    conditions: optionalText(value.conditions, 'weather_conditions', 100),
+    source: requiredText(value.source, 'weather_source', 120),
+    location: optionalText(value.location, 'weather_location', 160),
+    observed_at: typeof value.observed_at === 'string' && !Number.isNaN(Date.parse(value.observed_at))
+      ? new Date(value.observed_at).toISOString()
+      : null,
+  };
+}
+
+function normalizeActivityPhoto(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) throw operationError('invalid_evidence');
+  const name = requiredText(value.name, 'evidence_name', 160);
+  const mimeType = value.mime_type;
+  const dataUrl = value.data_url;
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)
+    || typeof dataUrl !== 'string'
+    || dataUrl.length > 1500000
+    || !dataUrl.startsWith(`data:${mimeType};base64,`)) {
+    throw operationError('invalid_evidence');
+  }
+  const encoded = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) throw operationError('invalid_evidence');
+  const bytes = Buffer.from(encoded, 'base64');
+  if (bytes.length === 0 || bytes.length > 1000000) throw operationError('evidence_too_large');
+  return {
+    name,
+    mimeType,
+    dataUrl,
+    sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+  };
+}
+
+async function listFarmActivityLogs({ farmId, userId }) {
+  await assertActiveFarmMember(knex, farmId, userId);
+  const logs = await knex('farm_activity_logs as logs')
+    .join('users', 'users.user_id', 'logs.actor_id')
+    .where('logs.farm_id', farmId)
+    .select(
+      'logs.sequence',
+      'logs.activity_id',
+      'logs.farm_id',
+      'logs.actor_id',
+      'logs.activity_date',
+      'logs.crop',
+      'logs.activity_type',
+      'logs.field_name',
+      'logs.details',
+      'logs.location',
+      'logs.weather',
+      'logs.photo_name',
+      'logs.photo_mime_type',
+      'logs.previous_hash',
+      'logs.content_hash',
+      'logs.recorded_at',
+      'users.name as actor_name',
+    )
+    .orderBy('logs.sequence', 'desc')
+    .limit(100);
+  return logs.map((log) => ({
+    ...log,
+    sequence: Number(log.sequence),
+    has_evidence: Boolean(log.photo_name),
+  }));
+}
+
+async function getFarmActivityEvidence({ farmId, activityId, userId }) {
+  await assertActiveFarmMember(knex, farmId, userId);
+  const evidence = await knex('farm_activity_logs')
+    .where({ farm_id: farmId, activity_id: activityId })
+    .select('photo_name', 'photo_mime_type', 'photo_data', 'photo_sha256')
+    .first();
+  if (!evidence || !evidence.photo_data) throw operationError('activity_evidence_not_found', 404);
+  return evidence;
+}
+
+async function createFarmActivityLog({
+  farmId,
+  actorId,
+  activityDate,
+  crop,
+  activityType,
+  fieldName,
+  details,
+  location,
+  weather,
+  evidence,
+}) {
+  const normalizedDate = optionalDate(activityDate, 'activity_date');
+  if (!normalizedDate) throw operationError('invalid_activity_date');
+  const normalizedCrop = requiredText(crop, 'crop', 100);
+  if (!farmActivityTypes.has(activityType)) throw operationError('invalid_activity_type');
+  const normalizedFieldName = optionalText(fieldName, 'field_name', 120);
+  if (!details || typeof details !== 'object' || Array.isArray(details)) throw operationError('invalid_activity_details');
+  const normalizedDetails = {
+    product_name: optionalText(details.product_name, 'product_name', 120),
+    dosage_rate: optionalText(details.dosage_rate, 'dosage_rate', 80),
+    water_volume_liters: optionalAmount(details.water_volume_liters, 'water_volume'),
+    equipment: optionalText(details.equipment, 'equipment', 120),
+    notes: optionalText(details.notes, 'notes', 1000),
+  };
+  const normalizedLocation = normalizeActivityLocation(location);
+  const normalizedWeather = normalizeActivityWeather(weather);
+  const normalizedEvidence = normalizeActivityPhoto(evidence);
+
+  return knex.transaction(async (transaction) => {
+    const membership = await assertActiveFarmMember(transaction, farmId, actorId);
+    if (!['owner', 'manager', 'worker'].includes(membership.role)) {
+      throw operationError('farm_activity_not_authorized', 403);
+    }
+    const farm = await transaction('farms').where({ farm_id: farmId }).forUpdate().first();
+    if (!farm) throw operationError('farm_not_found', 404);
+    const previous = await transaction('farm_activity_logs')
+      .where({ farm_id: farmId })
+      .orderBy('sequence', 'desc')
+      .select('content_hash')
+      .first();
+    const sequenceResult = await transaction.raw(
+      "SELECT nextval(pg_get_serial_sequence('farm_activity_logs', 'sequence')) AS sequence",
+    );
+    const sequence = Number(sequenceResult.rows?.[0]?.sequence);
+    if (!Number.isSafeInteger(sequence) || sequence < 1) throw operationError('activity_sequence_unavailable', 500);
+    const recordedAt = new Date();
+    const previousHash = previous?.content_hash || null;
+    const hashContent = {
+      sequence,
+      farmId,
+      actorId,
+      activityDate: normalizedDate,
+      crop: normalizedCrop,
+      activityType,
+      fieldName: normalizedFieldName,
+      details: normalizedDetails,
+      location: normalizedLocation,
+      weather: normalizedWeather,
+      evidenceSha256: normalizedEvidence?.sha256 || null,
+      recordedAt: recordedAt.toISOString(),
+      previousHash,
+    };
+    const contentHash = crypto.createHash('sha256').update(canonicalJson(hashContent)).digest('hex');
+    const [log] = await transaction('farm_activity_logs').insert({
+      sequence,
+      farm_id: farmId,
+      actor_id: actorId,
+      activity_date: normalizedDate,
+      crop: normalizedCrop,
+      activity_type: activityType,
+      field_name: normalizedFieldName,
+      details: JSON.stringify(normalizedDetails),
+      location: normalizedLocation ? JSON.stringify(normalizedLocation) : null,
+      weather: normalizedWeather ? JSON.stringify(normalizedWeather) : null,
+      photo_name: normalizedEvidence?.name || null,
+      photo_mime_type: normalizedEvidence?.mimeType || null,
+      photo_data: normalizedEvidence?.dataUrl || null,
+      photo_sha256: normalizedEvidence?.sha256 || null,
+      previous_hash: previousHash,
+      content_hash: contentHash,
+      recorded_at: recordedAt,
+    }).returning([
+      'sequence',
+      'activity_id',
+      'farm_id',
+      'actor_id',
+      'activity_date',
+      'crop',
+      'activity_type',
+      'field_name',
+      'details',
+      'location',
+      'weather',
+      'photo_name',
+      'photo_mime_type',
+      'previous_hash',
+      'content_hash',
+      'recorded_at',
+    ]);
+    await recordAudit(transaction, {
+      farmId,
+      actorId,
+      action: 'farm_activity_log_finalized',
+      targetType: 'activity_log',
+      targetId: log.activity_id,
+      metadata: { sequence, content_hash: contentHash },
+    });
+    return { ...log, sequence: Number(log.sequence), has_evidence: Boolean(log.photo_name) };
+  });
+}
+
 async function inviteFarmMember({ farmId, actorId, email, role }) {
   if (!['manager', 'worker', 'adviser'].includes(role)) throw operationError('invalid_farm_role');
   const normalizedEmail = requiredText(email, 'email', 254).toLowerCase();
@@ -429,6 +679,9 @@ async function reviewResourceRequest({ farmId, requestId, actorId, status }) {
 module.exports = {
   listFarms,
   listOperations,
+  listFarmActivityLogs,
+  getFarmActivityEvidence,
+  createFarmActivityLog,
   createFarmBudget,
   addFarmBudgetEntry,
   inviteFarmMember,
