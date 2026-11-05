@@ -3,6 +3,7 @@ const { expect } = require('chai');
 const app = require('../../api/generated/server/nodejs-express/app');
 const AuthService = require('../../api/services/AuthService');
 const FarmOperations = require('../../api/services/FarmOperations');
+const { ensureCrossRoleWorkflowSchema } = require('../../api/services/CrossRoleWorkflows');
 
 describe('shared farm operations API', () => {
   const methods = [
@@ -84,6 +85,16 @@ describe('shared farm operations API', () => {
 
   it('requires an authenticated account to list farms', async () => {
     await request(app).get('/farms').expect(401);
+  });
+
+  it('creates the base farms table before dependent workflow tables', async () => {
+    const statements = [];
+    await ensureCrossRoleWorkflowSchema({ raw: async (statement) => statements.push(statement) });
+    const farmsTableIndex = statements.findIndex((statement) => statement.includes('CREATE TABLE IF NOT EXISTS farms ('));
+    const membersTableIndex = statements.findIndex((statement) => statement.includes('CREATE TABLE IF NOT EXISTS farm_members ('));
+    expect(farmsTableIndex).to.equal(0);
+    expect(membersTableIndex).to.be.greaterThan(farmsTableIndex);
+    expect(statements[farmsTableIndex]).to.include('REFERENCES users(user_id)');
   });
 
   it('lists owned farms and invites team members with a pending status', async () => {

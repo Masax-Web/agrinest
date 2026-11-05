@@ -42,6 +42,17 @@ function requireRole(user, roles) {
 }
 
 async function ensureCrossRoleWorkflowSchema(database) {
+  await database.raw(`CREATE TABLE IF NOT EXISTS farms (
+    farm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    soil_type TEXT,
+    total_acres NUMERIC(14, 2),
+    farm_boundary JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farms_user_created_at_idx ON farms (user_id, created_at DESC)');
   await database.raw(`CREATE TABLE IF NOT EXISTS farm_members (
     membership_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,

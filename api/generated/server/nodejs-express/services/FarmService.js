@@ -8,7 +8,7 @@ async function createFarm(data) {
     total_acres: data.total_acres,
   };
   if (data.farm_boundary) {
-    insertData.farm_boundary = knex.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(data.farm_boundary)]);
+    insertData.farm_boundary = JSON.stringify(data.farm_boundary);
   }
   return knex.transaction(async (transaction) => {
     const [farm] = await transaction('farms').insert(insertData).returning(['farm_id', 'user_id', 'name', 'soil_type', 'total_acres', 'created_at']);
