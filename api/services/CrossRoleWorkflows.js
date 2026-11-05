@@ -42,6 +42,87 @@ function requireRole(user, roles) {
 }
 
 async function ensureCrossRoleWorkflowSchema(database) {
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_members (
+    membership_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('manager', 'worker', 'adviser')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'declined')),
+    invited_by UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (farm_id, user_id)
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_members_user_status_idx ON farm_members (user_id, status)');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_tasks (
+    task_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    details TEXT NOT NULL DEFAULT '',
+    assigned_to UUID REFERENCES users(user_id) ON DELETE SET NULL,
+    due_date DATE,
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'completed', 'cancelled')),
+    created_by UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_tasks_farm_status_idx ON farm_tasks (farm_id, status, due_date)');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_resource_requests (
+    request_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    details TEXT NOT NULL DEFAULT '',
+    quantity NUMERIC(14, 2),
+    estimated_cost NUMERIC(14, 2),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined', 'fulfilled')),
+    requested_by UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    reviewed_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_resource_requests_farm_status_idx ON farm_resource_requests (farm_id, status, created_at DESC)');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_operation_audit (
+    audit_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id UUID,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_operation_audit_farm_created_idx ON farm_operation_audit (farm_id, created_at DESC)');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_season_budgets (
+    budget_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    crop TEXT NOT NULL,
+    field_id TEXT NOT NULL DEFAULT '',
+    area_acres NUMERIC(14, 2),
+    expected_yield_kg NUMERIC(14, 2),
+    target_price_per_kg NUMERIC(14, 2),
+    planned_costs JSONB NOT NULL DEFAULT '[]'::jsonb,
+    start_date DATE,
+    end_date DATE,
+    created_by UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (start_date IS NULL OR end_date IS NULL OR end_date >= start_date)
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_season_budgets_farm_idx ON farm_season_budgets (farm_id, created_at DESC)');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_budget_entries (
+    entry_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    budget_id UUID NOT NULL REFERENCES farm_season_budgets(budget_id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
+    category TEXT NOT NULL,
+    amount NUMERIC(14, 2) NOT NULL CHECK (amount > 0),
+    entry_date DATE NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    created_by UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_budget_entries_budget_date_idx ON farm_budget_entries (budget_id, entry_date DESC)');
   await database.raw(`CREATE TABLE IF NOT EXISTS workforce_profiles (
     user_id UUID PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
     skills TEXT[] NOT NULL,

@@ -966,6 +966,14 @@ paths:
                 $ref: '#/components/schemas/User'
 
   /farms:
+    get:
+      summary: List farms the signed-in user owns or has been invited to
+      responses:
+        '200':
+          description: Farms and membership roles
+          content:
+            application/json:
+              schema: { type: object, properties: { farms: { type: array, items: { $ref: '#/components/schemas/Farm' } } }, required: [farms] }
     post:
       summary: Create a farm
       requestBody:
@@ -998,6 +1006,302 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Farm'
+
+  /farms/{farmId}/operations:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: List farm members, operational tasks, resource requests, and audit events
+      responses:
+        '200':
+          description: Farm operations
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '403':
+          description: Active farm membership required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/members:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Invite an existing AGRI-NEST account to a farm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+                role: { type: string, enum: [manager, worker, adviser] }
+      responses:
+        '201':
+          description: Farm invitation created
+          content:
+            application/json:
+              schema: { type: object, required: [member], properties: { member: { type: object, additionalProperties: true } } }
+        '403':
+          description: Farm owner required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '404':
+          description: Farm or account not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/members/{membershipId}:
+    parameters:
+      - in: path
+        name: membershipId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Accept or decline a farm invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, declined] }
+      responses:
+        '200':
+          description: Farm invitation response saved
+          content:
+            application/json:
+              schema: { type: object, required: [membership], properties: { membership: { type: object, additionalProperties: true } } }
+        '404':
+          description: Invitation not found for the signed-in user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/tasks:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Create and assign a farm task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                details: { type: string, maxLength: 2000 }
+                assigned_to: { type: string, format: uuid }
+                due_date: { type: string, format: date }
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema: { type: object, required: [task], properties: { task: { type: object, additionalProperties: true } } }
+        '403':
+          description: Owner or manager access required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/tasks/{taskId}:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: taskId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Update an assigned task or manage a farm task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [open, in_progress, completed, cancelled] }
+      responses:
+        '200':
+          description: Task status updated
+          content:
+            application/json:
+              schema: { type: object, required: [task], properties: { task: { type: object, additionalProperties: true } } }
+        '403':
+          description: Task update not authorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/resource-requests:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Submit a farm resource request for owner approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                details: { type: string, maxLength: 2000 }
+                quantity: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                estimated_cost: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+      responses:
+        '201':
+          description: Resource request submitted
+          content:
+            application/json:
+              schema: { type: object, required: [request], properties: { request: { type: object, additionalProperties: true } } }
+        '403':
+          description: Owner or manager access required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/resource-requests/{requestId}:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: requestId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Approve or decline a pending farm resource request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [approved, declined, fulfilled] }
+      responses:
+        '200':
+          description: Resource request status updated
+          content:
+            application/json:
+              schema: { type: object, required: [request], properties: { request: { type: object, additionalProperties: true } } }
+        '403':
+          description: Farm owner required to approve or decline
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/budgets:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Create a season budget for an authorized farm manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, crop]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 120 }
+                crop: { type: string, minLength: 1, maxLength: 80 }
+                field_id: { type: string, maxLength: 120 }
+                area_acres: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                expected_yield_kg: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                target_price_per_kg: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                planned_costs:
+                  type: array
+                  maxItems: 20
+                  items:
+                    type: object
+                    required: [category, amount]
+                    properties:
+                      category: { type: string, minLength: 1, maxLength: 60 }
+                      amount: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+      responses:
+        '201':
+          description: Season budget created
+          content:
+            application/json:
+              schema: { type: object, required: [budget], properties: { budget: { type: object, additionalProperties: true } } }
+        '403':
+          description: Owner or manager access required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /farms/{farmId}/budgets/{budgetId}/entries:
+    parameters:
+      - in: path
+        name: farmId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: budgetId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: Record actual season income or expense against a farm budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, category, amount, entry_date]
+              properties:
+                type: { type: string, enum: [income, expense] }
+                category: { type: string, minLength: 1, maxLength: 80 }
+                amount: { type: number, minimum: 0, exclusiveMinimum: true, maximum: 1000000000 }
+                entry_date: { type: string, format: date }
+                note: { type: string, maxLength: 1000 }
+      responses:
+        '201':
+          description: Actual budget entry saved
+          content:
+            application/json:
+              schema: { type: object, required: [entry], properties: { entry: { type: object, additionalProperties: true } } }
+        '403':
+          description: Owner or manager access required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
 
   /fields:
     post:
@@ -1702,6 +2006,11 @@ paths:
 
 components:
   schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
     AuthRequest:
       type: object
       required: [identifier, password]

@@ -1,0 +1,193 @@
+.finance-budget-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.finance-budget-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.finance-budget-metrics article {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #e8dfd5;
+  border-radius: 0.65rem;
+  background: #fcfbf9;
+}
+
+.finance-budget-metrics article span {
+  color: #70645d;
+  font-size: 0.67rem;
+}
+
+.finance-budget-metrics article strong {
+  color: #315d3b;
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+}
+
+.finance-budget-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.8rem;
+  color: #62574f;
+  font-size: 0.72rem;
+}
+
+.finance-budget-context strong {
+  color: #30251d;
+}
+
+.finance-budget-disclaimer {
+  margin: 0.65rem 0;
+  color: #70645d;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.finance-budget-cost-table {
+  display: grid;
+  border-top: 1px solid #eee8e2;
+}
+
+.finance-budget-cost-table > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(7rem, auto));
+  gap: 0.6rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #eee8e2;
+  color: #443930;
+  font-size: 0.72rem;
+}
+
+.finance-budget-cost-table strong {
+  color: #315d3b;
+}
+
+.finance-budget-cost-table small {
+  color: #70645d;
+  font-size: 0.68rem;
+}
+
+.finance-budget-cost-table > p {
+  margin: 0;
+  padding: 0.7rem 0;
+  color: #70645d;
+  font-size: 0.72rem;
+}
+
+.finance-budget-dialog {
+  width: min(100%, 42rem);
+  max-height: min(92dvh, 52rem);
+  overflow: auto;
+}
+
+.finance-budget-dialog form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.finance-budget-dialog form > label {
+  display: grid;
+  gap: 0.3rem;
+  color: #51463f;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.finance-budget-dialog input,
+.finance-budget-dialog select {
+  width: 100%;
+  min-height: 2.45rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #e3dcd4;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #30251d;
+  font: inherit;
+}
+
+.finance-budget-dialog input:focus,
+.finance-budget-dialog select:focus {
+  border-color: #52865d;
+  outline: 0;
+  box-shadow: 0 0 0 0.15rem rgb(82 134 93 / 14%);
+}
+
+.finance-budget-costs {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.45rem;
+  color: #51463f;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.finance-budget-costs > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.7fr);
+  gap: 0.5rem;
+}
+
+.finance-budget-costs > button {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #315d3b;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.finance-budget-dialog .finance-dialog-actions {
+  grid-column: 1 / -1;
+}
+
+.finance-budget-error {
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.45rem;
+  background: #fff2ef;
+  color: #8a3428;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 700px) {
+  .finance-budget-heading-actions {
+    justify-content: stretch;
+  }
+
+  .finance-budget-heading-actions > * {
+    flex: 1 1 100%;
+  }
+
+  .finance-budget-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .finance-budget-dialog form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .finance-budget-costs,
+  .finance-budget-dialog .finance-dialog-actions {
+    grid-column: 1;
+  }
+
+  .finance-budget-cost-table > div {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .finance-budget-cost-table > div > span {
+    grid-column: 1 / -1;
+  }
+}

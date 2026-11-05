@@ -6,6 +6,7 @@ import MarketplacePage from './MarketplacePage';
 import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
 import FinanceHub from './FinanceHub';
+import FarmOperationsWorkspace from './FarmOperationsWorkspace';
 import CrowdfundingWorkspace from './CrowdfundingWorkspace';
 import CarbonCreditsWorkspace from './CarbonCreditsWorkspace';
 import SustainabilityWorkspace from './SustainabilityWorkspace';
@@ -1494,7 +1495,7 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
 
               <section className="profile-score-preview" aria-live="polite">
                 <div className="profile-score-preview-heading">
-                  <div><strong>Profile trust score</strong><small>Updates as you complete your farmer record</small></div>
+                  <div><strong>Profile completeness</strong><small>Updates as you complete your farmer record</small></div>
                   <strong>{trust.score}<small> / 1000 · {trust.tier}</small></strong>
                 </div>
                 <div className="profile-score-factors">
@@ -1590,7 +1591,7 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
             <section className="profile-card profile-trust-card" id="profile-trust">
               <div className="profile-card-header">
                 <span className="material-symbols-outlined">workspace_premium</span>
-                <h3>Trust Score</h3>
+                <h3>Profile completeness</h3>
               </div>
 
               <div className="profile-trust-body">
@@ -1614,7 +1615,7 @@ function ProfileSettingsPage({ profile, isEditing, onEditingChange, onSave, onCo
                   ))}
                 </div>
               </div>
-              <p className="trust-score-disclaimer">Profile completeness estimate from the details provided. NIDA, phone, and bank details are not externally verified.</p>
+              <p className="trust-score-disclaimer">Profile completeness estimate from details provided, not an identity or credit assessment. NIDA, phone, and bank details are not externally verified.</p>
             </section>
 
             <aside className="profile-card profile-sidebar-card" id="profile-farm">
@@ -1760,6 +1761,7 @@ function normalizeFarmerRecords(records = {}) {
   return {
     fields: collection(records.fields),
     listings: collection(records.listings),
+    budgets: collection(records.budgets),
     income: collection(records.income),
     expenses: collection(records.expenses),
     crowdfunding: collection(records.crowdfunding).length ? collection(records.crowdfunding) : legacyCampaigns,
@@ -2023,7 +2025,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
   };
 
   const farmerNavigationViews = {
-    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Harvest Prediction': 'harvest-prediction', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
+    Dashboard: 'dashboard', 'Farm Profile': 'production', 'Digital Farm': 'fields', 'Farm Operations': 'farm-operations', 'Harvest Prediction': 'harvest-prediction', 'Kadiria Maji': 'irrigation', 'Jicho AI': 'jicho', Livestock: 'livestock', 'Spray Diary': 'spray-diary',
     'Hesabu Yangu': 'income', 'Smart Loans': 'smart-loan', 'Loan Spending': 'loan-spending', Marketplace: 'marketplace', 'Feed Procurement': 'procurement', Transport: 'transport', 'Agrishop Network': 'agrishop',
     Experts: 'experts', Groups: 'groups', 'Wanafunzi Hub': 'community-learning', 'Community Chat': 'community',
     Insurance: 'insurance', 'Payroll & Labour': 'payroll', 'Ramani — Maps': 'ramani', 'Habari — Market News': 'market-news',
@@ -2114,6 +2116,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
         { label: 'Dashboard', icon: 'dashboard', active: true },
         { label: 'Farm Profile', icon: 'eco' },
         { label: 'Digital Farm', icon: 'agriculture' },
+        { label: 'Farm Operations', icon: 'groups_2' },
         { label: 'Harvest Prediction', icon: 'event_upcoming' },
         { label: 'Kadiria Maji', icon: 'water_drop' },
         { label: 'Jicho AI', icon: 'psychology' },
@@ -2477,7 +2480,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
           <section className="stats-grid">
             {[
               { icon: '🌾', value: farmerRecords.fields.length, label: 'Active Fields', view: 'fields' },
-              { icon: '⭐', value: calculateFarmerTrust(farmerProfile).score, label: 'Trust Score', view: 'trust' },
+              { icon: '⭐', value: calculateFarmerTrust(farmerProfile).score, label: 'Profile Score', view: 'trust' },
               { icon: '🛒', value: Math.max(farmerRecords.listings.length, liveListingCount), label: 'Active Listings', view: 'listings' },
               { icon: '💰', value: `TZS ${farmerRecords.income.reduce((total, entry) => total + Number(entry.amount || 0), 0).toLocaleString('en-TZ')}`, label: 'Season Income', view: 'income' },
               { icon: '🐄', value: Number(farmerProfile.livestock || 0).toLocaleString(), label: 'Livestock Head', view: 'livestock' },
@@ -2696,6 +2699,8 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
           />
         ) : activeView === 'loan-spending' ? (
           <LoanSpendingPage userId={user?.user_id} onBack={() => setActiveView('dashboard')} />
+        ) : activeView === 'farm-operations' ? (
+          <FarmOperationsWorkspace user={user} onBack={() => setActiveView('dashboard')} />
         ) : activeView === 'income' ? (
           <FinanceHub
             profile={farmerProfile}

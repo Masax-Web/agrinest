@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { calculateFarmerTrust } from './lib/farmer-trust';
+import './FinanceBudget.css';
 
 const money = (amount) => `TZS ${Math.round(Number(amount) || 0).toLocaleString('en-TZ')}`;
 const currentDate = () => new Date().toISOString().slice(0, 10);
@@ -32,9 +33,9 @@ function monthKey(date) {
   return String(date || '').slice(0, 7);
 }
 
-function FinanceEntryDialog({ onClose, onSave }) {
+function FinanceEntryDialog({ onClose, onSave, budgets }) {
   const [type, setType] = useState('income');
-  const [draft, setDraft] = useState({ date: currentDate() });
+  const [draft, setDraft] = useState({ date: currentDate(), budgetId: '' });
 
   const save = (event) => {
     event.preventDefault();
@@ -49,6 +50,7 @@ function FinanceEntryDialog({ onClose, onSave }) {
       ...(type === 'income' ? { crop: category } : {}),
       date: draft.date || currentDate(),
       note: String(draft.note || '').trim(),
+      ...(draft.budgetId ? { budgetId: draft.budgetId } : {}),
     });
     onClose();
   };
@@ -76,6 +78,12 @@ function FinanceEntryDialog({ onClose, onSave }) {
           <label>Date
             <input required type="date" value={draft.date || currentDate()} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} />
           </label>
+          {budgets.length > 0 && <label>Season budget <span>(optional)</span>
+            <select value={draft.budgetId} onChange={(event) => setDraft((current) => ({ ...current, budgetId: event.target.value }))}>
+              <option value="">Not linked to a budget</option>
+              {budgets.map((budget) => <option key={budget.id} value={budget.id}>{budget.title} · {budget.crop}</option>)}
+            </select>
+          </label>}
           <label>Note <span>(optional)</span>
             <textarea rows="3" value={draft.note || ''} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} placeholder="Buyer, supplier, or other details" />
           </label>
@@ -89,9 +97,95 @@ function FinanceEntryDialog({ onClose, onSave }) {
   );
 }
 
+function SeasonBudgetDialog({ fields, onClose, onSave }) {
+  const [error, setError] = useState('');
+  const [draft, setDraft] = useState({
+    title: '',
+    fieldId: '',
+    crop: '',
+    areaAcres: '',
+    expectedYieldKg: '',
+    targetPricePerKg: '',
+    startDate: '',
+    endDate: '',
+    plannedCosts: [
+      { category: 'Seeds', amount: '' },
+      { category: 'Fertilizer', amount: '' },
+      { category: 'Labor', amount: '' },
+      { category: 'Transport', amount: '' },
+    ],
+  });
+
+  const submit = (event) => {
+    event.preventDefault();
+    if (draft.endDate && draft.startDate && draft.endDate < draft.startDate) {
+      setError('Season end date must be on or after the start date.');
+      return;
+    }
+    if (draft.plannedCosts.some((item) => item.amount && (!Number.isFinite(Number(item.amount)) || Number(item.amount) < 0))) {
+      setError('Enter a valid non-negative amount for each planned cost.');
+      return;
+    }
+    setError('');
+    const plannedCosts = draft.plannedCosts
+      .filter((item) => item.category.trim() && Number(item.amount) > 0)
+      .map((item) => ({ category: item.category.trim(), amount: Number(item.amount) }));
+    if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) return;
+    onSave({
+      id: createEntryId(),
+      title: draft.title.trim(),
+      fieldId: draft.fieldId,
+      crop: draft.crop.trim(),
+      areaAcres: Number(draft.areaAcres) || 0,
+      expectedYieldKg: Number(draft.expectedYieldKg) || 0,
+      targetPricePerKg: Number(draft.targetPricePerKg) || 0,
+      startDate: draft.startDate,
+      endDate: draft.endDate,
+      plannedCosts,
+      createdAt: new Date().toISOString(),
+      source: 'farmer-entered planning assumptions',
+    });
+    onClose();
+  };
+
+  return (
+    <div className="finance-dialog-backdrop" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="finance-dialog finance-budget-dialog" role="dialog" aria-modal="true" aria-labelledby="finance-budget-dialog-title">
+        <div className="finance-dialog-heading"><div><span className="finance-eyebrow">SEASON PLANNING</span><h2 id="finance-budget-dialog-title">Create a crop budget</h2></div><button type="button" className="finance-icon-button" aria-label="Close dialog" onClick={onClose}><span className="material-symbols-outlined">close</span></button></div>
+        <p className="finance-budget-disclaimer">Enter your own assumptions. Cost and revenue estimates are not local price advice or a guaranteed yield or profit.</p>
+        {error && <p className="finance-budget-error" role="alert">{error}</p>}
+        <form onSubmit={submit}>
+          <label>Budget name<input required maxLength={100} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="e.g. 2026 sunflower season" /></label>
+          <label>Crop<input required maxLength={80} value={draft.crop} onChange={(event) => setDraft((current) => ({ ...current, crop: event.target.value }))} /></label>
+          {fields.length > 0 && <label>Linked field (optional)<select value={draft.fieldId} onChange={(event) => {
+            const field = fields.find((item) => item.id === event.target.value);
+            setDraft((current) => ({ ...current, fieldId: event.target.value, crop: current.crop || field?.crop || '', areaAcres: current.areaAcres || String(field?.area || '') }));
+          }}><option value="">No field selected</option>{fields.map((field) => <option value={field.id} key={field.id}>{field.name}{field.crop ? ` · ${field.crop}` : ''}</option>)}</select></label>}
+          <label>Area (acres)<input type="number" min="0" step="any" value={draft.areaAcres} onChange={(event) => setDraft((current) => ({ ...current, areaAcres: event.target.value }))} /></label>
+          <label>Planned yield (kg)<input type="number" min="0" step="any" value={draft.expectedYieldKg} onChange={(event) => setDraft((current) => ({ ...current, expectedYieldKg: event.target.value }))} /></label>
+          <label>Target sale price (TZS/kg)<input type="number" min="0" step="any" value={draft.targetPricePerKg} onChange={(event) => setDraft((current) => ({ ...current, targetPricePerKg: event.target.value }))} /></label>
+          <label>Season start<input type="date" value={draft.startDate} onChange={(event) => setDraft((current) => ({ ...current, startDate: event.target.value }))} /></label>
+          <label>Season end<input type="date" value={draft.endDate} onChange={(event) => setDraft((current) => ({ ...current, endDate: event.target.value }))} /></label>
+          <div className="finance-budget-costs">
+            <span>Planned costs (TZS)</span>
+            {draft.plannedCosts.map((item, index) => <div key={index}><input aria-label={`Planned cost ${index + 1} category`} maxLength={60} value={item.category} onChange={(event) => setDraft((current) => ({ ...current, plannedCosts: current.plannedCosts.map((cost, costIndex) => costIndex === index ? { ...cost, category: event.target.value } : cost) }))} placeholder="Category" /><input aria-label={`Planned cost ${index + 1} amount`} type="number" min="0" step="1" value={item.amount} onChange={(event) => setDraft((current) => ({ ...current, plannedCosts: current.plannedCosts.map((cost, costIndex) => costIndex === index ? { ...cost, amount: event.target.value } : cost) }))} placeholder="Amount" /></div>)}
+            <button type="button" onClick={() => setDraft((current) => ({ ...current, plannedCosts: [...current.plannedCosts, { category: '', amount: '' }] }))}>Add cost category</button>
+          </div>
+          <div className="finance-dialog-actions"><button type="button" className="finance-secondary-button" onClick={onClose}>Cancel</button><button type="submit" className="finance-primary-button">Save season budget</button></div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
 export default function FinanceHub({ profile, records, onRecordsChange, onNavigate, search = '', syncStatus = 'loading' }) {
   const [showEntry, setShowEntry] = useState(false);
+  const [showBudget, setShowBudget] = useState(false);
   const [period, setPeriod] = useState('year');
+  const budgets = records.budgets || [];
+  const [selectedBudgetId, setSelectedBudgetId] = useState(budgets[0]?.id || '');
   const now = new Date();
   const year = now.getFullYear();
   const expenses = records.expenses || [];
@@ -131,6 +225,16 @@ export default function FinanceHub({ profile, records, onRecordsChange, onNaviga
     return categories;
   }, {})).sort((left, right) => right[1] - left[1]).slice(0, 4);
   const loanRequests = records.requests.filter((record) => record.module === 'loans' || record.module === 'smart-loan');
+  const selectedBudget = budgets.find((budget) => budget.id === selectedBudgetId) || budgets[0];
+  const budgetEntries = selectedBudget
+    ? allEntries.filter((entry) => entry.budgetId === selectedBudget.id
+      && (!selectedBudget.startDate || entry.date >= selectedBudget.startDate)
+      && (!selectedBudget.endDate || entry.date <= selectedBudget.endDate))
+    : [];
+  const actualBudgetIncome = budgetEntries.filter((entry) => entry.type === 'income').reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const actualBudgetExpenses = budgetEntries.filter((entry) => entry.type === 'expense').reduce((total, entry) => total + Number(entry.amount || 0), 0);
+  const plannedBudgetCosts = (selectedBudget?.plannedCosts || []).reduce((total, item) => total + Number(item.amount || 0), 0);
+  const estimatedRevenue = Number(selectedBudget?.expectedYieldKg || 0) * Number(selectedBudget?.targetPricePerKg || 0);
   const insuranceRequests = records.requests.filter((record) => record.module === 'insurance');
   const syncCopy = {
     loading: 'Checking record sync',
@@ -147,7 +251,11 @@ export default function FinanceHub({ profile, records, onRecordsChange, onNaviga
 
   return (
     <main className="finance-hub" aria-label="Hesabu Yangu finance dashboard">
-      {showEntry && <FinanceEntryDialog onClose={() => setShowEntry(false)} onSave={addEntry} />}
+      {showEntry && <FinanceEntryDialog budgets={budgets} onClose={() => setShowEntry(false)} onSave={addEntry} />}
+      {showBudget && <SeasonBudgetDialog fields={records.fields} onClose={() => setShowBudget(false)} onSave={(budget) => {
+        onRecordsChange('budgets', [...budgets, budget]);
+        setSelectedBudgetId(budget.id);
+      }} />}
       <div className="finance-page-heading">
         <div><span className="finance-eyebrow">FINANCE &amp; TRUST</span><h1>Hesabu Yangu</h1><p>Your farm income, expenses, and financial records in one place.</p></div>
         <div className="finance-heading-actions">
@@ -172,11 +280,41 @@ export default function FinanceHub({ profile, records, onRecordsChange, onNaviga
         </article>
         <article className="finance-card finance-trust-card">
           <span className="finance-trust-watermark material-symbols-outlined">verified_user</span>
-          <div className="finance-kpi-label"><span className="material-symbols-outlined">verified_user</span>Farmer trust score</div>
+          <div className="finance-kpi-label"><span className="material-symbols-outlined">verified_user</span>Profile completeness</div>
           <strong>{trustScore}<small>/ 1,000</small></strong>
           <div className="finance-trust-track"><span style={{ width: `${Math.min(100, Math.max(0, Number(trustScore) / 10 || 0))}%` }} /></div>
           <small>Based on your saved profile details</small>
         </article>
+      </section>
+
+      <section className="finance-card finance-season-budget">
+        <div className="finance-spending-heading">
+          <div><span className="finance-eyebrow">HESABU YA MSIMU</span><h2>Season budget &amp; actuals</h2><p>Plan costs and record season-linked sales and expenses to compare your own assumptions with actual entries.</p></div>
+          <div className="finance-budget-heading-actions">
+            {budgets.length > 0 && <label className="finance-period-select"><span className="sr-only">Select season budget</span><select value={selectedBudget?.id || ''} onChange={(event) => setSelectedBudgetId(event.target.value)}>{budgets.map((budget) => <option value={budget.id} key={budget.id}>{budget.title} · {budget.crop}</option>)}</select></label>}
+            <button type="button" className="finance-primary-button" onClick={() => setShowBudget(true)}><span className="material-symbols-outlined">add</span>New season budget</button>
+          </div>
+        </div>
+        {selectedBudget ? (
+          <>
+            <div className="finance-budget-metrics">
+              <article><span>Planned costs</span><strong>{money(plannedBudgetCosts)}</strong></article>
+              <article><span>Revenue estimate</span><strong>{money(estimatedRevenue)}</strong></article>
+              <article><span>Recorded actual costs</span><strong>{money(actualBudgetExpenses)}</strong></article>
+              <article><span>Recorded actual net</span><strong>{money(actualBudgetIncome - actualBudgetExpenses)}</strong></article>
+            </div>
+            <div className="finance-budget-context"><strong>{selectedBudget.title} · {selectedBudget.crop}</strong>{selectedBudget.areaAcres > 0 && <span>{Number(selectedBudget.areaAcres).toLocaleString()} acres</span>}{selectedBudget.startDate && <span>{selectedBudget.startDate}{selectedBudget.endDate ? ` – ${selectedBudget.endDate}` : ''}</span>}</div>
+            <p className="finance-budget-disclaimer">Estimates use only your entered yield, price and cost assumptions. Revenue and net values are planning scenarios, not forecasts or guarantees. Actuals include only finance records explicitly linked to this budget and within its dates.</p>
+            <div className="finance-budget-cost-table">
+              {(selectedBudget.plannedCosts || []).length ? (selectedBudget.plannedCosts || []).map((item, index) => {
+                const actual = budgetEntries.filter((entry) => entry.type === 'expense' && entry.category.toLowerCase() === item.category.toLowerCase())
+                  .reduce((total, entry) => total + Number(entry.amount || 0), 0);
+                return <div key={`${item.category}-${index}`}><span>{item.category}</span><strong>Plan {money(item.amount)}</strong><small>Actual {money(actual)}</small></div>;
+              }) : <p>No planned cost categories entered for this budget.</p>}
+            </div>
+            <button type="button" className="finance-outline-button" onClick={() => setShowEntry(true)}>Record linked income or expense <span className="material-symbols-outlined">arrow_forward</span></button>
+          </>
+        ) : <div className="finance-empty-inline"><span className="material-symbols-outlined">event_note</span><p>Create a season budget using your own yield, target price and planned costs. No external benchmarks are assumed.</p></div>}
       </section>
 
       <section className="finance-primary-grid">

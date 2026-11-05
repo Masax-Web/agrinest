@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { calculateFarmerTrust } from './lib/farmer-trust';
 import AgrishopNetwork from './AgrishopNetwork';
 import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import ExportReadinessWorkspace from './ExportReadinessWorkspace';
@@ -19,10 +18,11 @@ import RamaniMapPage from './RamaniMapPage';
 import SpaceRentalWorkspace from './SpaceRentalWorkspace';
 import SprayDiaryWorkspace from './SprayDiaryWorkspace';
 import HarvestPredictionWorkspace from './HarvestPredictionWorkspace';
+import TrustVerificationWorkspace from './TrustVerificationWorkspace';
 
 const workspaceDetails = {
   fields: { title: 'Digital Farm', icon: 'agriculture', description: 'Register fields and keep their crop and area records together.', recordType: 'fields', submitLabel: 'Add field', fields: [['name', 'Field name', 'text'], ['crop', 'Crop', 'text'], ['area', 'Area (acres)', 'number']] },
-  trust: { title: 'Trust Score', icon: 'verified_user', description: 'Your profile completeness score and the records that support it.', recordType: 'activities' },
+  trust: { title: 'Trust & Verification', icon: 'verified_user', description: 'Review your profile completeness, farmer-entered evidence, and verification limits.', recordType: 'activities' },
   listings: { title: 'Active Listings', icon: 'storefront', description: 'Manage produce listings and open the marketplace to publish or update an offer.', recordType: 'listings' },
   income: { title: 'Season Income', icon: 'payments', description: 'Keep a local ledger of crop sales and season income.', recordType: 'income', submitLabel: 'Record income', fields: [['crop', 'Produce', 'text'], ['amount', 'Amount (TZS)', 'number'], ['date', 'Sale date', 'date'], ['note', 'Buyer or note', 'text']] },
   livestock: { title: 'Livestock Management', icon: 'pets', description: 'Register animals, track milk production, and keep health and local price records together.', recordType: 'livestock' },
@@ -441,7 +441,16 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
   const details = workspaceDetails[page] || { title: page.replaceAll('-', ' '), icon: 'dashboard', description: 'Record and manage this part of your farm account.', recordType: 'requests', submitLabel: 'Save record', fields: [['title', 'Name', 'text'], ['details', 'Details', 'textarea']] };
   const [draft, setDraft] = useState({});
   const [notice, setNotice] = useState('');
-  const trust = calculateFarmerTrust(profile);
+  if (page === 'trust') {
+    return <TrustVerificationWorkspace
+      profile={profile}
+      records={records}
+      syncStatus={farmRecordsSyncStatus}
+      weatherStatus={weatherStatus}
+      onNavigate={onNavigate}
+      onBack={onBack}
+    />;
+  }
   if (page === 'harvest-prediction') {
     return <HarvestPredictionWorkspace fields={records.fields} activities={records.activities} onNavigate={onNavigate} />;
   }
@@ -496,7 +505,7 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
     />;
   }
 
-  const recordsForPage = page === 'trust' || page === 'analytics' || page === 'farm-erp'
+  const recordsForPage = page === 'analytics' || page === 'farm-erp'
     ? records.activities
     : page === 'listings'
       ? records.listings
@@ -597,13 +606,7 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
 
       {notice && <div className="farmer-workspace-notice" role="status">{notice}<button type="button" aria-label="Dismiss message" onClick={() => setNotice('')}><span className="material-symbols-outlined">close</span></button></div>}
 
-      {page === 'trust' ? (
-        <section className="farmer-workspace-summary">
-          <div className="farmer-trust-score"><span>PROFILE SCORE</span><strong>{trust.score}<small>/ 1000</small></strong><p>{trust.tier}</p></div>
-          <div className="farmer-trust-categories">{trust.categories.map((category) => <div key={category.key}><span>{category.label}</span><strong>{category.percent}%</strong><i><b style={{ width: `${category.percent}%` }} /></i></div>)}</div>
-          <p className="farmer-workspace-note">The score is calculated from your saved profile. Logged activities are shown separately and are not independently verified.</p>
-        </section>
-      ) : page === 'analytics' || page === 'farm-erp' ? (
+      {page === 'analytics' || page === 'farm-erp' ? (
         <section className="farmer-workspace-metrics">
           <div><span>Registered fields</span><strong>{records.fields.length}</strong></div>
           <div><span>Active listings</span><strong>{records.listings.length}</strong></div>

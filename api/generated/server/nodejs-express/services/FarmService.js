@@ -10,8 +10,18 @@ async function createFarm(data) {
   if (data.farm_boundary) {
     insertData.farm_boundary = knex.raw('ST_GeomFromGeoJSON(?)', [JSON.stringify(data.farm_boundary)]);
   }
-  const result = await knex('farms').insert(insertData).returning(['farm_id', 'user_id', 'name']);
-  return Array.isArray(result) ? result[0] : result;
+  return knex.transaction(async (transaction) => {
+    const [farm] = await transaction('farms').insert(insertData).returning(['farm_id', 'user_id', 'name', 'soil_type', 'total_acres', 'created_at']);
+    await transaction('farm_operation_audit').insert({
+      farm_id: farm.farm_id,
+      actor_id: data.user_id,
+      action: 'farm_created',
+      target_type: 'farm',
+      target_id: farm.farm_id,
+      metadata: {},
+    });
+    return farm;
+  });
 }
 
 async function getFarmById(farmId, userId) {

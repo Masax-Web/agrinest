@@ -1,0 +1,561 @@
+.farm-operations-workspace {
+  display: grid;
+  width: min(100%, 78rem);
+  gap: 1rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.2vw, 2rem);
+  color: #281e17;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.farm-operations-workspace,
+.farm-operations-workspace * {
+  box-sizing: border-box;
+}
+
+.farm-operations-workspace button,
+.farm-operations-workspace input,
+.farm-operations-workspace select,
+.farm-operations-workspace textarea {
+  font: inherit;
+}
+
+.farm-operations-header {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.farm-operations-back,
+.farm-operations-section-heading > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #62574f;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.farm-operations-back .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.farm-operations-eyebrow,
+.farm-operations-section-heading span {
+  color: #8d5c4a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.farm-operations-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.farm-operations-title-row h1 {
+  margin: 0.2rem 0 0.35rem;
+  color: #26170d;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: clamp(1.55rem, 2.5vw, 2rem);
+}
+
+.farm-operations-title-row p,
+.farm-operations-card > div > p,
+.farm-operations-muted {
+  max-width: 52rem;
+  margin: 0;
+  color: #70645d;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.farm-operations-selector {
+  display: grid;
+  flex: 0 1 19rem;
+  gap: 0.3rem;
+  color: #62574f;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.farm-operations-selector select,
+.farm-operations-field input,
+.farm-operations-field select,
+.farm-operations-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.55rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e3dcd4;
+  border-radius: 0.55rem;
+  outline: 0;
+  background: #fff;
+  color: #30251d;
+  font-size: 0.75rem;
+}
+
+.farm-operations-field textarea {
+  resize: vertical;
+}
+
+.farm-operations-selector select:focus,
+.farm-operations-field input:focus,
+.farm-operations-field select:focus,
+.farm-operations-field textarea:focus {
+  border-color: #52865d;
+  box-shadow: 0 0 0 0.16rem rgb(82 134 93 / 14%);
+}
+
+.farm-operations-boundary,
+.farm-operations-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e7e2d4;
+  border-radius: 0.65rem;
+  background: #f8f6ef;
+  color: #64593c;
+}
+
+.farm-operations-boundary .material-symbols-outlined {
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+}
+
+.farm-operations-boundary p,
+.farm-operations-message {
+  margin: 0;
+  font-size: 0.71rem;
+  line-height: 1.5;
+}
+
+.farm-operations-message {
+  display: block;
+  border-color: #cfe2d1;
+  background: #f0f7f0;
+  color: #315d3b;
+}
+
+.farm-operations-message.is-error {
+  border-color: #eccbc3;
+  background: #fff2ef;
+  color: #8a3428;
+}
+
+.farm-operations-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.farm-operations-metrics article {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid #e8dfd5;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.farm-operations-metrics article > span {
+  color: #70645d;
+  font-size: 0.67rem;
+}
+
+.farm-operations-metrics article > strong {
+  color: #315d3b;
+  font-size: 1.2rem;
+}
+
+.farm-operations-metrics article > strong.farm-operations-role {
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.farm-operations-card {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: clamp(0.9rem, 2vw, 1.25rem);
+  border: 1px solid #e8dfd5;
+  border-radius: 0.85rem;
+  background: #fff;
+}
+
+.farm-operations-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.farm-operations-section-heading h2,
+.farm-operations-create-card h2,
+.farm-operations-invite-card h2 {
+  margin: 0.2rem 0 0;
+  color: #30251d;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1.05rem;
+}
+
+.farm-operations-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.farm-operations-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  color: #62574f;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.farm-operations-form > button,
+.farm-operations-create-card form > button,
+.farm-operations-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 2.45rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid #315d3b;
+  border-radius: 0.55rem;
+  background: #315d3b;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.farm-operations-workspace button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.farm-member-form {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) auto;
+}
+
+.farm-operations-create-card,
+.farm-operations-invite-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.farm-operations-create-card > .material-symbols-outlined,
+.farm-operations-invite-card > .material-symbols-outlined {
+  color: #52865d;
+  font-size: 1.7rem;
+}
+
+.farm-operations-create-card form {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.farm-operations-invite-card > div:nth-child(2) {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.farm-operations-invite-card > .farm-operations-actions {
+  grid-column: 2;
+}
+
+.farm-operations-list {
+  display: grid;
+}
+
+.farm-operations-list > article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid #f0ece7;
+}
+
+.farm-operations-item-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.farm-operations-item-copy > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.farm-operations-item-copy h3 {
+  margin: 0;
+  color: #34281f;
+  font-size: 0.82rem;
+}
+
+.farm-operations-item-copy p {
+  margin: 0;
+  color: #70645d;
+  font-size: 0.71rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.farm-operations-item-copy small,
+.farm-member-list small {
+  color: #81766d;
+  font-size: 0.66rem;
+}
+
+.farm-operations-status {
+  padding: 0.2rem 0.45rem;
+  border-radius: 1rem;
+  background: #f2efe9;
+  color: #66564d;
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.farm-operations-status.status-completed,
+.farm-operations-status.status-approved {
+  background: #edf5ee;
+  color: #315d3b;
+}
+
+.farm-operations-status.status-pending,
+.farm-operations-status.status-in_progress {
+  background: #fff4df;
+  color: #805711;
+}
+
+.farm-operations-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.farm-operations-actions button {
+  min-height: 2.1rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.66rem;
+}
+
+.farm-operations-actions button:first-child:not(:last-child) {
+  border-color: #ded5cb;
+  background: #fff;
+  color: #5e5147;
+}
+
+.farm-member-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.farm-member-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  background: #f8f6f3;
+  color: #443930;
+  font-size: 0.7rem;
+}
+
+.farm-member-list > div span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.farm-member-list > div small {
+  flex: 0 0 auto;
+  text-transform: capitalize;
+}
+
+.farm-audit-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.farm-audit-list p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.55rem 0;
+  border-top: 1px solid #f0ece7;
+  color: #5f544c;
+  font-size: 0.7rem;
+}
+
+.farm-audit-list time {
+  margin-left: auto;
+  color: #81766d;
+  font-size: 0.65rem;
+}
+
+.farm-operations-empty {
+  margin: 0;
+  padding: 0.5rem 0;
+  color: #81766d;
+  font-size: 0.74rem;
+}
+
+.farm-budget-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.farm-budget-cost-editor {
+  display: grid;
+  grid-column: span 2;
+  gap: 0.45rem;
+  min-width: 0;
+  color: #62574f;
+  font-size: 0.72rem;
+}
+
+.farm-budget-cost-editor > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.6fr);
+  gap: 0.5rem;
+}
+
+.farm-budget-cost-editor input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.45rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #e3dcd4;
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #30251d;
+  font-size: 0.75rem;
+}
+
+.farm-budget-cost-editor > button {
+  width: fit-content;
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: #315d3b;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.farm-budget-cost-editor > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.farm-budget-entry-form-wrap {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #eee8e2;
+}
+
+.farm-budget-entry-form-wrap h3 {
+  margin: 0;
+  color: #30251d;
+  font-size: 0.85rem;
+}
+
+.farm-budget-entry-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.farm-budget-list > article {
+  border-left: 3px solid #8da981;
+}
+
+.farm-budget-list .farm-operations-item-copy > div {
+  flex-wrap: wrap;
+}
+
+.farm-budget-list .farm-operations-item-copy > small {
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .farm-operations-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .farm-operations-selector {
+    flex-basis: auto;
+  }
+
+  .farm-operations-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .farm-operations-form,
+  .farm-budget-form,
+  .farm-budget-entry-form,
+  .farm-member-form,
+  .farm-operations-create-card form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .farm-budget-cost-editor {
+    grid-column: auto;
+  }
+
+  .farm-budget-cost-editor > div {
+    grid-template-columns: minmax(0, 1fr) minmax(6rem, 0.65fr);
+  }
+
+  .farm-operations-create-card form {
+    grid-column: 1 / -1;
+  }
+
+  .farm-operations-form > button,
+  .farm-operations-create-card form > button {
+    width: 100%;
+  }
+
+  .farm-operations-list > article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .farm-operations-actions {
+    width: 100%;
+  }
+
+  .farm-operations-actions button {
+    flex: 1 1 auto;
+  }
+
+  .farm-member-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .farm-audit-list time {
+    width: 100%;
+    margin-left: 0;
+  }
+}

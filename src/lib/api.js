@@ -194,6 +194,66 @@ export const api = {
     return apiRequest('/farms');
   },
 
+  async getFarmOperations(farmId) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/operations`);
+  },
+
+  async createFarmBudget(farmId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/budgets`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async createFarmBudgetEntry(farmId, budgetId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/budgets/${encodeURIComponent(budgetId)}/entries`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async inviteFarmMember(farmId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/members`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async respondToFarmInvitation(membershipId, status) {
+    return apiRequest(`/farms/members/${encodeURIComponent(membershipId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async createFarmTask(farmId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateFarmTask(farmId, taskId, status) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/tasks/${encodeURIComponent(taskId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async createFarmResourceRequest(farmId, data) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/resource-requests`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateFarmResourceRequest(farmId, requestId, status) {
+    return apiRequest(`/farms/${encodeURIComponent(farmId)}/resource-requests/${encodeURIComponent(requestId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
   async createField(data) {
     return apiRequest('/fields', { method: 'POST', body: JSON.stringify(data) });
   },
