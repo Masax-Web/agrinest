@@ -33,6 +33,15 @@ async function apiRequest(path, options = {}) {
 }
 
 export const api = {
+  async getAgriKnowledge() {
+    return apiRequest('/knowledge');
+  },
+
+  async getAgriKnowledgeImages(type, id) {
+    const query = new URLSearchParams({ type, id });
+    return apiRequest(`/knowledge/images?${query}`);
+  },
+
   async registerUser(data) {
     return apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(data) });
   },
@@ -192,6 +201,21 @@ export const api = {
 
   async listFarms() {
     return apiRequest('/farms');
+  },
+
+  async listFarmLocationAlerts() {
+    return apiRequest('/farms/location-alerts');
+  },
+
+  async getFarmLocationReviews() {
+    return apiRequest('/farms/location-reviews');
+  },
+
+  async resolveFarmLocationReview(reviewId, status) {
+    return apiRequest(`/farms/location-reviews/${encodeURIComponent(reviewId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
   },
 
   async getFarmOperations(farmId) {

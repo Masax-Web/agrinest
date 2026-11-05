@@ -53,6 +53,24 @@ async function ensureCrossRoleWorkflowSchema(database) {
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`);
   await database.raw('CREATE INDEX IF NOT EXISTS farms_user_created_at_idx ON farms (user_id, created_at DESC)');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_latitude DOUBLE PRECISION');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_longitude DOUBLE PRECISION');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_accuracy_m DOUBLE PRECISION');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_captured_at TIMESTAMPTZ');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_evidence JSONB');
+  await database.raw('ALTER TABLE farms ADD COLUMN IF NOT EXISTS location_review_status TEXT NOT NULL DEFAULT \'clear\'');
+  await database.raw(`CREATE TABLE IF NOT EXISTS farm_location_reviews (
+    review_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    new_farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    nearby_farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,
+    distance_m DOUBLE PRECISION NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed')),
+    reviewed_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (new_farm_id, nearby_farm_id)
+  )`);
+  await database.raw('CREATE INDEX IF NOT EXISTS farm_location_reviews_status_created_idx ON farm_location_reviews (status, created_at DESC)');
   await database.raw(`CREATE TABLE IF NOT EXISTS farm_members (
     membership_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     farm_id UUID NOT NULL REFERENCES farms(farm_id) ON DELETE CASCADE,

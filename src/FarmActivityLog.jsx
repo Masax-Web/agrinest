@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
 import { api } from './lib/api';
-import { fetchWeatherData } from './lib/weather';
 import 'leaflet/dist/leaflet.css';
 import './FarmActivityLog.css';
 
@@ -51,6 +50,7 @@ function compressImage(file) {
             name: file.name.slice(0, 150) || 'field-evidence.jpg',
             mime_type: 'image/jpeg',
             data_url: reader.result,
+            captured_at: new Date().toISOString(),
           });
           reader.onerror = () => reject(new Error('The photo could not be read.'));
           reader.readAsDataURL(blob);
@@ -100,7 +100,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
   const [notes, setNotes] = useState('');
   const [evidence, setEvidence] = useState(null);
   const [gps, setGps] = useState(null);
-  const [weather, setWeather] = useState(null);
   const [gpsBusy, setGpsBusy] = useState(false);
   const [evidenceBusy, setEvidenceBusy] = useState(false);
   const [expandedEvidence, setExpandedEvidence] = useState('');
@@ -175,7 +174,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
           captured_at: new Date(position.timestamp).toISOString(),
         };
         setGps(captured);
-        setWeather(null);
         setGpsBusy(false);
       },
       (locationError) => {
@@ -186,27 +184,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
-  };
-
-  const captureWeather = async () => {
-    if (!gps) {
-      setError('Capture a location first to request weather for that spot.');
-      return;
-    }
-    setError('');
-    setNotice('');
-    try {
-      const snapshot = await fetchWeatherData({
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-        location: 'Device coordinates',
-        source: 'Open-Meteo',
-      });
-      setWeather(snapshot);
-      setNotice('Weather snapshot added from Open-Meteo for the captured coordinates.');
-    } catch (requestError) {
-      setError(requestError.message || 'Could not retrieve weather for the captured location.');
-    }
   };
 
   const selectEvidence = async (event) => {
@@ -253,6 +230,14 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
       setError('Enter the crop and activity date before finalizing.');
       return;
     }
+    if (!gps || gps.accuracy_m > 50 || Math.abs(Date.now() - Date.parse(gps.captured_at)) > 15 * 60 * 1000) {
+      setError('Capture a fresh GPS location with accuracy within 50 m before finalizing.');
+      return;
+    }
+    if (!evidence) {
+      setError('Attach a field photo before finalizing this activity.');
+      return;
+    }
     setSaving(true);
     setError('');
     setNotice('');
@@ -270,17 +255,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
           notes,
         },
         ...(gps ? { location: gps } : {}),
-        ...(weather ? {
-          weather: {
-            temperature_c: weather.current.temperature,
-            humidity_percent: weather.current.humidity,
-            wind_kmh: Number.parseFloat(weather.current.wind),
-            conditions: weather.current.conditions,
-            source: 'Open-Meteo',
-            location: weather.location,
-            observed_at: weather.updatedAt,
-          },
-        } : {}),
         ...(evidence ? { evidence } : {}),
       });
       setLogs((current) => [response.log, ...current]);
@@ -292,7 +266,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
       setNotes('');
       setEvidence(null);
       setGps(null);
-      setWeather(null);
       setActivityDate(localDate());
     } catch (requestError) {
       setError(requestError.message || 'The activity could not be finalized.');
@@ -305,18 +278,19 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
     <main className="farm-activity">
       <header className="farm-activity-header">
         <button type="button" className="farm-activity-back" onClick={onBack}>
-          <span className="material-symbols-outlined">arrow_back</span>Back to dashboard
+          <span className="material-symbols-outlined">arrow_back</span>Digital Farm
         </button>
         <div className="farm-activity-heading-row">
           <div>
             <p className="farm-activity-eyebrow">FARM OPERATIONS · FIELD RECORDS</p>
             <h1>Precision Farm Activity Log</h1>
-            <p>Capture work as it happens, attach field evidence, and keep a traceable farm history.</p>
+            <p>Capture current GPS and a field photo to keep a traceable farm history.</p>
+            <small>Farmer ID: {user?.user_id || 'Unavailable'} · Farm ID: {farmId || 'Select a farm'}</small>
           </div>
           {activeFarms.length > 0 && (
             <label className="farm-activity-selector">Farm
               <select value={farmId} onChange={(event) => setFarmId(event.target.value)}>
-                {activeFarms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.role}</option>)}
+              {activeFarms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · Farm ID {farm.farm_id} · {farm.role}</option>)}
               </select>
             </label>
           )}
@@ -325,7 +299,7 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
 
       <div className="farm-activity-provenance" role="note">
         <span className="material-symbols-outlined">verified_user</span>
-        <div><strong>Farmer-signed record · tamper-evident history</strong><span>Records are linked by a hash chain. This is not an official certification or an independent verification.</span></div>
+        <div><strong>Farmer-signed record · tamper-evident history</strong><span>Records are linked by a hash chain. GPS and photo are device-reported evidence, not independent verification.</span></div>
       </div>
 
       {error && <div className="farm-activity-message is-error" role="alert">{error}</div>}
@@ -354,20 +328,19 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
             </section>
 
             <section className="farm-activity-card">
-              <div className="farm-activity-card-heading"><span className="farm-activity-step">02</span><div><h2>Field evidence</h2><p>Attach an optional photo from your device.</p></div></div>
+              <div className="farm-activity-card-heading"><span className="farm-activity-step">02</span><div><h2>Field evidence</h2><p>A field photo is required to finalize this record.</p></div></div>
               <div className={`farm-activity-evidence ${evidence ? 'has-image' : ''}`}>
                 {evidence ? <img src={evidence.data_url} alt="Selected field evidence preview" /> : <span className="material-symbols-outlined">add_a_photo</span>}
-                <div><strong>{evidence ? evidence.name : evidenceBusy ? 'Preparing image…' : 'Add a field photo'}</strong><span>{evidence ? 'Compressed for upload and stored with this record.' : 'Photos are optional. No identity or field validation is performed.'}</span></div>
+                <div><strong>{evidence ? evidence.name : evidenceBusy ? 'Preparing image…' : 'Add a field photo'}</strong><span>{evidence ? 'Stored with the GPS-stamped record.' : 'Required to finalize; device-reported evidence is not independently verified.'}</span></div>
                 <label className="farm-activity-button secondary">{evidence ? 'Replace photo' : 'Choose photo'}<input type="file" accept="image/*" capture="environment" onChange={selectEvidence} disabled={evidenceBusy} /></label>
                 {evidence && <button className="farm-activity-remove" type="button" onClick={() => setEvidence(null)} aria-label="Remove photo">×</button>}
               </div>
             </section>
 
             <section className="farm-activity-card">
-              <div className="farm-activity-card-heading"><span className="farm-activity-step">03</span><div><h2>Location &amp; weather</h2><p>Optional context captured only when you request it.</p></div></div>
+              <div className="farm-activity-card-heading"><span className="farm-activity-step">03</span><div><h2>Activity location</h2><p>Current location is required when you finalize this entry.</p></div></div>
               <div className="farm-activity-context-actions">
-                <button className="farm-activity-button secondary" type="button" onClick={captureGps} disabled={gpsBusy}><span className="material-symbols-outlined">my_location</span>{gpsBusy ? 'Capturing…' : gps ? 'Refresh device location' : 'Capture device location'}</button>
-                {gps && <button className="farm-activity-button secondary" type="button" onClick={captureWeather}><span className="material-symbols-outlined">cloud</span>{weather ? 'Refresh weather' : 'Add weather snapshot'}</button>}
+                <button className="farm-activity-button secondary" type="button" onClick={captureGps} disabled={gpsBusy}><span className="material-symbols-outlined">my_location</span>{gpsBusy ? 'Capturing…' : gps ? `GPS captured · ±${Math.round(gps.accuracy_m)} m` : 'Grant location & capture GPS'}</button>
               </div>
               {gps && <div className="farm-activity-location">
                 <div className="farm-activity-map"><MapContainer center={[gps.latitude, gps.longitude]} zoom={15} scrollWheelZoom={false}>
@@ -376,7 +349,6 @@ export default function FarmActivityLog({ user, profile, fields = [], onBack, on
                 </MapContainer></div>
                 <div><strong>Device-reported coordinates</strong><span>{gps.latitude.toFixed(5)}, {gps.longitude.toFixed(5)}</span><span>Reported accuracy ±{Math.round(gps.accuracy_m)} m · {new Date(gps.captured_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span><small>Coordinates are reported by your device and have not been independently verified.</small></div>
               </div>}
-              {weather && <div className="farm-activity-weather"><span className="material-symbols-outlined">partly_cloudy_day</span><div><strong>{weather.current.temperature}°C · {weather.current.conditions}</strong><span>Humidity {weather.current.humidity}% · wind {weather.current.wind}</span><small>Open-Meteo · {weather.location} · {new Date(weather.updatedAt).toLocaleString()}</small></div></div>}
             </section>
 
             <section className="farm-activity-card">

@@ -102,6 +102,12 @@ async function listFarms(userId) {
       'farms.name',
       'farms.soil_type',
       'farms.total_acres',
+      'farms.location_latitude',
+      'farms.location_longitude',
+      'farms.location_accuracy_m',
+      'farms.location_captured_at',
+      'farms.location_review_status',
+      knex.raw('(farms.location_evidence IS NOT NULL) AS has_location_evidence'),
       'farms.created_at',
       'farm_members.membership_id',
       'farm_members.role as member_role',
@@ -342,16 +348,20 @@ function normalizeActivityWeather(value) {
   };
 }
 
-function normalizeActivityPhoto(value) {
+function normalizeActivityPhoto(value, location) {
   if (value === undefined || value === null) return null;
   if (typeof value !== 'object' || Array.isArray(value)) throw operationError('invalid_evidence');
   const name = requiredText(value.name, 'evidence_name', 160);
   const mimeType = value.mime_type;
   const dataUrl = value.data_url;
+  const capturedAt = Date.parse(value.captured_at);
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)
     || typeof dataUrl !== 'string'
     || dataUrl.length > 1500000
-    || !dataUrl.startsWith(`data:${mimeType};base64,`)) {
+    || !dataUrl.startsWith(`data:${mimeType};base64,`)
+    || !Number.isFinite(capturedAt)
+    || !location?.captured_at
+    || Math.abs(capturedAt - Date.parse(location.captured_at)) > 15 * 60 * 1000) {
     throw operationError('invalid_evidence');
   }
   const encoded = dataUrl.slice(dataUrl.indexOf(',') + 1);
@@ -362,6 +372,7 @@ function normalizeActivityPhoto(value) {
     name,
     mimeType,
     dataUrl,
+    capturedAt: new Date(capturedAt).toISOString(),
     sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
   };
 }
@@ -436,7 +447,15 @@ async function createFarmActivityLog({
   };
   const normalizedLocation = normalizeActivityLocation(location);
   const normalizedWeather = normalizeActivityWeather(weather);
-  const normalizedEvidence = normalizeActivityPhoto(evidence);
+  const normalizedEvidence = normalizeActivityPhoto(evidence, normalizedLocation);
+  if (!normalizedLocation || normalizedLocation.accuracy_m === null || normalizedLocation.accuracy_m > 50) {
+    throw operationError('activity_location_required');
+  }
+  if (!normalizedLocation.captured_at
+    || Math.abs(Date.now() - Date.parse(normalizedLocation.captured_at)) > 15 * 60 * 1000) {
+    throw operationError('activity_location_stamp_expired');
+  }
+  if (!normalizedEvidence) throw operationError('activity_evidence_required');
 
   return knex.transaction(async (transaction) => {
     const membership = await assertActiveFarmMember(transaction, farmId, actorId);

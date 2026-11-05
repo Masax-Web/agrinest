@@ -989,6 +989,75 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Farm'
+        '400':
+          description: A current, accurate GPS stamp and location photo are required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /farms/location-alerts:
+    get:
+      summary: List proximity review alerts involving the authenticated farmer's farms
+      responses:
+        '200':
+          description: Farm and farmer IDs for review alerts
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /farms/location-reviews:
+    get:
+      summary: List farm proximity reviews for administrators
+      responses:
+        '200':
+          description: Proximity review queue
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: Administrator access is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /farms/location-reviews/{reviewId}:
+    patch:
+      summary: Resolve a farm proximity review
+      parameters:
+        - in: path
+          name: reviewId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [reviewed, dismissed]
+      responses:
+        '200':
+          description: Review decision saved
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: Administrator access is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /farms/{farmId}:
     get:
@@ -1301,11 +1370,12 @@ paths:
                     observed_at: { type: string, format: date-time }
                 evidence:
                   type: object
-                  required: [name, mime_type, data_url]
+                  required: [name, mime_type, data_url, captured_at]
                   properties:
                     name: { type: string, minLength: 1, maxLength: 160 }
                     mime_type: { type: string, enum: [image/jpeg, image/png, image/webp] }
                     data_url: { type: string, maxLength: 1500000 }
+                    captured_at: { type: string, format: date-time }
       responses:
         '201':
           description: Finalized append-only activity record
@@ -1514,6 +1584,68 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/JichoHistoryItem'
+
+  /knowledge:
+    get:
+      summary: Get the sourced crop, livestock, and pest knowledge catalog
+      responses:
+        '200':
+          description: Curated agricultural knowledge and live official-source availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgriKnowledgeCatalog'
+        '401':
+          description: Authentication required
+        '503':
+          description: Knowledge catalog is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /knowledge/images:
+    get:
+      summary: Find appropriately licensed and attributed catalog illustrations
+      parameters:
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [crops, livestock, threats]
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Illustration results with image attribution and license
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgriKnowledgeImages'
+        '400':
+          description: Unsupported image catalog type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Catalog item was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+        '503':
+          description: Illustration search is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 
   /students/dashboard:
     get:
@@ -2160,6 +2292,36 @@ paths:
 
 components:
   schemas:
+    AgriKnowledgeCatalog:
+      type: object
+      required: [version, notice, fetched_at, official_sources_checked_at, live_government_content_api, sources, crops, livestock, threats]
+      properties:
+        version: { type: string }
+        notice: { type: string }
+        fetched_at: { type: string, format: date-time }
+        official_sources_checked_at: { type: string, format: date-time }
+        live_government_content_api: { type: boolean }
+        sources:
+          type: array
+          items: { type: object, additionalProperties: true }
+        crops:
+          type: array
+          items: { type: object, additionalProperties: true }
+        livestock:
+          type: array
+          items: { type: object, additionalProperties: true }
+        threats:
+          type: array
+          items: { type: object, additionalProperties: true }
+    AgriKnowledgeImages:
+      type: object
+      required: [type, fetched_at, illustrations]
+      properties:
+        type: { type: string, enum: [crops, livestock, threats] }
+        fetched_at: { type: string, format: date-time }
+        illustrations:
+          type: array
+          items: { type: object, additionalProperties: true }
     ApiError:
       type: object
       required: [error]
@@ -2344,12 +2506,28 @@ components:
 
     FarmCreate:
       type: object
-      required: [user_id, name]
+      required: [user_id, name, location, location_evidence]
       properties:
         user_id: { type: string }
         name: { type: string }
         soil_type: { type: string }
         total_acres: { type: number }
+        location:
+          type: object
+          required: [latitude, longitude, accuracy_m, captured_at]
+          properties:
+            latitude: { type: number, minimum: -90, maximum: 90 }
+            longitude: { type: number, minimum: -180, maximum: 180 }
+            accuracy_m: { type: number, minimum: 0, maximum: 50 }
+            captured_at: { type: string, format: date-time }
+        location_evidence:
+          type: object
+          required: [name, mime_type, data_url, captured_at]
+          properties:
+            name: { type: string, maxLength: 160 }
+            mime_type: { type: string, enum: [image/jpeg, image/png, image/webp] }
+            data_url: { type: string, maxLength: 1500000 }
+            captured_at: { type: string, format: date-time }
 
     Farm:
       type: object
@@ -2357,6 +2535,21 @@ components:
         farm_id: { type: string }
         user_id: { type: string }
         name: { type: string }
+        location_latitude: { type: number }
+        location_longitude: { type: number }
+        location_accuracy_m: { type: number }
+        location_captured_at: { type: string, format: date-time }
+        location_review_status: { type: string }
+        has_location_evidence: { type: boolean }
+        location_evidence_sha256: { type: string }
+        nearby_farms:
+          type: array
+          items:
+            type: object
+            properties:
+              farm_id: { type: string }
+              farmer_id: { type: string }
+              distance_m: { type: number }
 
     FieldCreate:
       type: object

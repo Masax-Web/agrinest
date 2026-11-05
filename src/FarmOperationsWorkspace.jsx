@@ -3,6 +3,59 @@ import { api } from './lib/api';
 import './FarmOperationsWorkspace.css';
 
 const money = (amount) => `TZS ${Number(amount || 0).toLocaleString('en-TZ')}`;
+const farmCreationErrorMessages = {
+  farm_location_required: 'Grant location permission and capture the farm GPS before saving.',
+  invalid_farm_location: 'The captured location is not valid. Capture GPS again.',
+  farm_location_accuracy_too_low: 'GPS accuracy must be 50 m or better. Move outdoors and try again.',
+  farm_location_stamp_expired: 'Capture the farm location again; GPS stamps are valid for 15 minutes.',
+  farm_location_photo_required: 'A photo of the farm location is required.',
+  invalid_farm_location_photo: 'The farm photo could not be accepted. Choose a JPEG, PNG, or WebP image.',
+  farm_location_photo_too_large: 'The farm photo is too large. Choose a smaller image.',
+};
+
+function compressLocationPhoto(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      reject(new Error('Choose a farm location photo.'));
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      reject(new Error('Choose a photo smaller than 8 MB.'));
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, 1280 / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) {
+        reject(new Error('Photo processing is unavailable in this browser.'));
+        return;
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      if (dataUrl.length > 1500000) {
+        reject(new Error('This photo is too large to upload. Choose a smaller image.'));
+        return;
+      }
+      resolve({
+        name: file.name.slice(0, 150) || 'farm-location.jpg',
+        mime_type: 'image/jpeg',
+        data_url: dataUrl,
+        captured_at: new Date().toISOString(),
+      });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('The selected photo could not be opened.'));
+    };
+    image.src = url;
+  });
+}
 
 function Field({ label, children }) {
   return <label className="farm-operations-field">{label}{children}</label>;
@@ -18,6 +71,11 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
   const [busy, setBusy] = useState(false);
   const [farmName, setFarmName] = useState('');
   const [farmArea, setFarmArea] = useState('');
+  const [farmLocation, setFarmLocation] = useState(null);
+  const [farmLocationPhoto, setFarmLocationPhoto] = useState(null);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [locationAlerts, setLocationAlerts] = useState([]);
   const [memberDraft, setMemberDraft] = useState({ email: '', role: 'manager' });
   const [taskDraft, setTaskDraft] = useState({ title: '', details: '', assigned_to: '', due_date: '' });
   const [requestDraft, setRequestDraft] = useState({ title: '', details: '', quantity: '', estimated_cost: '' });
@@ -92,6 +150,14 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
   }, [loadFarms, user?.user_id]);
 
   useEffect(() => {
+    let active = true;
+    api.listFarmLocationAlerts()
+      .then((response) => { if (active) setLocationAlerts(Array.isArray(response.alerts) ? response.alerts : []); })
+      .catch((requestError) => { if (active) setError(requestError.message || 'Could not load farm location alerts.'); });
+    return () => { active = false; };
+  }, [user?.user_id]);
+
+  useEffect(() => {
     if (selectedFarm?.status === 'active') loadOperations(selectedFarm.farm_id);
     else setOperations(null);
   }, [selectedFarm?.farm_id, selectedFarm?.status, loadOperations]);
@@ -120,17 +186,71 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
       setError('Enter a farm name and a valid positive area.');
       return;
     }
-    runAction(async () => {
-      const farm = await api.createFarm({
+    if (!farmLocation || farmLocation.accuracy_m > 50 || !farmLocationPhoto) {
+      setError('Capture a fresh GPS location with accuracy of 50 m or better and add a farm photo.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('');
+    api.createFarm({
         user_id: user.user_id,
         name,
         ...(area ? { total_acres: area } : {}),
-      });
+        location: farmLocation,
+        location_evidence: farmLocationPhoto,
+      }).then(async (farm) => {
       setFarmName('');
       setFarmArea('');
+      setFarmLocation(null);
+      setFarmLocationPhoto(null);
       await loadFarms(farm.farm_id);
       setSelectedFarmId(farm.farm_id);
-    }, 'Farm created. Invite team members to collaborate.');
+      const nearby = Array.isArray(farm.nearby_farms) ? farm.nearby_farms : [];
+      setNotice(nearby.length
+        ? `Farm ${farm.farm_id} was created and flagged for admin review because it is within 50 m of ${nearby.map((item) => `${item.farm_id} (farmer ${item.farmer_id})`).join(', ')}. Both farmers and an administrator are notified.`
+        : `Farm created. Farmer ID: ${user.user_id}. Farm ID: ${farm.farm_id}.`);
+    }).catch((requestError) => {
+      setError(farmCreationErrorMessages[requestError.message] || requestError.message || 'The farm could not be created.');
+    }).finally(() => setBusy(false));
+  };
+
+  const captureFarmLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Location capture is not available in this browser.');
+      return;
+    }
+    setLocationBusy(true);
+    setError('');
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      setFarmLocation({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy_m: coords.accuracy,
+        captured_at: new Date().toISOString(),
+      });
+      setLocationBusy(false);
+    }, (locationError) => {
+      setLocationBusy(false);
+      setError(locationError.code === locationError.PERMISSION_DENIED
+        ? 'Location permission is required to register this farm.'
+        : locationError.message || 'Could not capture farm location.');
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  };
+
+  const selectFarmLocationPhoto = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setPhotoBusy(true);
+    setError('');
+    try {
+      setFarmLocationPhoto(await compressLocationPhoto(file));
+    } catch (photoError) {
+      setError(photoError.message || 'Could not prepare the farm photo.');
+    } finally {
+      setPhotoBusy(false);
+    }
   };
 
   const inviteMember = (event) => {
@@ -237,27 +357,37 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
   return (
     <main className="farm-operations-workspace">
       <header className="farm-operations-header">
-        <button type="button" className="farm-operations-back" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Dashboard</button>
+        <button type="button" className="farm-operations-back" onClick={onBack}><span className="material-symbols-outlined">arrow_back</span>Digital Farm</button>
         <span className="farm-operations-eyebrow">MULTI-FARM · TEAM OPERATIONS</span>
         <div className="farm-operations-title-row">
           <div><h1>Farm Operations</h1><p>Share work with your farm team, assign tasks, and review resource requests. Members only see farms they have been invited to join.</p></div>
-          {farms.length > 0 && <label className="farm-operations-selector">Selected farm<select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.role}{farm.status === 'pending' ? ' · invitation' : ''}</option>)}</select></label>}
+          {farms.length > 0 && <label className="farm-operations-selector">Selected farm<select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · Farm ID {farm.farm_id} · {farm.role}{farm.status === 'pending' ? ' · invitation' : ''}</option>)}</select></label>}
         </div>
       </header>
 
       <div className="farm-operations-boundary"><span className="material-symbols-outlined">shield</span><p>This workspace records tasks and approvals; it does not place Agrishop orders, move money, verify credentials, or track workers continuously. Farm membership and changes are recorded in the account database.</p></div>
       {error && <div className="farm-operations-message is-error" role="alert">{error}</div>}
       {notice && <div className="farm-operations-message" role="status">{notice}</div>}
+      {locationAlerts.filter((alert) => alert.status === 'pending').map((alert) => (
+        <div className="farm-operations-message is-warning" role="status" key={alert.review_id}>
+          Farm location review: Farm {alert.new_farm_id} (farmer {alert.new_farmer_id}) is about {Math.round(Number(alert.distance_m))} m from farm {alert.nearby_farm_id} (farmer {alert.nearby_farmer_id}). An administrator has been notified. No messaging or marketplace access is restricted.
+        </div>
+      ))}
 
       {loading ? <div className="farm-operations-empty">Loading your farms…</div> : null}
-      {!loading && !farms.length && (
+      {!loading && (
         <section className="farm-operations-card farm-operations-create-card">
           <span className="material-symbols-outlined">add_home</span>
-          <div><h2>Create a farm workspace</h2><p>Start a shared operations space for a farm you own or manage. You can invite existing AGRI-NEST accounts after creating it.</p></div>
+          <div><h2>{farms.length ? 'Add another farm' : 'Create your first farm'}</h2><p>Each farm gets its own Farm ID and GPS location. Your Farmer ID is {user?.user_id || 'loaded from your account'}. Nearby farm points within 50 m are allowed but sent to an administrator for review.</p></div>
           <form onSubmit={createFarm}>
             <Field label="Farm name"><input required maxLength={120} value={farmName} onChange={(event) => setFarmName(event.target.value)} /></Field>
             <Field label="Total area (acres, optional)"><input type="number" min="0.01" step="any" value={farmArea} onChange={(event) => setFarmArea(event.target.value)} /></Field>
-            <button type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create farm'}</button>
+            <div className="farm-operations-location-row">
+              <button type="button" disabled={locationBusy} onClick={captureFarmLocation}>{locationBusy ? 'Capturing GPS…' : farmLocation ? `GPS captured · ±${Math.round(farmLocation.accuracy_m)} m` : 'Grant location & capture GPS'}</button>
+              <Field label="Photo of this farm location"><input type="file" accept="image/*" capture="environment" onChange={selectFarmLocationPhoto} disabled={photoBusy} />{farmLocationPhoto && <small>{farmLocationPhoto.name} ready</small>}</Field>
+            </div>
+            <small className="farm-operations-location-note">Location permission is required. The photo and GPS stamp are device-reported evidence, not proof of ownership or government verification.</small>
+            <button type="submit" disabled={busy || photoBusy}>{busy ? 'Creating…' : farms.length ? 'Create farm' : 'Create my farm'}</button>
           </form>
         </section>
       )}
@@ -331,11 +461,11 @@ export default function FarmOperationsWorkspace({ user, onBack }) {
               <p className="farm-operations-muted">Owners and managers can plan a season together. Budget assumptions are farmer-entered; actuals only include income and expense entries recorded here.</p>
               <form className="farm-operations-form farm-budget-form" onSubmit={createBudget}>
                 <Field label="Budget name"><input required maxLength={120} value={budgetDraft.title} onChange={(event) => setBudgetDraft({ ...budgetDraft, title: event.target.value })} placeholder="e.g. 2026 sunflower season" /></Field>
-                <Field label="Crop"><input required maxLength={80} value={budgetDraft.crop} onChange={(event) => setBudgetDraft({ ...budgetDraft, crop: event.target.value })} /></Field>
-                <Field label="Field name (optional)"><input maxLength={120} value={budgetDraft.field_id} onChange={(event) => setBudgetDraft({ ...budgetDraft, field_id: event.target.value })} placeholder="Field or block" /></Field>
+                <Field label="Crop or livestock enterprise"><input required maxLength={80} value={budgetDraft.crop} onChange={(event) => setBudgetDraft({ ...budgetDraft, crop: event.target.value })} placeholder="e.g. Maize, dairy cattle, or layers" /></Field>
+                <Field label="Field or animal unit (optional)"><input maxLength={120} value={budgetDraft.field_id} onChange={(event) => setBudgetDraft({ ...budgetDraft, field_id: event.target.value })} placeholder="Field, herd, or poultry house" /></Field>
                 <Field label="Area (acres)"><input type="number" min="0.01" step="any" value={budgetDraft.area_acres} onChange={(event) => setBudgetDraft({ ...budgetDraft, area_acres: event.target.value })} /></Field>
-                <Field label="Planned yield (kg)"><input type="number" min="0.01" step="any" value={budgetDraft.expected_yield_kg} onChange={(event) => setBudgetDraft({ ...budgetDraft, expected_yield_kg: event.target.value })} /></Field>
-                <Field label="Target sale price (TZS/kg)"><input type="number" min="0.01" step="any" value={budgetDraft.target_price_per_kg} onChange={(event) => setBudgetDraft({ ...budgetDraft, target_price_per_kg: event.target.value })} /></Field>
+                <Field label="Planned output (kg, liters, eggs…)"><input type="number" min="0.01" step="any" value={budgetDraft.expected_yield_kg} onChange={(event) => setBudgetDraft({ ...budgetDraft, expected_yield_kg: event.target.value })} /></Field>
+                <Field label="Target price per unit (TZS)"><input type="number" min="0.01" step="any" value={budgetDraft.target_price_per_kg} onChange={(event) => setBudgetDraft({ ...budgetDraft, target_price_per_kg: event.target.value })} /></Field>
                 <Field label="Season start"><input type="date" value={budgetDraft.start_date} onChange={(event) => setBudgetDraft({ ...budgetDraft, start_date: event.target.value })} /></Field>
                 <Field label="Season end"><input type="date" value={budgetDraft.end_date} onChange={(event) => setBudgetDraft({ ...budgetDraft, end_date: event.target.value })} /></Field>
                 <div className="farm-budget-cost-editor">

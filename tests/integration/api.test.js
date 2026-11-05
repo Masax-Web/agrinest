@@ -139,12 +139,22 @@ describe('AGRI-NEST API integration', () => {
   });
 
   it('requires authentication to create a farm', async () => {
-    await request(app).post('/farms').send({ name: 'Test Farm' }).expect(401);
+    await request(app).post('/farms').send({
+      user_id: user.user_id,
+      name: 'Test Farm',
+      location: { latitude: -6.8, longitude: 39.28, accuracy_m: 12, captured_at: new Date().toISOString() },
+      location_evidence: { name: 'farm.jpg', mime_type: 'image/jpeg', data_url: 'data:image/jpeg;base64,ZmFrZQ==', captured_at: new Date().toISOString() },
+    }).expect(401);
   });
 
   it('creates and retrieves the authenticated farmer farm', async () => {
     const created = await authenticatedRequest('post', '/farms')
-      .send({ user_id: user.user_id, name: 'Test Farm' })
+      .send({
+        user_id: user.user_id,
+        name: 'Test Farm',
+        location: { latitude: -6.8, longitude: 39.28, accuracy_m: 12, captured_at: new Date().toISOString() },
+        location_evidence: { name: 'farm.jpg', mime_type: 'image/jpeg', data_url: 'data:image/jpeg;base64,ZmFrZQ==', captured_at: new Date().toISOString() },
+      })
       .expect(201);
     expect(created.body).to.deep.equal(farm);
 

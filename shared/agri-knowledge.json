@@ -1,0 +1,1208 @@
+{
+  "version": "2026-11-05",
+  "notice": "Educational summaries for Tanzania. Conditions and recommendations vary by agro-ecological zone, variety, season, soil test, and local veterinary or extension advice. This catalog is not a diagnosis, pesticide label, ration formulation, or substitute for official instructions.",
+  "sources": [
+    {
+      "id": "tari",
+      "name": "Tanzania Agricultural Research Institute (TARI)",
+      "scope": "Crop research, crop varieties, production practices, and agricultural publications.",
+      "url": "https://www.tari.go.tz/",
+      "publicationsUrl": "https://www.tari.go.tz/publications"
+    },
+    {
+      "id": "tphpa",
+      "name": "Tanzania Plant Health and Pesticides Authority (TPHPA)",
+      "scope": "Plant health, pest surveillance, and pesticide registration and safety.",
+      "url": "https://www.tphpa.go.tz/"
+    },
+    {
+      "id": "livestock-ministry",
+      "name": "Ministry of Livestock and Fisheries, Tanzania",
+      "scope": "Livestock services, animal health, feed resources, and government publications.",
+      "url": "https://www.mifugouvuvi.go.tz/"
+    },
+    {
+      "id": "tma",
+      "name": "Tanzania Meteorological Authority (TMA)",
+      "scope": "Official weather warnings, forecasts, and seasonal and agricultural forecasts.",
+      "url": "https://www.meteo.go.tz/"
+    },
+    {
+      "id": "tfs",
+      "name": "Tanzania Forest Services Agency (TFS)",
+      "scope": "Forestry and beekeeping services and official publications.",
+      "url": "https://www.tfs.go.tz/"
+    }
+  ],
+  "crops": [
+    {
+      "id": "maize",
+      "name": "Maize",
+      "scientificName": "Zea mays",
+      "group": "Cereal",
+      "summary": "A major grain and food crop grown across Tanzania. Suitable variety, planting window, and practices depend on altitude, rainfall pattern, and local recommendations.",
+      "photoSearch": "maize field Tanzania crop",
+      "guide": {
+        "siteSelection": "Choose a site with adequate drainage and a locally recommended variety. Use a soil test and local seasonal forecast; avoid assuming a single calendar applies to every district.",
+        "landPreparation": "Prepare a level, weed-managed seedbed while protecting soil structure. In erosion-prone areas, use contour-aligned rows and retain suitable residues.",
+        "planting": "Plant into moist soil after locally reliable onset of rains. Use certified seed of a variety recommended for the zone; follow the seed supplier or extension officer for spacing, seed rate, and plant population.",
+        "nutrition": "Base fertilizer and lime decisions on a soil test and crop recommendations. Place fertilizer safely away from seed; split applications only as directed by locally validated guidance.",
+        "waterAndWeeds": "Keep the crop weed-free during early establishment. Monitor moisture at establishment, flowering, and grain filling; protect drainage and avoid unnecessary water stress.",
+        "pestsAndDiseases": "Scout seedlings and whorls for fall armyworm, stalk borers, and unusual damage. Check for maize lethal necrosis, leaf diseases, and storage pests. Confirm uncertain symptoms before acting.",
+        "harvestAndStorage": "Harvest at physiological maturity and dry grain safely to a storage-appropriate moisture level. Keep grain off bare ground; clean stores and protect grain from moisture, insects, rodents, and contamination.",
+        "records": "Record seed variety and lot, planting date, field and GPS, rainfall observations, inputs, scouting, harvest quantity, and storage losses."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "rice",
+      "name": "Rice",
+      "scientificName": "Oryza sativa",
+      "group": "Cereal",
+      "summary": "A cereal grown in irrigated and rain-fed systems. Water control, seed quality, and locally suitable varieties are central to production.",
+      "photoSearch": "rice paddy field crop",
+      "guide": {
+        "siteSelection": "Choose a site and production system suited to available water, soil, drainage, and the local rice market. Confirm whether the variety is adapted to irrigated or rain-fed conditions.",
+        "landPreparation": "Prepare a level field and functional bunds where the chosen system uses standing water. Maintain inlets and drainage so excess water can be managed.",
+        "planting": "Use clean, recommended seed. Direct seeding and transplanting need different timing and management; follow local extension advice for seed rate, nursery, spacing, and transplant age.",
+        "nutrition": "Use soil-test results and locally recommended rice guidance. Avoid nutrient applications immediately before water discharge; keep records of products and dates.",
+        "waterAndWeeds": "Manage water depth and drainage according to crop stage and system. Early weed control is important; use approved cultural methods and obtain local advice before herbicide use.",
+        "pestsAndDiseases": "Scout for stem borers, planthoppers, blast-like lesions, and bacterial symptoms. Avoid overusing nitrogen and protect beneficial organisms; confirm diagnosis before treatment.",
+        "harvestAndStorage": "Harvest when most grains reach the locally recommended maturity. Dry on a clean surface, thresh carefully, and store dry grain in a clean, pest-managed structure.",
+        "records": "Record water source and schedule, seed, nursery or direct-seeding method, input use, pest observations, harvest date, and grain quality."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "wheat",
+      "name": "Wheat",
+      "scientificName": "Triticum aestivum",
+      "group": "Cereal",
+      "summary": "A cool-season cereal most suitable to locally adapted highland conditions. Variety choice and disease management require zone-specific advice.",
+      "photoSearch": "wheat field crop",
+      "guide": {
+        "siteSelection": "Select a well-drained field and a variety recommended for the elevation and local season. Check local rainfall and temperature outlooks before planting.",
+        "landPreparation": "Prepare a fine, even seedbed without working saturated soil. Use erosion-conscious practices on slopes.",
+        "planting": "Use clean, certified seed and follow the local recommendation for sowing window, row spacing, and seed rate. Avoid carrying seed-borne problems into a new season.",
+        "nutrition": "Use soil analysis and local recommendations for nutrient type and timing. Do not copy fertilizer rates from another region or crop.",
+        "waterAndWeeds": "Maintain early weed control and monitor moisture through establishment and grain filling. Protect the field from waterlogging.",
+        "pestsAndDiseases": "Scout for rusts, blotches, aphids, and lodging risk. Seek local diagnosis when disease appears; use resistant varieties where officially recommended.",
+        "harvestAndStorage": "Harvest at suitable grain maturity, dry thoroughly, and store in a clean, dry, ventilated and pest-managed place.",
+        "records": "Track variety, source, sowing and harvest dates, field conditions, disease observations, input decisions, and grain quality."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "sorghum",
+      "name": "Sorghum",
+      "scientificName": "Sorghum bicolor",
+      "group": "Cereal",
+      "summary": "A drought-tolerant cereal used for food, feed, and processing. Local variety, bird pressure, and grain use influence management.",
+      "photoSearch": "sorghum crop field",
+      "guide": {
+        "siteSelection": "Choose a locally recommended variety for rainfall pattern, maturity, grain or forage use, and bird pressure. Drought tolerance does not mean the crop needs no water.",
+        "landPreparation": "Prepare a firm, weed-managed seedbed and use soil and water conservation where runoff is likely.",
+        "planting": "Sow after effective rainfall onset using clean seed and local guidance for spacing and seed rate. Keep a uniform stand and avoid late planting without extension advice.",
+        "nutrition": "Base nutrient inputs on soil condition, intended use, and local recommendations. Rotate or intercrop where locally suitable.",
+        "waterAndWeeds": "Control weeds early and conserve soil moisture with suitable residue or water-harvesting practices.",
+        "pestsAndDiseases": "Scout for shoot fly, stem borers, grain mold, and head-feeding pests. Monitor birds around grain maturity and use locally approved non-harmful deterrence.",
+        "harvestAndStorage": "Harvest at maturity and dry heads or grain thoroughly. Protect stored grain from moisture and insects.",
+        "records": "Record variety, planting date, rainfall, bird and pest pressure, grain or forage use, yield, and storage condition."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "pearl-millet",
+      "name": "Pearl Millet",
+      "scientificName": "Cenchrus americanus (Pennisetum glaucum)",
+      "group": "Cereal",
+      "summary": "A resilient small-grain cereal used for food and feed. Choose locally adapted seed for rainfall pattern, maturity, and intended use.",
+      "photoSearch": "pearl millet crop field",
+      "guide": {
+        "siteSelection": "Select a locally recommended variety for rainfall pattern, maturity, soil, and grain or forage use.",
+        "landPreparation": "Prepare a weed-managed seedbed and conserve soil moisture; avoid unnecessary deep tillage on fragile soils.",
+        "planting": "Plant clean seed after effective rainfall and follow local guidance for seed rate, spacing, and thinning.",
+        "nutrition": "Use soil-test results and locally validated recommendations; rotate with suitable legumes where practical.",
+        "waterAndWeeds": "Control weeds early, protect establishment moisture, and monitor for erosion and prolonged dry spells.",
+        "pestsAndDiseases": "Scout for shoot fly, head-feeding pests, birds, and grain mold. Confirm the cause before using any crop-protection product.",
+        "harvestAndStorage": "Harvest mature heads, dry thoroughly, thresh cleanly, and keep grain protected from moisture, rodents, and insects.",
+        "records": "Record variety, seed source, planting conditions, bird pressure, harvest use, and storage losses."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "finger-millet",
+      "name": "Finger Millet",
+      "scientificName": "Eleusine coracana",
+      "group": "Cereal",
+      "summary": "A small-grain cereal grown for food and other uses. Establishment, seed handling, and maturity vary by local variety.",
+      "photoSearch": "finger millet crop field",
+      "guide": {
+        "siteSelection": "Select a locally adapted variety and a field with suitable drainage and rainfall for the chosen production system.",
+        "landPreparation": "Prepare a clean, fine seedbed and protect soil structure and moisture, especially on slopes.",
+        "planting": "Use clean seed and local advice on direct sowing or transplanting, seed rate, spacing, and thinning.",
+        "nutrition": "Base soil amendments and fertilizer on a soil test and local extension recommendations.",
+        "waterAndWeeds": "Manage weeds during establishment and protect the crop from waterlogging or prolonged moisture stress.",
+        "pestsAndDiseases": "Scout for blast-like leaf or head symptoms, shoot pests, birds, and storage insects; seek confirmation before control.",
+        "harvestAndStorage": "Harvest mature heads, dry them thoroughly, thresh cleanly, and store grain in a dry, pest-managed place.",
+        "records": "Record variety, establishment method, seed source, disease observations, harvest, and storage condition."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "barley",
+      "name": "Barley",
+      "scientificName": "Hordeum vulgare",
+      "group": "Cereal",
+      "summary": "A cool-season cereal and feed or malting crop. Variety, quality standards, and suitability depend on location and buyer requirements.",
+      "photoSearch": "barley crop field",
+      "guide": {
+        "siteSelection": "Confirm local suitability, variety, and market specification before planting; use a well-drained field.",
+        "landPreparation": "Prepare a uniform seedbed and use erosion control on sloping land.",
+        "planting": "Use quality seed and follow local recommendations for planting window, seed rate, and row spacing.",
+        "nutrition": "Use soil-test results and crop-specific local nutrient guidance; avoid applying an uncalibrated rate.",
+        "waterAndWeeds": "Control weeds early and monitor moisture through establishment and grain filling while preventing waterlogging.",
+        "pestsAndDiseases": "Scout for rusts, smuts, foliar diseases, aphids, and lodging; seek local diagnosis and seed-health advice.",
+        "harvestAndStorage": "Harvest at suitable grain maturity, dry safely, and store according to the buyer's quality and moisture requirements.",
+        "records": "Track variety, seed lot, crop protection, harvest moisture, quality testing, and buyer requirements."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "oats",
+      "name": "Oats",
+      "scientificName": "Avena sativa",
+      "group": "Cereal / forage",
+      "summary": "A cereal grown for grain, forage, or both. Local climate and end use determine the suitable variety and harvest stage.",
+      "photoSearch": "oats crop field",
+      "guide": {
+        "siteSelection": "Choose a locally suitable variety and decide whether the crop is for grain, forage, or dual use.",
+        "landPreparation": "Prepare a firm, weed-managed seedbed with drainage suited to local rainfall.",
+        "planting": "Use clean seed and regional recommendations for sowing time, seed rate, and row spacing.",
+        "nutrition": "Use soil tests and local cereal or forage recommendations for nutrient decisions.",
+        "waterAndWeeds": "Manage weeds early and monitor moisture; maintain drainage in wet conditions.",
+        "pestsAndDiseases": "Scout for rusts, leaf blotches, aphids, and lodging; use locally advised resistant varieties and practices.",
+        "harvestAndStorage": "Choose harvest stage for grain or forage purpose. Dry and store grain safely; conserve forage hygienically.",
+        "records": "Record variety, seed source, intended use, harvest stage, yield, and storage or forage quality."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "common-beans",
+      "name": "Common beans",
+      "scientificName": "Phaseolus vulgaris",
+      "group": "Legume",
+      "summary": "A food legume that contributes dietary protein and can support crop rotation. Variety and disease pressure vary by zone.",
+      "photoSearch": "common bean crop field",
+      "guide": {
+        "siteSelection": "Use a locally adapted variety and a well-drained field. Avoid repeating beans continuously where soil-borne disease is a concern.",
+        "landPreparation": "Prepare a weed-managed seedbed while preserving soil structure. Use clean seed from a reliable source.",
+        "planting": "Plant into moist soil in the locally recommended window. Follow local instructions for spacing, seed rate, and seed treatment.",
+        "nutrition": "Use soil-test guidance; beans need appropriate phosphorus and other nutrients but fertilizer must be locally calibrated. Avoid assuming inoculants or nutrient products will suit every site.",
+        "waterAndWeeds": "Manage weeds early and avoid waterlogging. Protect flowering and pod development from severe moisture stress where possible.",
+        "pestsAndDiseases": "Scout for bean fly, aphids, angular leaf spot, anthracnose, and rust-like pustules. Rotate crops, use clean seed, and confirm symptoms with extension support.",
+        "harvestAndStorage": "Harvest when pods mature, dry carefully, and store clean grain dry in a sealed, pest-managed container.",
+        "records": "Record variety, seed source, planting date, disease and pest signs, harvest quality, and storage treatments."
+      },
+      "sourceIds": ["tari", "tma", "tphpa"]
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "scientificName": "Solanum lycopersicum",
+      "group": "Vegetable",
+      "summary": "A high-value vegetable grown in open fields and protected systems. It needs careful water, sanitation, and pest monitoring.",
+      "photoSearch": "tomato crop field plants",
+      "guide": {
+        "siteSelection": "Select a site with good drainage, reliable water, and a rotation history that reduces solanaceous disease pressure. Choose varieties for local market and disease constraints.",
+        "landPreparation": "Prepare raised beds or drainage channels where needed. Clean tools and use healthy seedlings from a trusted source.",
+        "planting": "Harden seedlings before transplanting and follow local variety guidance for spacing and support. Avoid transplanting stressed or diseased seedlings.",
+        "nutrition": "Use a soil test and crop-stage recommendations. Split nutrient applications when locally advised; avoid fertilizer contact with stems and roots.",
+        "waterAndWeeds": "Irrigate consistently without wetting foliage where feasible. Mulch and manage weeds to reduce soil splash and competition.",
+        "pestsAndDiseases": "Scout leaf undersides and fruit for tomato leafminer, whiteflies, aphids, late blight, bacterial wilt, and virus symptoms. Remove suspect plants safely and seek confirmation.",
+        "harvestAndStorage": "Harvest at the stage required by the market, handle gently, sort damaged fruit, and keep produce cool and shaded.",
+        "records": "Record seedling source, transplant date, irrigation, scouting, crop-protection product and label details, harvest grade, and losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "scientificName": "Solanum tuberosum",
+      "group": "Vegetable",
+      "summary": "A cool-season tuber crop requiring healthy seed tubers, good drainage, and close monitoring for late blight and bacterial diseases.",
+      "photoSearch": "potato crop field plants",
+      "guide": {
+        "siteSelection": "Use a well-drained field with a rotation history that reduces potato and tomato disease carry-over. Plant clean, locally recommended seed tubers.",
+        "landPreparation": "Prepare loose soil and workable ridges; avoid planting into waterlogged ground.",
+        "planting": "Use inspected or otherwise trusted seed tubers and follow local guidance for seed size, spacing, and planting date. Earth up as advised to protect tubers from light.",
+        "nutrition": "Base fertilizer on soil analysis and local potato recommendations; avoid applying uncalibrated rates.",
+        "waterAndWeeds": "Maintain even soil moisture without prolonged saturation. Keep weeds managed and drainage functional.",
+        "pestsAndDiseases": "Scout frequently for late blight, bacterial wilt, viruses, and tuber moth. Isolate suspect seed lots and seek extension diagnosis before chemical decisions.",
+        "harvestAndStorage": "Harvest after skin set where applicable, avoid bruising, cure and sort tubers, and store dark, ventilated, and protected from pests.",
+        "records": "Record seed lot, field rotation, disease scouting, ridge management, harvest grade, and storage losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "banana",
+      "name": "Banana",
+      "scientificName": "Musa spp.",
+      "group": "Fruit",
+      "summary": "A perennial food and cash crop. Planting material health, soil moisture, mat management, and disease sanitation are important.",
+      "photoSearch": "banana plantation crop",
+      "guide": {
+        "siteSelection": "Choose a site with suitable rainfall or irrigation, drainage, and wind protection. Use disease-free planting material recommended for the area.",
+        "landPreparation": "Prepare planting stations and conserve organic matter. Avoid planting where water remains stagnant.",
+        "planting": "Use clean suckers or approved planting material and locally advised spacing. Keep varieties and planting dates documented.",
+        "nutrition": "Maintain soil organic matter and follow local recommendations based on soil tests and expected harvest. Avoid fertilizer contact with plant tissue.",
+        "waterAndWeeds": "Keep young mats free from weed competition, mulch where suitable, and maintain drainage. Remove excess suckers according to local production guidance.",
+        "pestsAndDiseases": "Inspect planting material and mats for wilt, leaf streaking, bunchy top-like symptoms, weevils, and nematode damage. Remove and dispose of infected material as advised.",
+        "harvestAndStorage": "Harvest bunches at market maturity, protect from bruising, and use clean handling and shade after harvest.",
+        "records": "Track planting material source, mat age, sucker management, disease observations, bunch harvest, and market grade."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "coffee",
+      "name": "Coffee",
+      "scientificName": "Coffea arabica and Coffea canephora",
+      "group": "Perennial cash crop",
+      "summary": "A perennial cash crop with distinct Arabica and Robusta needs. Select species and variety for the local elevation, climate, and market.",
+      "photoSearch": "coffee farm crop cherries",
+      "guide": {
+        "siteSelection": "Confirm species and variety suitability with the local coffee extension service. Protect soil and water on slopes and maintain appropriate shade where recommended.",
+        "landPreparation": "Establish drainage and erosion control before planting. Use healthy seedlings from a known source.",
+        "planting": "Follow local guidance for planting season, spacing, shade, pruning system, and replacement of missing trees.",
+        "nutrition": "Use soil tests and coffee-specific local recommendations; account for tree age and expected yield. Do not apply generic rates.",
+        "waterAndWeeds": "Maintain suitable ground cover, control competing weeds, and monitor drought stress and drainage.",
+        "pestsAndDiseases": "Scout for coffee berry disease, leaf rust, berry borers, and stem pests. Confirm disease and coordinate management with local extension and current official guidance.",
+        "harvestAndStorage": "Harvest ripe cherries as required by the processing method. Keep lots clean and process or dry promptly to protect cup quality.",
+        "records": "Record species, variety, tree age, pruning, flowering, disease observations, harvest lot, processing, and buyer quality feedback."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "tea",
+      "name": "Tea",
+      "scientificName": "Camellia sinensis",
+      "group": "Perennial cash crop",
+      "summary": "A perennial leaf crop suited to particular cool, wet highland environments. Harvest and pruning cycles are location- and factory-specific.",
+      "photoSearch": "tea plantation field crop",
+      "guide": {
+        "siteSelection": "Confirm altitude, rainfall, soil acidity, and factory access suitability with local tea extension services before establishing a field.",
+        "landPreparation": "Protect slopes with contour practices and drainage. Establish wind protection and ground cover where recommended.",
+        "planting": "Use recommended clones and healthy planting material. Follow local advice on spacing, planting season, formative pruning, and plucking table establishment.",
+        "nutrition": "Use soil and leaf analysis where available and follow locally approved tea recommendations. Keep nutrient and lime decisions specific to tea.",
+        "waterAndWeeds": "Manage weeds without exposing soil on slopes. Maintain drainage and conserve moisture during dry periods.",
+        "pestsAndDiseases": "Scout regularly for leaf and stem pests and fungal diseases. Consult a tea extension officer before selecting control measures.",
+        "harvestAndStorage": "Pluck the locally specified tender shoot standard and deliver fresh leaf promptly in clean, ventilated collection containers.",
+        "records": "Record clone, field age, pruning cycle, plucking dates, green-leaf weight, quality feedback, and inputs."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "groundnuts",
+      "name": "Groundnuts",
+      "scientificName": "Arachis hypogaea",
+      "group": "Legume / oilseed",
+      "summary": "A food and oilseed legume. Clean seed, rotation, timely harvest, and careful drying help manage aflatoxin risk.",
+      "photoSearch": "groundnut peanut crop field",
+      "guide": {
+        "siteSelection": "Choose well-drained soil and a variety suited to local rainfall and market. Avoid fields with recent groundnut disease history.",
+        "landPreparation": "Prepare a friable seedbed to support pegging and pod development. Maintain erosion control.",
+        "planting": "Use sound, clean seed and local guidance for shelling, seed rate, spacing, and planting window.",
+        "nutrition": "Follow soil-test advice; calcium availability near pod development may be important, but amendments should be locally recommended.",
+        "waterAndWeeds": "Control weeds early and avoid waterlogging. Maintain moisture during flowering, pegging, and pod fill where possible.",
+        "pestsAndDiseases": "Scout for leaf spots, rosette symptoms, termites, and soil pests. Remove infected plants as advised and rotate crops.",
+        "harvestAndStorage": "Harvest at maturity, dry pods promptly on clean raised surfaces, sort damaged pods, and store dry in a moisture-protected place to reduce aflatoxin risk.",
+        "records": "Record seed source, rotation, disease signs, harvest date, drying duration, damaged pods, and storage conditions."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "cashew",
+      "name": "Cashew",
+      "scientificName": "Anacardium occidentale",
+      "group": "Tree nut / cash crop",
+      "summary": "A perennial tree crop important in coastal and southern production areas. Orchard hygiene, tree age, and nut quality matter.",
+      "photoSearch": "cashew orchard crop tree",
+      "guide": {
+        "siteSelection": "Use a locally recommended variety and site. Consider tree spacing, drainage, wind exposure, and access for nut collection.",
+        "landPreparation": "Protect soil and water, mark planting stations, and establish young trees with careful weed management.",
+        "planting": "Use healthy planting material and local extension recommendations for planting, spacing, pruning, and replacement.",
+        "nutrition": "Use soil-test information and cashew-specific extension advice, particularly for orchard age and expected production.",
+        "waterAndWeeds": "Maintain young-tree moisture and keep basins weed-managed without damaging roots. Manage orchard ground cover and drainage.",
+        "pestsAndDiseases": "Scout flowering and nut set for pests and fungal disease; remove and dispose of affected material as advised. Seek diagnosis before treatment.",
+        "harvestAndStorage": "Collect mature fallen nuts frequently, separate from spoiled material, dry safely, and store in clean, dry conditions.",
+        "records": "Track variety, tree age, pruning, flowering, pest observations, nut quantity, grade, drying, and storage."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "cotton",
+      "name": "Cotton",
+      "scientificName": "Gossypium hirsutum",
+      "group": "Fibre / cash crop",
+      "summary": "A fibre crop with pest-sensitive flowering and boll stages. Follow local seasonal recommendations and integrated pest management.",
+      "photoSearch": "cotton crop field bolls",
+      "guide": {
+        "siteSelection": "Choose an approved variety and field that fits local rainfall, rotation, and market requirements.",
+        "landPreparation": "Prepare a well-drained field and manage residues in line with local pest and disease recommendations.",
+        "planting": "Use quality seed and follow current regional advice on sowing window, spacing, and plant population.",
+        "nutrition": "Base nutrient decisions on soil tests and local cotton guidance. Avoid excessive vegetative growth from unbalanced inputs.",
+        "waterAndWeeds": "Control weeds early and monitor moisture through flowering and boll development. Avoid waterlogging.",
+        "pestsAndDiseases": "Scout for bollworms, sucking pests, and wilt symptoms at intervals recommended by local extension. Preserve beneficial insects and use only currently registered products according to their exact label.",
+        "harvestAndStorage": "Pick clean, dry open bolls and keep seed cotton free from soil, plastic, and moisture contamination.",
+        "records": "Record seed source, planting, scouting, beneficial insects, any labeled pesticide use, picking rounds, and contamination."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sunflower",
+      "name": "Sunflower",
+      "scientificName": "Helianthus annuus",
+      "group": "Oilseed",
+      "summary": "An oilseed crop adapted to several semi-arid and sub-humid systems. Pollination, birds, and harvest timing affect yield and quality.",
+      "photoSearch": "sunflower crop field",
+      "guide": {
+        "siteSelection": "Select a locally recommended variety with suitable maturity and market use. Choose a well-drained field with adequate sunlight.",
+        "landPreparation": "Prepare a seedbed that supports even emergence and conserve moisture using suitable local practices.",
+        "planting": "Plant clean seed after effective rainfall and follow extension guidance for spacing, seed rate, and thinning.",
+        "nutrition": "Use soil tests and local oilseed recommendations. Maintain balanced nutrition without over-applying nitrogen.",
+        "waterAndWeeds": "Control weeds early and monitor water stress around flowering and seed fill. Maintain drainage after heavy rain.",
+        "pestsAndDiseases": "Scout for head pests, birds, stem or leaf disease, and lodging. Protect pollinators and beneficial insects.",
+        "harvestAndStorage": "Harvest mature heads when seed is suitably dry, thresh cleanly, and store seed dry to prevent mould and quality loss.",
+        "records": "Record variety, flowering date, pollinator activity, bird pressure, harvest moisture, and seed quality."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "scientificName": "Brassica oleracea var. italica",
+      "group": "Vegetable",
+      "summary": "A cool-season brassica vegetable. Quality depends on suitable temperature, steady moisture, healthy seedlings, and timely harvest.",
+      "photoSearch": "broccoli crop field plant",
+      "guide": {
+        "siteSelection": "Select a cool-season site with reliable water and good drainage. Rotate away from brassicas where clubroot or other soil disease is present.",
+        "landPreparation": "Prepare a fertile, well-drained seedbed and use healthy transplants.",
+        "planting": "Choose a locally suitable variety and follow local spacing and transplant-age recommendations.",
+        "nutrition": "Use soil test results and crop-specific local nutrient guidance. Avoid excessive nitrogen that can affect plant quality.",
+        "waterAndWeeds": "Maintain even moisture, manage weeds early, and avoid prolonged waterlogging.",
+        "pestsAndDiseases": "Scout for diamondback moth, aphids, caterpillars, downy mildew, and black rot. Use crop rotation, sanitation, netting where appropriate, and official guidance.",
+        "harvestAndStorage": "Harvest compact heads before flowering, handle gently, shade promptly, and cool or market quickly.",
+        "records": "Record seedling source, transplant date, irrigation, pest scouting, harvest size, and market quality."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "soybeans",
+      "name": "Soybeans",
+      "scientificName": "Glycine max",
+      "group": "Legume",
+      "summary": "A grain and oilseed legume used for food, feed, and processing. Variety maturity, inoculation, and disease history should be checked locally.",
+      "photoSearch": "soybean crop field",
+      "guide": {
+        "siteSelection": "Choose a locally adapted variety and a well-drained field; rotate away from recent soybean disease hosts.",
+        "landPreparation": "Prepare a level, weed-managed seedbed while conserving soil structure and organic matter.",
+        "planting": "Use clean seed and follow local guidance for planting date, seed rate, spacing, and any recommended inoculant.",
+        "nutrition": "Use soil tests and local recommendations for pH and nutrient needs; avoid applying inoculants or fertilizers without compatibility guidance.",
+        "waterAndWeeds": "Manage weeds early and avoid waterlogging; monitor moisture through flowering and pod fill.",
+        "pestsAndDiseases": "Scout for aphids, caterpillars, leaf spots, rust, and pod disease; confirm diagnosis before treatment.",
+        "harvestAndStorage": "Harvest at suitable maturity, dry thoroughly, clean grain, and protect it from moisture and storage pests.",
+        "records": "Record variety, seed and inoculant lot, field history, scouting, harvest moisture, and grain quality."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "pigeon-peas",
+      "name": "Pigeon Peas",
+      "scientificName": "Cajanus cajan",
+      "group": "Legume",
+      "summary": "A grain and multipurpose legume often grown in mixed systems. Crop duration and market use vary with variety and local conditions.",
+      "photoSearch": "pigeon pea crop field",
+      "guide": {
+        "siteSelection": "Choose a suitable local variety and field with drainage; consider the crop's duration and compatibility with intercrops.",
+        "landPreparation": "Prepare planting stations or rows that support establishment and soil-moisture conservation.",
+        "planting": "Use healthy seed and follow local advice for spacing, seed rate, planting window, and intercrop arrangement.",
+        "nutrition": "Use soil-test results and local nutrient recommendations; maintain rotation and organic matter.",
+        "waterAndWeeds": "Keep young stands weed-managed and conserve moisture; avoid persistent waterlogging.",
+        "pestsAndDiseases": "Scout for pod borers, pod fly, wilt, and leaf spots; remove suspect plants as directed and seek diagnosis.",
+        "harvestAndStorage": "Harvest when pods mature for the intended green or dry use; dry grain safely and store it clean and pest-protected.",
+        "records": "Record variety, intercrop, planting dates, pest signs, harvest purpose, and storage."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "cowpeas",
+      "name": "Cowpeas",
+      "scientificName": "Vigna unguiculata",
+      "group": "Legume",
+      "summary": "A food and forage legume grown for leaves, green pods, dry grain, or fodder. Management depends on the selected use and variety.",
+      "photoSearch": "cowpea crop field",
+      "guide": {
+        "siteSelection": "Select a variety and production purpose suitable for the local rainfall, soil, and market.",
+        "landPreparation": "Prepare a weed-managed seedbed and use locally suitable rotation or intercropping.",
+        "planting": "Plant clean seed at the locally recommended time and follow advice for spacing and seed treatment.",
+        "nutrition": "Use soil tests and local guidance; protect soil organic matter and avoid uncalibrated fertilizer rates.",
+        "waterAndWeeds": "Control weeds early, maintain drainage, and monitor water stress around flowering and pod fill.",
+        "pestsAndDiseases": "Inspect for aphids, thrips, pod borers, bruchids, and virus-like symptoms; confirm diagnosis before treatment.",
+        "harvestAndStorage": "Harvest leaves, green pods, or dry grain at the intended stage. Dry grain well and protect it from bruchids and moisture.",
+        "records": "Record variety, intended use, planting date, scouting, harvest stage, and storage losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "green-grams",
+      "name": "Green Grams",
+      "scientificName": "Vigna radiata",
+      "group": "Legume",
+      "summary": "A short-duration grain legume used for food and rotation. Timely planting, weed management, and careful drying support quality.",
+      "photoSearch": "mung bean green gram crop field",
+      "guide": {
+        "siteSelection": "Choose locally suitable seed and a field with good drainage and a suitable rotation history.",
+        "landPreparation": "Prepare a clean seedbed and conserve soil moisture without leaving the field waterlogged.",
+        "planting": "Use clean seed and local guidance for planting window, spacing, and seed rate.",
+        "nutrition": "Use soil-test and extension guidance for nutrient amendments; rotate and retain organic matter where practical.",
+        "waterAndWeeds": "Control weeds early and monitor moisture through flowering and pod filling.",
+        "pestsAndDiseases": "Scout for aphids, whiteflies, pod borers, bruchids, and leaf disease; seek confirmation for unusual symptoms.",
+        "harvestAndStorage": "Harvest mature pods in a timely manner, dry thoroughly, and store clean grain in a moisture-protected container.",
+        "records": "Record seed lot, planting, rainfall, pest observations, harvest rounds, and grain storage condition."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "chickpeas",
+      "name": "Chickpeas",
+      "scientificName": "Cicer arietinum",
+      "group": "Legume",
+      "summary": "A grain legume best managed with locally tested varieties and disease-aware rotation. Growing suitability is site-specific.",
+      "photoSearch": "chickpea crop field plants",
+      "guide": {
+        "siteSelection": "Confirm local suitability and use a well-drained field with a rotation that limits legume disease carry-over.",
+        "landPreparation": "Prepare a friable seedbed and control volunteer legumes and weeds as advised.",
+        "planting": "Use clean seed and follow local extension recommendations for season, spacing, seed rate, and treatment.",
+        "nutrition": "Base pH and nutrient decisions on a soil test and locally calibrated recommendations.",
+        "waterAndWeeds": "Maintain early weed control and avoid waterlogging; monitor stress during flowering and pod fill.",
+        "pestsAndDiseases": "Scout for pod borers, wilt, and Ascochyta-like lesions; obtain diagnosis before selecting a control.",
+        "harvestAndStorage": "Harvest mature, dry pods, clean grain, and store in a dry, pest-managed place.",
+        "records": "Track variety, seed health, field rotation, disease symptoms, harvest date, and storage."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "onions",
+      "name": "Onions",
+      "scientificName": "Allium cepa",
+      "group": "Vegetable",
+      "summary": "A bulb crop sensitive to weed competition and uneven water. Variety and nursery or direct-seeding method affect crop timing.",
+      "photoSearch": "onion crop field bulbs",
+      "guide": {
+        "siteSelection": "Choose a locally suitable variety, well-drained soil, and reliable water; rotate away from recent Allium crops.",
+        "landPreparation": "Prepare a fine seedbed or raised beds and ensure drainage before transplanting or sowing.",
+        "planting": "Use healthy seedlings or clean seed and follow local advice for transplant age, spacing, and planting date.",
+        "nutrition": "Use soil tests and onion-specific local recommendations; avoid excess nitrogen late in bulb development.",
+        "waterAndWeeds": "Maintain steady moisture without waterlogging and control weeds early, as onions compete poorly when small.",
+        "pestsAndDiseases": "Scout for thrips, downy mildew, purple blotch, and basal rot; remove diseased plants and seek diagnosis.",
+        "harvestAndStorage": "Harvest when bulbs mature according to local guidance, cure in a dry ventilated place, and store sorted bulbs dry.",
+        "records": "Record seed lot, nursery dates, transplanting, irrigation, pest scouting, curing, and storage losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sweet-potatoes",
+      "name": "Sweet Potatoes",
+      "scientificName": "Ipomoea batatas",
+      "group": "Root and tuber",
+      "summary": "A root crop grown from vines or cuttings. Clean planting material, soil moisture, and careful harvest help reduce disease and damage.",
+      "photoSearch": "sweet potato crop field leaves",
+      "guide": {
+        "siteSelection": "Select a locally recommended variety and well-drained site with soil suited to root formation.",
+        "landPreparation": "Prepare ridges or mounds where locally appropriate and remove persistent weeds before planting.",
+        "planting": "Use healthy, pest-free vine cuttings from a known source and follow local guidance on spacing and planting window.",
+        "nutrition": "Use soil-test and local extension advice; avoid excessive nitrogen that can favor vine growth over roots.",
+        "waterAndWeeds": "Keep the crop weed-free during establishment and maintain moisture while avoiding waterlogging.",
+        "pestsAndDiseases": "Scout for sweet potato weevils, virus-like leaf symptoms, and rots; avoid moving infected vines between farms.",
+        "harvestAndStorage": "Lift roots carefully at maturity, cure and sort as locally advised, and protect from cuts, heat, and moisture.",
+        "records": "Record variety, vine source, planting date, pest observations, harvest size, and storage or marketing losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "cassava",
+      "name": "Cassava",
+      "scientificName": "Manihot esculenta",
+      "group": "Root and tuber",
+      "summary": "A staple root crop propagated by stem cuttings. Planting-material health and safe post-harvest processing are essential.",
+      "photoSearch": "cassava crop field plants",
+      "guide": {
+        "siteSelection": "Choose a locally suitable variety and a field with drainage; consider the planned harvest age and market.",
+        "landPreparation": "Prepare planting stations or ridges as locally advised and conserve soil on sloping land.",
+        "planting": "Use healthy cuttings from known, disease-managed sources and follow local guidance on cutting size and spacing.",
+        "nutrition": "Use soil tests and local recommendations; maintain rotation and organic matter rather than relying on repeated nutrient removal.",
+        "waterAndWeeds": "Control weeds during establishment and keep drainage functional. Monitor drought stress in young plants.",
+        "pestsAndDiseases": "Inspect for cassava mosaic and brown streak-like symptoms, mealybugs, and mites; do not distribute suspect cuttings.",
+        "harvestAndStorage": "Harvest roots carefully when suited to the variety and market. Process promptly using established safe methods; fresh roots do not store long.",
+        "records": "Record variety, cutting source, planting dates, disease signs, harvest age, and processing or sales."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "scientificName": "Brassica oleracea var. capitata",
+      "group": "Vegetable",
+      "summary": "A brassica vegetable grown from seedlings or direct seed. Rotation and regular scouting help manage caterpillars and leaf diseases.",
+      "photoSearch": "cabbage crop field",
+      "guide": {
+        "siteSelection": "Choose a locally suitable variety, reliable water, and a field rotated away from brassicas.",
+        "landPreparation": "Prepare a fertile, well-drained bed and use healthy seedlings from a trusted source.",
+        "planting": "Follow local guidance for nursery, transplant age, spacing, and planting season.",
+        "nutrition": "Use soil-test results and locally recommended brassica nutrition; avoid blanket fertilizer rates.",
+        "waterAndWeeds": "Maintain consistent moisture, control weeds early, and avoid waterlogging.",
+        "pestsAndDiseases": "Scout for diamondback moth, aphids, caterpillars, black rot, and clubroot; confirm symptoms before treatment.",
+        "harvestAndStorage": "Harvest firm heads at market maturity, handle gently, shade promptly, and remove damaged leaves.",
+        "records": "Record seed source, transplant date, pest scouting, crop protection decisions, harvest grade, and losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "kale",
+      "name": "Kale",
+      "scientificName": "Brassica oleracea var. acephala",
+      "group": "Leafy vegetable",
+      "summary": "A leafy brassica harvested over multiple pickings. Regular leaf inspection and clean harvest practices support quality.",
+      "photoSearch": "kale crop field plants",
+      "guide": {
+        "siteSelection": "Select a suitable variety and a well-drained site with dependable water; rotate away from brassicas where feasible.",
+        "landPreparation": "Prepare a fine seedbed or transplant bed and remove weeds before establishment.",
+        "planting": "Use healthy seed or seedlings and follow local spacing and harvest-system advice.",
+        "nutrition": "Base nutrient additions on soil tests and locally recommended leafy-crop guidance.",
+        "waterAndWeeds": "Maintain even moisture, manage weeds early, and avoid prolonged wet foliage where possible.",
+        "pestsAndDiseases": "Inspect leaf undersides for aphids and caterpillars and scout for leaf spots and downy mildew; confirm unusual signs.",
+        "harvestAndStorage": "Harvest leaves cleanly and repeatedly without damaging the growing point; keep produce shaded and cool.",
+        "records": "Record variety, planting, harvest rounds, pest observations, market grade, and post-harvest handling."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "spinach",
+      "name": "Spinach",
+      "scientificName": "Spinacia oleracea",
+      "group": "Leafy vegetable",
+      "summary": "A leafy vegetable requiring clean water, fertile soil, and gentle handling. Locally grown amaranths and other greens are different crops.",
+      "photoSearch": "spinach crop field plants",
+      "guide": {
+        "siteSelection": "Choose a cool-enough local planting window, well-drained bed, and clean irrigation source.",
+        "landPreparation": "Prepare a fine seedbed with good drainage and remove weeds before sowing.",
+        "planting": "Use fresh, quality seed and follow local recommendations for spacing and successive sowing.",
+        "nutrition": "Use soil-test guidance and safe, well-managed organic amendments; avoid fresh manure near harvest.",
+        "waterAndWeeds": "Keep moisture even, avoid waterlogging, and control weeds without contaminating leaves.",
+        "pestsAndDiseases": "Scout for leaf miners, aphids, leaf spots, and downy mildew; remove badly affected material and confirm diagnosis.",
+        "harvestAndStorage": "Harvest clean leaves at the desired size, avoid soil contamination, shade promptly, and market quickly.",
+        "records": "Record seed lot, sowing dates, water source, harvest rounds, hygiene checks, and rejected produce."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "carrots",
+      "name": "Carrots",
+      "scientificName": "Daucus carota subsp. sativus",
+      "group": "Root vegetable",
+      "summary": "A root crop that benefits from a fine, stone-free seedbed and even moisture during root formation.",
+      "photoSearch": "carrot crop field roots",
+      "guide": {
+        "siteSelection": "Choose a deep, loose, well-drained site and a variety suitable for local soil and market needs.",
+        "landPreparation": "Remove stones and clods and prepare a fine seedbed; compact or shallow soil can distort roots.",
+        "planting": "Sow clean seed at the locally advised spacing and thin carefully if required.",
+        "nutrition": "Use soil tests and local recommendations; avoid excessive fresh manure or nitrogen that can impair root quality.",
+        "waterAndWeeds": "Maintain even moisture during germination and root expansion and control weeds early.",
+        "pestsAndDiseases": "Scout for leaf diseases, nematode damage, and root rots; use rotation and confirm the cause of poor roots.",
+        "harvestAndStorage": "Lift roots carefully at market size, remove excess soil without injury, and store cool and humid as locally advised.",
+        "records": "Record variety, seed date, thinning, irrigation, root grading, and storage losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sweet-peppers",
+      "name": "Sweet Peppers",
+      "scientificName": "Capsicum annuum",
+      "group": "Vegetable",
+      "summary": "A fruiting vegetable that needs healthy seedlings, steady moisture, and scouting for sap-feeding pests and fruit disease.",
+      "photoSearch": "sweet pepper bell pepper crop field",
+      "guide": {
+        "siteSelection": "Select a locally suitable variety and a well-drained field rotated away from other solanaceous crops.",
+        "landPreparation": "Prepare beds with drainage and use healthy, hardened seedlings.",
+        "planting": "Transplant at the locally recommended age and spacing; provide support where the variety or system needs it.",
+        "nutrition": "Use soil tests and crop-stage recommendations; avoid unbalanced inputs and fertilizer contact with roots.",
+        "waterAndWeeds": "Maintain regular moisture without waterlogging, mulch where suitable, and control weeds early.",
+        "pestsAndDiseases": "Scout for thrips, aphids, whiteflies, bacterial spots, and fruit rots; remove suspect plants and seek diagnosis.",
+        "harvestAndStorage": "Harvest fruit at the required color and maturity, handle gently, shade, and sort damaged produce.",
+        "records": "Record variety, transplant date, irrigation, pest scouting, market maturity, and harvest grade."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "avocados",
+      "name": "Avocados",
+      "scientificName": "Persea americana",
+      "group": "Fruit tree",
+      "summary": "A perennial fruit crop. Variety, rootstock, pollination, drainage, and buyer maturity standards should be matched to the production area.",
+      "photoSearch": "avocado orchard fruit tree",
+      "guide": {
+        "siteSelection": "Choose suitable varieties for the local climate and market, with deep drainage and protection from damaging winds.",
+        "landPreparation": "Plan orchard spacing, access, drainage, and erosion control before planting.",
+        "planting": "Use healthy, true-to-type planting material from a reliable source and follow local orchard-establishment advice.",
+        "nutrition": "Use soil and leaf analysis where available; base nutrient and lime decisions on orchard age and local recommendations.",
+        "waterAndWeeds": "Protect young trees from moisture stress while preventing waterlogging; keep mulch away from trunks and manage orchard cover.",
+        "pestsAndDiseases": "Scout for root rots, fruit flies, borers, and leaf or fruit diseases; use sanitation and get a confirmed diagnosis.",
+        "harvestAndStorage": "Harvest at maturity standards set for the variety and buyer, avoid fruit injury, and handle and transport in shade.",
+        "records": "Track variety, tree age, flowering, orchard inputs, pest observations, harvest maturity, and buyer quality feedback."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "mangoes",
+      "name": "Mangoes",
+      "scientificName": "Mangifera indica",
+      "group": "Fruit tree",
+      "summary": "A perennial fruit crop with variety-specific flowering, harvest, and market requirements. Orchard hygiene helps reduce pest and disease pressure.",
+      "photoSearch": "mango orchard fruit tree",
+      "guide": {
+        "siteSelection": "Select variety and planting material suited to local rainfall, soil drainage, orchard spacing, and intended market.",
+        "landPreparation": "Plan drainage, access, wind protection, and erosion control before establishing trees.",
+        "planting": "Use healthy grafted or otherwise locally recommended planting material and extension guidance for establishment and pruning.",
+        "nutrition": "Use soil-test guidance and recommendations that consider tree age, flowering, and harvest; avoid generic rates.",
+        "waterAndWeeds": "Maintain young-tree moisture, protect the root zone, and manage ground cover without damaging roots.",
+        "pestsAndDiseases": "Scout for fruit flies, powdery mildew, anthracnose, and scale insects; remove fallen fruit and seek local diagnosis.",
+        "harvestAndStorage": "Harvest at variety- and buyer-appropriate maturity, prevent latex and bruising damage, and keep fruit shaded.",
+        "records": "Record variety, tree age, flowering, pest monitoring, harvest grade, and post-harvest losses."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "citrus",
+      "name": "Citrus",
+      "scientificName": "Citrus spp.",
+      "group": "Fruit tree",
+      "summary": "A group of perennial fruit crops. Species, rootstock, local disease status, and market maturity affect orchard choices.",
+      "photoSearch": "citrus orchard orange lemon tree",
+      "guide": {
+        "siteSelection": "Identify the citrus species and choose locally recommended planting material and a well-drained site.",
+        "landPreparation": "Plan orchard layout, drainage, access, and wind protection before planting.",
+        "planting": "Use healthy certified or otherwise trusted nursery stock and follow local guidance for spacing and pruning.",
+        "nutrition": "Use soil tests and citrus-specific recommendations; do not copy rates from another orchard or crop.",
+        "waterAndWeeds": "Manage irrigation and orchard floor cover to protect roots and prevent waterlogging.",
+        "pestsAndDiseases": "Inspect leaves, branches, and fruit for citrus canker-like lesions, greening-like symptoms, scale, and fruit flies; report suspected regulated disease.",
+        "harvestAndStorage": "Harvest by variety and buyer maturity standards, avoid fruit injury, and store and transport in clean shaded conditions.",
+        "records": "Record species, nursery source, tree age, disease scouting, harvest timing, and fruit grade."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sesame",
+      "name": "Sesame",
+      "scientificName": "Sesamum indicum",
+      "group": "Oilseed",
+      "summary": "An oilseed crop with small seed and maturity-sensitive harvest. Variety and planting time should fit local rainfall and buyer requirements.",
+      "photoSearch": "sesame crop field plants",
+      "guide": {
+        "siteSelection": "Choose a locally adapted variety and well-drained field with a suitable rotation history.",
+        "landPreparation": "Prepare a fine seedbed for uniform emergence while conserving soil moisture.",
+        "planting": "Use quality seed and local advice on planting time, seed rate, spacing, and thinning.",
+        "nutrition": "Use soil tests and locally calibrated oilseed recommendations; avoid untested fertilizer rates.",
+        "waterAndWeeds": "Control weeds early and maintain drainage; monitor moisture during establishment and flowering.",
+        "pestsAndDiseases": "Scout for capsule feeders, leaf spots, and wilt; confirm signs and seek local advice before treatment.",
+        "harvestAndStorage": "Harvest at the locally recommended maturity to limit shattering, dry bundles or seed safely, and store clean and dry.",
+        "records": "Record variety, seed source, planting window, pest signs, harvest timing, and seed cleanliness."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "castor",
+      "name": "Castor",
+      "scientificName": "Ricinus communis",
+      "group": "Oilseed",
+      "summary": "An oilseed crop with important handling and toxicity considerations. Keep castor seed and plant parts away from children and livestock.",
+      "photoSearch": "castor oil plant crop field",
+      "guide": {
+        "siteSelection": "Confirm commercial suitability, locally approved variety, and buyer arrangements before production.",
+        "landPreparation": "Prepare a well-drained planting site and plan safe access and separation from food or feed handling areas.",
+        "planting": "Use reliable seed and follow local guidance for planting window, spacing, and crop establishment.",
+        "nutrition": "Use soil tests and crop-specific local recommendations.",
+        "waterAndWeeds": "Manage weeds during establishment and maintain drainage; monitor moisture without over-irrigating.",
+        "pestsAndDiseases": "Scout for capsule pests, leaf spots, and wilt; obtain diagnosis and follow official crop-protection guidance.",
+        "harvestAndStorage": "Use protective handling, keep seed contained, and store securely away from children, food, and livestock feed.",
+        "records": "Record seed source, field location, worker safety procedures, harvest lots, and secure storage."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sugarcane",
+      "name": "Sugarcane",
+      "scientificName": "Saccharum officinarum and commercial hybrids",
+      "group": "Cash crop",
+      "summary": "A long-duration crop usually linked to a mill or local processing market. Variety, planting material, water, and delivery arrangements are essential.",
+      "photoSearch": "sugarcane crop field",
+      "guide": {
+        "siteSelection": "Confirm local suitability, water availability, soil drainage, mill or buyer terms, and transport before planting.",
+        "landPreparation": "Prepare rows and drainage according to the production system and conserve soil on slopes.",
+        "planting": "Use clean, recommended setts or planting material and follow local guidance for row layout and planting season.",
+        "nutrition": "Use soil testing and local cane recommendations; coordinate nutrient timing with crop stage and water access.",
+        "waterAndWeeds": "Manage irrigation and drainage as advised locally and keep the field weed-managed during establishment.",
+        "pestsAndDiseases": "Scout for borers, smut, mosaic symptoms, and stalk rots; use clean planting material and report unusual disease.",
+        "harvestAndStorage": "Harvest and deliver according to mill or buyer schedules; minimize delay and contamination after cutting.",
+        "records": "Track variety, sett source, ratoon number, input use, harvest weight, delivery time, and buyer deductions."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "tobacco",
+      "name": "Tobacco",
+      "scientificName": "Nicotiana tabacum",
+      "group": "Cash crop",
+      "summary": "A regulated contract and market crop in many areas. Follow current government, buyer, worker-safety, and environmental requirements.",
+      "photoSearch": "tobacco crop field plants",
+      "guide": {
+        "siteSelection": "Confirm current local regulations, buyer contract, variety, rotation, and curing facilities before planting.",
+        "landPreparation": "Prepare nursery and field sites with drainage and soil conservation suited to local guidance.",
+        "planting": "Use approved seed and healthy seedlings and follow the buyer and extension service's current schedule and spacing advice.",
+        "nutrition": "Use soil tests and crop-specific official recommendations; avoid excess inputs and protect water sources.",
+        "waterAndWeeds": "Manage moisture and weeds with locally approved practices; avoid contamination of nearby crops and water.",
+        "pestsAndDiseases": "Scout for caterpillars, aphids, wilt, and leaf disease; use only registered products and follow all safety requirements.",
+        "harvestAndStorage": "Harvest and cure according to the contracted system, maintain ventilation and fire safety, and protect cured leaf from moisture.",
+        "records": "Keep contract, seed, input, worker safety, pesticide label, curing, and sales records."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "sisal",
+      "name": "Sisal",
+      "scientificName": "Agave sisalana",
+      "group": "Fibre crop",
+      "summary": "A perennial fibre crop whose establishment and leaf processing are location- and market-specific. Worker safety during cutting and processing matters.",
+      "photoSearch": "sisal plantation crop field",
+      "guide": {
+        "siteSelection": "Confirm suitability, planting material, land tenure, processing access, and buyer arrangements with local extension services.",
+        "landPreparation": "Plan rows, access paths, drainage, and erosion control for the plantation lifespan.",
+        "planting": "Use healthy planting material and locally advised spacing and establishment methods.",
+        "nutrition": "Use local soil and crop guidance; avoid fertilizer decisions based solely on another plantation.",
+        "waterAndWeeds": "Control weeds around young plants and maintain field access and drainage.",
+        "pestsAndDiseases": "Inspect plants for rot, leaf damage, and unusual decline; report suspected disease and use clean planting material.",
+        "harvestAndStorage": "Harvest leaves at locally advised maturity and process with safe equipment and protective practices.",
+        "records": "Record planting source, block and plant age, harvest cycles, worker safety, processing, and fibre quality."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "pyrethrum",
+      "name": "Pyrethrum",
+      "scientificName": "Tanacetum cinerariifolium",
+      "group": "Cash crop / botanical crop",
+      "summary": "A flowering crop grown for pyrethrin-containing flowers. Variety, harvest standard, processing, and buyer requirements are locally specific.",
+      "photoSearch": "pyrethrum flower field crop",
+      "guide": {
+        "siteSelection": "Confirm elevation, climate, variety, buyer requirements, and suitability with local pyrethrum extension services.",
+        "landPreparation": "Prepare a weed-managed, well-drained site and plan field access for repeated flower picking.",
+        "planting": "Use recommended seed or seedlings from a reliable source and follow local guidance for nursery, spacing, and planting date.",
+        "nutrition": "Use soil-test results and pyrethrum-specific local recommendations; do not copy fertilizer rates from other crops.",
+        "waterAndWeeds": "Manage weeds during establishment and maintain suitable moisture and drainage for the local production system.",
+        "pestsAndDiseases": "Scout for flower, leaf, and root disease or pest damage and seek diagnosis before selecting control measures.",
+        "harvestAndStorage": "Pick flowers at the buyer- and extension-recommended stage, dry and handle them safely, and protect dried material from moisture and contamination.",
+        "records": "Record seed source, planting, flower-picking rounds, dry-flower quality, processing, and buyer feedback."
+      },
+      "sourceIds": ["tari", "tphpa", "tma"]
+    },
+    {
+      "id": "timber",
+      "name": "Timber trees",
+      "scientificName": "Species varies by tree and production system",
+      "group": "Agroforestry / forestry",
+      "summary": "Timber is a group of tree species rather than one crop. Species suitability, permits, rotation, and harvest rules must be verified locally.",
+      "photoSearch": "tree plantation timber forestry",
+      "guide": {
+        "siteSelection": "Identify the tree species and confirm land suitability, water needs, fire risk, and current forestry requirements.",
+        "landPreparation": "Plan spacing, access, firebreaks, soil protection, and compatible crops or grazing before establishment.",
+        "planting": "Use healthy seedlings from a reliable nursery and follow forestry advice for planting season and spacing.",
+        "nutrition": "Base soil amendments on tests and species-specific forestry recommendations.",
+        "waterAndWeeds": "Protect seedlings from competition and drought; maintain safe firebreaks and avoid damage to neighboring habitats.",
+        "pestsAndDiseases": "Monitor seedlings and stands for dieback, borers, and leaf disease; seek forestry-extension diagnosis.",
+        "harvestAndStorage": "Confirm permits and sustainable harvest rules before cutting. Store and transport logs safely and according to legal requirements.",
+        "records": "Record species, seedling source, planting date, block map, survival, thinning, permits, and harvest."
+      },
+      "sourceIds": ["tari", "tfs", "tma"]
+    }
+  ],
+  "livestock": [
+    {
+      "id": "cattle",
+      "name": "Cattle",
+      "scientificName": "Bos taurus / Bos indicus",
+      "photoSearch": "cattle herd farm Tanzania",
+      "summary": "Keep separate plans for dairy, beef, draught, and breeding animals; body condition, water, forage availability, and disease risk vary by production system.",
+      "care": {
+        "feed": "Base the diet on safe forage or grazing, clean water, and a balanced supplement appropriate to age, pregnancy, lactation, and body condition. Introduce feed changes gradually; ask a livestock officer to formulate rations.",
+        "housing": "Provide shade, ventilation, dry resting areas, drainage, secure fencing, and enough space for animals to stand and lie. Clean water and feed troughs regularly.",
+        "health": "Maintain a relationship with a registered veterinarian or livestock extension officer. Follow official vaccination and parasite-control schedules for the district; isolate sick or newly introduced animals and record treatments and withdrawal periods.",
+        "breeding": "Record animal ID, service or bull exposure, pregnancy checks, calving, and calf outcomes. Seek timely assistance for difficult birth or retained placenta.",
+        "warningSigns": "Urgently seek veterinary help for inability to stand, breathing difficulty, severe bloat, bloody diarrhea, sudden milk drop with fever, abortion clusters, or unexplained deaths.",
+        "dailyRecords": "Record ID/tag, feed and water, health signs, treatments, milk or weight, breeding dates, calving, movement, and sales."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "goat",
+      "name": "Goats",
+      "scientificName": "Capra hircus",
+      "photoSearch": "goat farm herd",
+      "summary": "Adaptable browsers and grazers. Browse access, clean housing, parasite monitoring, and kid survival are key management areas.",
+      "care": {
+        "feed": "Provide safe browse or forage, clean water, and a mineral supplement suited to local advice. Pregnant, lactating, growing, and breeding goats have different needs; avoid sudden diet changes and mouldy feed.",
+        "housing": "Use dry, well-ventilated shelter with raised or well-drained resting areas, secure fencing, and space to separate kids, new arrivals, and sick animals.",
+        "health": "Follow district vaccination and parasite guidance. Inspect feet, coat, eyelids, appetite, and feces; quarantine new arrivals and seek advice before deworming.",
+        "breeding": "Record buck access, mating dates, pregnancy checks, kidding, litter size, and kid survival. Provide supervision and clean dry areas around kidding.",
+        "warningSigns": "Seek veterinary help for sudden weakness, severe diarrhea, respiratory distress, neurological signs, swollen jaw, abortion clusters, or rapid deaths.",
+        "dailyRecords": "Track tag, age, body condition, feed, parasite signs, treatment, mating, kidding, kid growth, and sales."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "sheep",
+      "name": "Sheep",
+      "scientificName": "Ovis aries",
+      "photoSearch": "sheep flock farm",
+      "summary": "Flock management needs vary by meat, wool, and breeding purpose. Parasite control, foot care, lambing preparation, and clean forage matter.",
+      "care": {
+        "feed": "Provide good-quality forage or grazing, clean water, and supplements based on growth, pregnancy, lactation, and body condition. Use only locally appropriate mineral mixes.",
+        "housing": "Keep shelter dry and ventilated with secure fencing, clean bedding, adequate space, and separate pens for lambing, quarantine, and sick animals.",
+        "health": "Follow local vaccination and parasite advice. Monitor feet, fleece/coat, appetite, body condition, and lamb growth; have treatments prescribed or confirmed by a qualified animal-health worker.",
+        "breeding": "Record ram joining dates, lambing, litter size, lamb identification, and survival. Prepare a clean, quiet lambing area.",
+        "warningSigns": "Seek veterinary help for sudden death, severe lameness, bloat, breathing difficulty, neurological signs, abortion clusters, or lambs unable to suck.",
+        "dailyRecords": "Record flock IDs, feed, body condition, parasite signs, treatments, mating, lambing, growth, and sales."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "chicken",
+      "name": "Chickens",
+      "scientificName": "Gallus gallus domesticus",
+      "photoSearch": "chicken poultry flock farm",
+      "summary": "For broilers, layers, and indigenous birds, use a plan suited to breed, production stage, housing, and local disease risk.",
+      "care": {
+        "feed": "Use a complete feed appropriate to chick, grower, layer, or broiler stage. Provide clean water continuously; store feed dry and protected from rodents and mould. Do not use unbalanced scraps as the sole ration.",
+        "housing": "Provide dry litter, ventilation without chilling drafts, predator protection, suitable stocking density, clean drinkers, and a brooding area with age-appropriate warmth.",
+        "health": "Obtain a vaccination schedule from a veterinarian or livestock extension office. Keep a closed-flock or controlled-entry approach, quarantine arrivals, clean equipment, and report sudden mortality.",
+        "breeding": "For breeding flocks, record parent groups, egg collection, fertility, incubation, hatch, and chick losses. Keep hatchery hygiene and egg handling controlled.",
+        "warningSigns": "Seek urgent advice for sudden deaths, gasping, twisted necks, green or bloody diarrhea, sharp drops in feed/water intake, or a rapid egg-production decline.",
+        "dailyRecords": "Record flock age, number alive, feed and water, egg count, vaccination, mortality, symptoms, and treatments."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "duck",
+      "name": "Ducks",
+      "scientificName": "Anas platyrhynchos domesticus",
+      "photoSearch": "duck flock farm poultry",
+      "summary": "Ducks can be raised for eggs or meat; access to clean drinking water and dry resting areas is more important than a pond.",
+      "care": {
+        "feed": "Use balanced waterfowl feed suitable for age and purpose with uninterrupted clean drinking water. Prevent feed from becoming wet, mouldy, or contaminated.",
+        "housing": "Provide a dry, ventilated, predator-proof house, absorbent bedding, safe outdoor area, and water containers designed to limit wet litter.",
+        "health": "Use veterinary guidance for vaccination and disease prevention; quarantine new birds, clean equipment, and avoid mixing unknown flocks.",
+        "breeding": "Track breeding groups, egg collection, incubation, hatch, and duckling survival. Use clean nesting and incubation practices.",
+        "warningSigns": "Seek help for sudden deaths, inability to walk, breathing problems, neurological signs, or rapid declines in eating, drinking, or laying.",
+        "dailyRecords": "Record age, flock count, feed and water, egg count, hatch, mortality, and any treatment."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "turkey",
+      "name": "Turkeys",
+      "scientificName": "Meleagris gallopavo",
+      "photoSearch": "turkey flock poultry farm",
+      "summary": "Turkeys require careful brooding and biosecurity and should not automatically share housing or equipment with other poultry.",
+      "care": {
+        "feed": "Provide complete feed formulated for turkey growth stage. Ensure easy access to clean water and avoid feeding mouldy grain or an unbalanced diet.",
+        "housing": "Keep brooding conditions stable, litter dry, ventilation adequate, and predators excluded. Separate age groups and avoid mixed-species housing when disease risk is unclear.",
+        "health": "Ask a veterinarian about local vaccination and parasite plans. Clean and disinfect housing between flocks; isolate new or sick birds.",
+        "breeding": "Keep parent-bird, egg, hatch, and poult records. Handle eggs and young poults carefully and maintain clean incubation equipment.",
+        "warningSigns": "Seek advice for sudden mortality, poor coordination, respiratory signs, severe diarrhea, or poor growth across a group.",
+        "dailyRecords": "Record flock age and count, feed, water, mortality, vaccination, egg/hatch results, and treatments."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "quail",
+      "name": "Quail",
+      "scientificName": "Coturnix japonica and related domestic quail",
+      "photoSearch": "quail flock poultry farm",
+      "summary": "Small poultry requiring fine feed, secure housing, and careful temperature and hygiene management.",
+      "care": {
+        "feed": "Use a nutritionally complete feed designed for quail and life stage; particles must be suitable for small birds. Provide clean water and prevent feed spoilage.",
+        "housing": "Use secure, well-ventilated housing with appropriate floor or cage design, protection from drafts and predators, and regular manure and litter management.",
+        "health": "Source chicks or eggs responsibly, quarantine new stock, and obtain a local veterinary health plan. Clean drinkers and equipment consistently.",
+        "breeding": "Track breeder groups, egg production, fertility, incubation, hatch, and chick losses; keep incubators clean and stable.",
+        "warningSigns": "Seek help for sudden deaths, weakness, breathing signs, diarrhea, or rapid changes in egg production.",
+        "dailyRecords": "Track bird numbers, feed and water, egg counts, mortality, hatch performance, and any health actions."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "pig",
+      "name": "Pigs",
+      "scientificName": "Sus scrofa domesticus",
+      "photoSearch": "pig farm pigs livestock",
+      "summary": "Pig production depends on balanced feed, dry comfortable housing, clean water, and strict prevention of African swine fever spread.",
+      "care": {
+        "feed": "Use balanced pig feed matched to piglets, growers, finishers, or sows. Never feed unsafe swill containing animal products unless specifically permitted and properly treated under current government rules.",
+        "housing": "Provide shade, ventilation, dry lying space, secure fencing, drainage, and reliable clean water. Separate age groups and provide safe farrowing pens.",
+        "health": "Restrict visitors and animal movement, clean and disinfect equipment, quarantine arrivals, and contact authorities promptly for suspected African swine fever. Do not move or sell sick pigs.",
+        "breeding": "Record boar or insemination dates, pregnancy checks, farrowing, litter size, piglet identification, and weaning.",
+        "warningSigns": "Urgently report sudden deaths, high fever, red or purple skin, bleeding, abortion clusters, or rapid illness in several pigs.",
+        "dailyRecords": "Track IDs, feed, water, weight, mating, farrowing, mortality, movement, cleaning, and sales."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "rabbit",
+      "name": "Rabbits",
+      "scientificName": "Oryctolagus cuniculus",
+      "photoSearch": "rabbit farm livestock",
+      "summary": "Rabbits are sensitive to heat, sudden diet changes, and dirty housing; steady forage and clean water are essential.",
+      "care": {
+        "feed": "Provide clean forage or hay and a balanced rabbit ration as locally recommended. Introduce greens gradually, provide clean water, and avoid mouldy feed.",
+        "housing": "Keep housing cool, shaded, dry, ventilated, secure from predators, and easy to clean. Provide adequate space and suitable nesting boxes for kindling.",
+        "health": "Quarantine new rabbits, maintain hygiene, and obtain veterinary advice for local vaccination or parasite risks. Monitor teeth, feet, droppings, and appetite.",
+        "breeding": "Record mating, kindling, litter size, kit survival, and weaning. Avoid repeated breeding that compromises doe condition.",
+        "warningSigns": "Seek advice promptly for not eating, no droppings, severe diarrhea, breathing difficulty, head tilt, or sudden deaths.",
+        "dailyRecords": "Record animal ID, feed, water, body condition, mating, kindling, kit growth, and health observations."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "fish",
+      "name": "Farmed fish",
+      "scientificName": "Species varies by production system",
+      "photoSearch": "fish aquaculture pond tilapia farm",
+      "summary": "Pond and tank management is species- and water-system-specific. Water quality and stocking decisions need local fisheries guidance.",
+      "care": {
+        "feed": "Use species- and life-stage-appropriate aquaculture feed and a measured feeding plan. Remove excess feed and store feed dry; avoid polluting the water.",
+        "housing": "Maintain pond, cage, or tank integrity, safe water exchange, appropriate stocking, and escape prevention. Do not transfer fish or water between sites without biosecurity advice.",
+        "health": "Observe feeding, swimming, gills, skin, and mortality. Contact fisheries officers or aquatic animal-health specialists for unusual disease or deaths; do not use unapproved medicines.",
+        "breeding": "Record species, broodstock source, spawning, fry batches, grading, and transfers. Follow local hatchery and movement rules.",
+        "warningSigns": "Investigate rapid mortality, gasping at the surface, erratic swimming, lesions, or a sudden stop in feeding; check water quality and seek expert help.",
+        "dailyRecords": "Record water observations, feed quantity, stock counts, mortality, treatments, growth sampling, and harvest."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "bee-colony",
+      "name": "Bee colonies",
+      "scientificName": "Apis mellifera and locally kept bee species",
+      "photoSearch": "beehive apiary honey bee",
+      "summary": "Beekeeping requires safe hive placement, responsible handling, forage awareness, and protection from pesticide exposure.",
+      "care": {
+        "feed": "Maintain forage access across seasons. Supplement only when a trained beekeeper recommends it and use clean equipment; avoid contaminating honey supers.",
+        "housing": "Site hives away from public paths and livestock, secure them from fire and theft, and maintain safe inspection access and protective clothing.",
+        "health": "Inspect colonies using suitable protective gear and local guidance. Avoid moving colonies or using treatments without a trained beekeeper or extension recommendation.",
+        "breeding": "Record colony origin, queen status, swarming, splits, and replacement. Follow local rules for colony movement.",
+        "warningSigns": "Seek trained help for sudden colony loss, abnormal brood patterns, heavy pest infestation, or suspected pesticide poisoning. Report suspected poisoning through official channels.",
+        "dailyRecords": "Record hive ID and location, inspections, colony strength, queen observations, forage, treatments, honey harvest, and movement."
+      },
+      "sourceIds": ["tfs", "livestock-ministry", "tphpa"]
+    },
+    {
+      "id": "donkey",
+      "name": "Donkeys",
+      "scientificName": "Equus africanus asinus",
+      "photoSearch": "donkey farm livestock",
+      "summary": "Working equids need appropriate forage, clean water, rest, humane handling, and routine hoof and dental care.",
+      "care": {
+        "feed": "Provide adequate forage, clean water, and a balanced supplement only where needed. Feed changes should be gradual; avoid mouldy or contaminated feed.",
+        "housing": "Provide shade, dry shelter, secure fencing, clean bedding, and safe turnout. Do not tether in a way that risks injury or prevents access to water.",
+        "health": "Arrange routine veterinary checks, hoof care, dental assessment, and parasite advice. Clean equipment and avoid overloading or working an ill animal.",
+        "breeding": "Record jenny and jack identity, mating, pregnancy, foaling, and foal outcomes; seek veterinary support for difficult birth.",
+        "warningSigns": "Urgently seek help for colic signs, inability to bear weight, wounds, breathing distress, not eating, or sudden weakness.",
+        "dailyRecords": "Record animal ID, body condition, work and rest, feed and water, hoof care, illness, treatment, and movement."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "camel",
+      "name": "Camels",
+      "scientificName": "Camelus spp.",
+      "photoSearch": "camel herd farm livestock",
+      "summary": "Camel care varies by species, local environment, and production purpose. Use local veterinary and livestock-extension guidance.",
+      "care": {
+        "feed": "Provide locally available safe browse or forage and dependable clean water. Adjust feed to age, pregnancy, lactation, work, and body condition.",
+        "housing": "Provide shade, secure handling facilities, safe fencing, and dry resting areas; avoid crowding and allow appropriate movement.",
+        "health": "Use a veterinarian familiar with camels for routine health, vaccination, parasite, and movement advice. Quarantine new animals and record treatments.",
+        "breeding": "Record animal identity, mating dates, pregnancy checks, calving, and calf growth. Seek experienced help for handling and difficult births.",
+        "warningSigns": "Seek veterinary help for inability to stand, severe dehydration, breathing difficulty, wounds, sudden loss of appetite, or unexplained deaths.",
+        "dailyRecords": "Record ID, body condition, feed and water, work, health observations, treatment, breeding, and movement."
+      },
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "other",
+      "name": "Other farm animals",
+      "scientificName": "Species-specific",
+      "photoSearch": "farm animal livestock",
+      "summary": "Use this guide as a safety checklist for species not listed elsewhere; obtain species-specific husbandry advice before keeping or treating animals.",
+      "care": {
+        "feed": "Identify the species and life stage before feeding. Use a nutritionally suitable diet and clean water; avoid unfamiliar or mouldy feed.",
+        "housing": "Provide species-appropriate space, shelter, ventilation, fencing, and protection from predators and extreme weather.",
+        "health": "Ask a qualified veterinarian or livestock officer for species-specific vaccination, parasite, quarantine, and treatment guidance.",
+        "breeding": "Keep individual identification and breeding records and seek qualified advice before breeding unfamiliar species.",
+        "warningSigns": "Isolate animals with severe or rapidly worsening signs and contact an animal-health professional; report unusual deaths or suspected notifiable disease.",
+        "dailyRecords": "Record species, source, ID, feed, water, health observations, treatment, movement, and any production."
+      },
+      "sourceIds": ["livestock-ministry"]
+    }
+  ],
+  "threats": [
+    {
+      "id": "fall-armyworm",
+      "name": "Fall armyworm",
+      "scientificName": "Spodoptera frugiperda",
+      "type": "Insect pest",
+      "hosts": ["maize", "sorghum"],
+      "photoSearch": "fall armyworm caterpillar maize",
+      "symptoms": "Young larvae can cause window-pane scraping; larger larvae may leave ragged leaves and frass in the whorl. Similar damage can have other causes.",
+      "prevention": "Scout early and repeatedly, conserve natural enemies, remove volunteer host plants where advised, and use locally appropriate planting and crop sanitation practices.",
+      "response": "Check several plants across the field and record affected area and crop stage. Ask extension staff to confirm the pest. Use only current TPHPA-registered products when necessary and follow the specific label.",
+      "urgent": "Escalate widespread damage, uncertain identification, or rapidly worsening infestations to the local agricultural extension officer.",
+      "sourceIds": ["tphpa", "tari"]
+    },
+    {
+      "id": "tomato-leafminer",
+      "name": "Tomato leafminer",
+      "scientificName": "Tuta absoluta",
+      "type": "Insect pest",
+      "hosts": ["tomato", "potato"],
+      "photoSearch": "Tuta absoluta tomato leaf damage",
+      "symptoms": "Larvae make irregular mines in leaves and can damage shoots and fruit. Confirm the insect; other leafminers can look similar.",
+      "prevention": "Use healthy seedlings, monitor plants frequently, remove infested residues safely, rotate crops, and clean tools and containers.",
+      "response": "Use scouting and suitable traps only as advised locally. Seek extension diagnosis and check current TPHPA registration and label before considering crop protection products.",
+      "urgent": "Escalate rapidly spreading damage or suspected resistance to extension staff.",
+      "sourceIds": ["tphpa", "tari"]
+    },
+    {
+      "id": "maize-stalk-borer",
+      "name": "Maize stalk borers",
+      "scientificName": "Busseola fusca and related species",
+      "type": "Insect pest",
+      "hosts": ["maize", "sorghum", "pearl-millet", "finger-millet"],
+      "photoSearch": "maize stalk borer caterpillar",
+      "symptoms": "Shot holes, frass, tunnelling in stems, broken plants, or dead-heart symptoms can occur. Several borers and stresses may produce similar signs.",
+      "prevention": "Use locally recommended varieties and planting practices, scout young crops, manage crop residues using extension advice, and rotate where suitable.",
+      "response": "Split stems of affected plants to inspect for larvae and tunnels; report crop stage and affected area. Ask extension staff about locally suitable cultural or biological controls.",
+      "urgent": "Seek advice when damage spreads quickly or the crop is near a sensitive growth stage.",
+      "sourceIds": ["tphpa", "tari"]
+    },
+    {
+      "id": "bean-rust",
+      "name": "Bean rust",
+      "scientificName": "Uromyces appendiculatus",
+      "type": "Fungal disease",
+      "hosts": ["common-beans"],
+      "photoSearch": "bean rust leaf pustules",
+      "symptoms": "Small orange-brown pustules may appear, often on leaf undersides. Confirm carefully; nutrient injury and other leaf diseases can be confused with rust.",
+      "prevention": "Use clean seed and resistant varieties when locally available, rotate crops, manage volunteers, and avoid prolonged leaf wetness where possible.",
+      "response": "Record the field and affected plants and seek a diagnosis before treatment. Follow TPHPA guidance and product labels if a registered treatment is recommended.",
+      "urgent": "Escalate disease appearing early or spreading across multiple fields.",
+      "sourceIds": ["tphpa", "tari"]
+    },
+    {
+      "id": "maize-lethal-necrosis",
+      "name": "Maize lethal necrosis (suspected)",
+      "scientificName": "Maize chlorotic mottle virus with a potyvirus",
+      "type": "Viral disease",
+      "hosts": ["maize"],
+      "photoSearch": "maize lethal necrosis symptoms field",
+      "symptoms": "Chlorosis, mottling, leaf necrosis, stunting, and poor or absent ears may be seen. Visual symptoms alone are not confirmation.",
+      "prevention": "Use clean seed, control volunteer maize as advised, monitor vectors and crop hygiene, and use varieties and practices recommended by official local guidance.",
+      "response": "Do not move suspect plants or seed. Photograph symptoms, note field location and crop stage, and contact an extension officer or plant-health authority for confirmation.",
+      "urgent": "Report suspected outbreaks promptly to local plant-health authorities.",
+      "sourceIds": ["tphpa", "tari"]
+    },
+    {
+      "id": "late-blight",
+      "name": "Late blight",
+      "scientificName": "Phytophthora infestans",
+      "type": "Oomycete disease",
+      "hosts": ["potato", "tomato"],
+      "photoSearch": "potato late blight leaves",
+      "symptoms": "Water-soaked lesions that enlarge and darken can appear on leaves and stems; under humid conditions growth may appear at lesion edges. Confirmation is important.",
+      "prevention": "Use healthy planting material, rotate crops, remove infected volunteers as advised, improve airflow, and avoid unnecessary leaf wetness.",
+      "response": "Seek fast local diagnosis when disease spreads under wet conditions. Use registered products only when an extension officer recommends them and follow the label and pre-harvest interval.",
+      "urgent": "Escalate immediately when lesions spread rapidly in cool, wet weather.",
+      "sourceIds": ["tphpa", "tari", "tma"]
+    },
+    {
+      "id": "coffee-leaf-rust",
+      "name": "Coffee leaf rust",
+      "scientificName": "Hemileia vastatrix",
+      "type": "Fungal disease",
+      "hosts": ["coffee"],
+      "photoSearch": "coffee leaf rust orange pustules",
+      "symptoms": "Yellowish spots on leaf upper surfaces and orange powdery pustules below may occur, with leaf loss in severe cases.",
+      "prevention": "Maintain appropriate shade and pruning for the local system, use recommended varieties, and monitor during conducive weather.",
+      "response": "Ask coffee extension staff to confirm the disease and assess severity. Follow current local TPHPA-approved recommendations.",
+      "urgent": "Seek advice for defoliation or spread across neighboring coffee plots.",
+      "sourceIds": ["tphpa", "tari", "tma"]
+    },
+    {
+      "id": "ppr",
+      "name": "Peste des petits ruminants (PPR) — suspected",
+      "scientificName": "Peste des petits ruminants virus",
+      "type": "Livestock disease",
+      "hosts": ["goat", "sheep"],
+      "photoSearch": "goat sheep flock veterinary",
+      "symptoms": "Fever, eye or nose discharge, mouth lesions, breathing difficulty, diarrhea, and sudden illness in several small ruminants can be warning signs; other diseases can look similar.",
+      "prevention": "Follow official vaccination campaigns, quarantine arrivals, limit mixing and movement, and disinfect shared equipment.",
+      "response": "Isolate affected animals and contact a veterinarian or district livestock officer immediately. Do not move or sell sick animals.",
+      "urgent": "Treat suspected PPR as urgent and report it to animal-health authorities.",
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "fmd",
+      "name": "Foot-and-mouth disease (FMD) — suspected",
+      "scientificName": "Foot-and-mouth disease virus",
+      "type": "Livestock disease",
+      "hosts": ["cattle", "goat", "sheep", "pig"],
+      "photoSearch": "cattle foot and mouth disease lesions",
+      "symptoms": "Fever, excessive salivation, mouth blisters or sores, and lameness may occur. Clinical signs require official veterinary confirmation.",
+      "prevention": "Follow current government movement controls and vaccination advice. Maintain farm entry hygiene and avoid contact with neighboring herds during an alert.",
+      "response": "Immediately restrict animal movement and contact district veterinary authorities. Do not transport, sell, or slaughter affected animals unless directed by officials.",
+      "urgent": "Report suspected FMD immediately; movement restrictions may apply.",
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "newcastle",
+      "name": "Newcastle disease — suspected",
+      "scientificName": "Avian orthoavulavirus 1",
+      "type": "Poultry disease",
+      "hosts": ["chicken", "duck", "turkey", "quail"],
+      "photoSearch": "Newcastle disease poultry chicken",
+      "symptoms": "Respiratory, digestive, or nervous signs and sudden flock deaths may occur. Signs vary and cannot confirm the disease on their own.",
+      "prevention": "Follow a veterinarian-approved vaccination schedule, keep poultry housing and equipment clean, control visitors, and separate age groups.",
+      "response": "Isolate the flock, stop bird movement, and contact veterinary or district livestock services. Do not sell or give away sick or dead birds.",
+      "urgent": "Report sudden or unusual poultry deaths to local animal-health authorities.",
+      "sourceIds": ["livestock-ministry"]
+    },
+    {
+      "id": "african-swine-fever",
+      "name": "African swine fever (ASF) — suspected",
+      "scientificName": "African swine fever virus",
+      "type": "Livestock disease",
+      "hosts": ["pig"],
+      "photoSearch": "African swine fever pigs farm",
+      "symptoms": "Sudden high fever, weakness, skin discoloration, bleeding, abortions, or deaths can be warning signs. Laboratory and official veterinary assessment is required.",
+      "prevention": "Use strict visitor and equipment biosecurity, quarantine new pigs, avoid unsafe swill feeding, and follow current government rules on movement and disinfection.",
+      "response": "Stop movement of pigs and products, isolate the premises, and notify animal-health authorities immediately. Do not slaughter, sell, or dispose of carcasses without official instructions.",
+      "urgent": "ASF is notifiable in many jurisdictions; report suspicion immediately and follow Tanzania authority instructions.",
+      "sourceIds": ["livestock-ministry"]
+    }
+  ]
+}

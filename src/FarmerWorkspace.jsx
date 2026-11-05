@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AgrishopNetwork from './AgrishopNetwork';
 import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import ExportReadinessWorkspace from './ExportReadinessWorkspace';
@@ -21,6 +21,7 @@ import SpaceRentalWorkspace from './SpaceRentalWorkspace';
 import SprayDiaryWorkspace from './SprayDiaryWorkspace';
 import HarvestPredictionWorkspace from './HarvestPredictionWorkspace';
 import TrustVerificationWorkspace from './TrustVerificationWorkspace';
+import { api } from './lib/api';
 
 const workspaceDetails = {
   fields: { title: 'Digital Farm', icon: 'agriculture', description: 'Register fields and keep their crop and area records together.', recordType: 'fields', submitLabel: 'Add field', fields: [['name', 'Field name', 'text'], ['crop', 'Crop', 'text'], ['area', 'Area (acres)', 'number']] },
@@ -506,7 +507,7 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       onNavigate={onNavigate}
     />;
   }
-  if (['fields', 'production', 'farm-operations', 'activity'].includes(page)) {
+  if (['fields', 'production', 'farm-operations', 'activity', 'livestock'].includes(page)) {
     return <DigitalFarmPage
       page={page}
       user={user}
@@ -524,26 +525,8 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
     ? records.activities
     : page === 'listings'
       ? records.listings
-      : page === 'livestock'
-        ? records.livestock
-        : records[details.recordType].filter((record) => details.recordType !== 'requests' || record.module === page);
+      : records[details.recordType].filter((record) => details.recordType !== 'requests' || record.module === page);
   const seasonIncome = records.income.reduce((total, entry) => total + Number(entry.amount || 0), 0);
-
-  if (page === 'livestock') {
-    return <LivestockWorkspace
-      profile={profile}
-      records={records}
-      search={search}
-      onSearch={onSearch}
-      onRecordsChange={onRecordsChange}
-      onProfileSave={onProfileSave}
-      onBack={onBack}
-    />;
-  }
-
-  if (page === 'production') {
-    return <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={onBack} />;
-  }
 
   if (page === 'rent-space') {
     return <SpaceRentalWorkspace user={user} profile={profile} search={search} />;
@@ -690,6 +673,7 @@ function formatFarmDate(value, options = { month: 'short', day: 'numeric', year:
 
 const digitalFarmSections = [
   { id: 'fields', label: 'Fields', icon: 'agriculture' },
+  { id: 'livestock', label: 'Livestock & poultry', icon: 'pets' },
   { id: 'production', label: 'Farm profile', icon: 'eco' },
   { id: 'farm-operations', label: 'Farm operations', icon: 'groups_2' },
   { id: 'activity', label: 'Activity log', icon: 'fact_check' },
@@ -714,23 +698,58 @@ function DigitalFarmSectionNavigation({ activeSection, onNavigate }) {
   );
 }
 
+function GovernmentIntegrationStatus() {
+  return (
+    <aside className="digital-farm-government-status" role="note">
+      <strong>Official government services</strong>
+      <span>NIDA identity · TMA weather · TARI agricultural guidance</span>
+      <small>Live API access is not configured. No identity data is sent and no government verification or forecast is simulated; official API documentation and deployment credentials are required.</small>
+    </aside>
+  );
+}
+
 function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, onRetryFarmRecordsSync, onRecordsChange, onProfileSave, onNavigate }) {
   const [dialog, setDialog] = useState('');
+  const [farms, setFarms] = useState([]);
+  const [selectedFarmId, setSelectedFarmId] = useState('');
   const [selectedFieldId, setSelectedFieldId] = useState('');
   const [fieldDraft, setFieldDraft] = useState({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' });
   const [livestockDraft, setLivestockDraft] = useState({ species: '', breed: '', count: '1', age: '', earTag: '', health: 'healthy', lastWeight: '' });
   const [activityDraft, setActivityDraft] = useState({ category: farmActivityTypes[0][0], fieldId: '', date: localDateTimeValue(), details: '' });
   const [gpsStamp, setGpsStamp] = useState(null);
+  const [fieldGpsStamp, setFieldGpsStamp] = useState(null);
+  const [fieldPhoto, setFieldPhoto] = useState('');
+  const [fieldPhotoCapturedAt, setFieldPhotoCapturedAt] = useState('');
   const [activityPhoto, setActivityPhoto] = useState('');
+  const [activityPhotoCapturedAt, setActivityPhotoCapturedAt] = useState('');
   const [gpsMessage, setGpsMessage] = useState('');
   const [notice, setNotice] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState('all');
   const [fieldFilter, setFieldFilter] = useState('all');
-
+  const selectedFarm = farms.find((farm) => farm.farm_id === selectedFarmId);
   const fields = records.fields;
+  const farmFields = fields.filter((field) => field.farmId === selectedFarmId);
+  useEffect(() => {
+    let active = true;
+    api.listFarms()
+      .then((response) => {
+        if (!active) return;
+        const nextFarms = (Array.isArray(response.farms) ? response.farms : []).filter((farm) => farm.status !== 'pending');
+        setFarms(nextFarms);
+        setSelectedFarmId((current) => nextFarms.some((farm) => farm.farm_id === current)
+          ? current
+          : nextFarms.find((farm) => farm.role === 'owner')?.farm_id || nextFarms[0]?.farm_id || '');
+      })
+      .catch((error) => {
+        if (active) setNotice(`Farm IDs could not be loaded: ${error.message || 'account API unavailable'}.`);
+      });
+    return () => { active = false; };
+  }, [user?.user_id]);
   const livestockRecords = Array.isArray(records.livestock) ? records.livestock : [];
   const farmActivities = records.activities.filter((item) => item.module === 'activity' || (item.category && (item.fieldId || item.verification)));
+  const activeAnimalRecords = livestockRecords.filter((animal) => animal.module === 'livestock' && animal.status !== 'sold' && animal.status !== 'deceased');
+  const registeredAnimalCount = activeAnimalRecords.reduce((total, animal) => total + Math.max(0, Number(animal.count) || 0), 0);
   const acres = fields.reduce((total, field) => total + (Number(field.area) || 0), 0);
   const activeCrops = new Set(fields.map((field) => String(field.crop || '').trim().toLowerCase()).filter(Boolean)).size;
   const filteredActivities = farmActivities
@@ -768,9 +787,43 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
     setActivityDraft({ category: farmActivityTypes[0][0], fieldId: '', date: localDateTimeValue(), details: '' });
     setGpsStamp(null);
     setActivityPhoto('');
+    setActivityPhotoCapturedAt('');
     setGpsMessage('');
     setNotice('');
     setDialog('activity');
+  };
+
+  const captureFieldLocation = () => {
+    if (!navigator.geolocation) {
+      setGpsMessage('This browser does not support GPS location; a field cannot be saved without it.');
+      return;
+    }
+    setGpsMessage('Requesting current location. Allow access to continue.');
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      setFieldGpsStamp({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+        stampedAt: new Date().toISOString(),
+      });
+      setGpsMessage(`GPS captured · approximate accuracy ±${Math.round(coords.accuracy)} m${coords.accuracy > 50 ? ' · move outdoors for better accuracy' : ''}.`);
+    }, (error) => {
+      setFieldGpsStamp(null);
+      setGpsMessage(error.code === error.PERMISSION_DENIED
+        ? 'Location permission is required to add a field.'
+        : error.message || 'Could not capture field location.');
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  };
+
+  const updateFieldPhoto = async (file) => {
+    if (!file) return;
+    try {
+      setFieldPhoto(await compressFarmPhoto(file));
+      setFieldPhotoCapturedAt(new Date().toISOString());
+      setNotice('');
+    } catch (error) {
+      setNotice(error.message);
+    }
   };
 
   const saveField = (event) => {
@@ -778,20 +831,44 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
     const name = fieldDraft.name.trim();
     const crop = fieldDraft.crop.trim();
     const area = Number(fieldDraft.area);
-    if (!name || !crop || !Number.isFinite(area) || area <= 0) return;
+    if (!selectedFarm) {
+      setNotice('Create or select a farm with a Farm ID before adding fields.');
+      return;
+    }
+    if (!fieldGpsStamp || fieldGpsStamp.accuracy > 50
+      || Math.abs(Date.now() - Date.parse(fieldGpsStamp.stampedAt)) > 15 * 60 * 1000
+      || Math.abs(Date.parse(fieldGpsStamp.stampedAt) - Date.parse(fieldPhotoCapturedAt)) > 15 * 60 * 1000
+      || !fieldPhoto) {
+      setNotice('A fresh GPS stamp with accuracy within 50 m and a field photo are required.');
+      return;
+    }
+    if (!name || !crop || !Number.isFinite(area) || area <= 0) {
+      setNotice('Enter a field name, crop, and positive area.');
+      return;
+    }
     onRecordsChange('fields', [...fields, {
       ...fieldDraft,
       name,
       crop,
       area,
+      farmerId: user.user_id,
+      farmId: selectedFarm.farm_id,
+      gpsStamp: fieldGpsStamp,
+      photo: fieldPhoto,
+      photoAddedAt: fieldPhotoCapturedAt,
+      evidenceKind: 'geotagged',
+      verification: 'Device GPS and photo attached; not independently verified',
       id: createRecordId(),
       module: 'fields',
       status: 'Saved locally',
       createdAt: new Date().toISOString(),
     }]);
     setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' });
+    setFieldGpsStamp(null);
+    setFieldPhoto('');
+    setFieldPhotoCapturedAt('');
     setDialog('');
-    setNotice('Field record saved on this device. Add its boundary in the GIS map when ready.');
+    setNotice(`Field saved under Farmer ID ${user.user_id} and Farm ID ${selectedFarm.farm_id}. GPS and photo are device-reported evidence, not independent verification.`);
   };
 
   const saveLivestock = (event) => {
@@ -831,6 +908,7 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
     if (!file) return;
     try {
       setActivityPhoto(await compressFarmPhoto(file));
+      setActivityPhotoCapturedAt(new Date().toISOString());
       setNotice('');
     } catch (error) {
       setNotice(error.message);
@@ -839,14 +917,14 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
 
   const stampActivityLocation = () => {
     if (!navigator.geolocation) {
-      setGpsMessage('This browser does not support GPS location. You can still save as a manual entry.');
+      setGpsMessage('This browser does not support GPS location; an activity cannot be saved without it.');
       return;
     }
-    setGpsMessage('Requesting location. Allow access if you want to add a GPS stamp.');
+    setGpsMessage('Requesting current location. Allow access to continue.');
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setGpsStamp({ latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy, stampedAt: new Date().toISOString() });
-        setGpsMessage(`GPS stamp ready · approximate accuracy ±${Math.round(coords.accuracy)} m.`);
+        setGpsMessage(`GPS captured · approximate accuracy ±${Math.round(coords.accuracy)} m${coords.accuracy > 50 ? ' · move outdoors for better accuracy' : ''}.`);
       },
       (error) => {
         const reason = error.code === error.PERMISSION_DENIED
@@ -854,9 +932,10 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
           : error.code === error.POSITION_UNAVAILABLE
             ? 'Your location is unavailable.'
             : 'Location request timed out.';
-        setGpsMessage(`${reason} You can still save as a manual entry.`);
+        setGpsStamp(null);
+        setGpsMessage(`${reason} Location permission is required to save this activity.`);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   };
 
@@ -864,6 +943,17 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
     event.preventDefault();
     const field = fields.find((item) => item.id === activityDraft.fieldId);
     const activityDate = new Date(activityDraft.date);
+    if (!selectedFarm) {
+      setNotice('Create or select a farm with a Farm ID before logging activity.');
+      return;
+    }
+    if (!gpsStamp || gpsStamp.accuracy > 50
+      || Math.abs(Date.now() - Date.parse(gpsStamp.stampedAt)) > 15 * 60 * 1000
+      || Math.abs(Date.parse(gpsStamp.stampedAt) - Date.parse(activityPhotoCapturedAt)) > 15 * 60 * 1000
+      || !activityPhoto) {
+      setNotice('A fresh GPS stamp with accuracy within 50 m and an activity photo are required.');
+      return;
+    }
     if (Number.isNaN(activityDate.getTime())) {
       setNotice('Choose a valid activity date and time.');
       return;
@@ -873,22 +963,24 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
       module: 'activity',
       category: activityDraft.category,
       title: activityDraft.category,
+      farmerId: user.user_id,
+      farmId: selectedFarm.farm_id,
       fieldId: field?.id || '',
       fieldName: field?.name || '',
       details: activityDraft.details.trim(),
       date: activityDate.toISOString(),
       gpsStamp,
       photo: activityPhoto,
-      photoAddedAt: activityPhoto ? new Date().toISOString() : '',
-      verification: gpsStamp ? 'GPS stamped' : 'Manual entry',
+      photoAddedAt: activityPhotoCapturedAt,
+      evidenceKind: 'geotagged',
+      verification: 'Device GPS and photo attached; not independently verified',
     }]);
     setDialog('');
     setGpsStamp(null);
     setActivityPhoto('');
+    setActivityPhotoCapturedAt('');
     setGpsMessage('');
-    setNotice(activityPhoto
-      ? 'Activity and photo saved on this device. Photo time and location are farmer-provided and not verified.'
-      : 'Activity saved on this device without photo evidence.');
+    setNotice(`Activity saved under Farmer ID ${user.user_id} and Farm ID ${selectedFarm.farm_id}. Location and photo are device-reported, not independently verified.`);
   };
 
   const selectedField = fields.find((field) => field.id === selectedFieldId);
@@ -915,13 +1007,33 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
       <div className="digital-farm-section-shell">
         <header className="digital-farm-section-header">
           <span className="material-symbols-outlined">agriculture</span>
-          <div><strong>Digital Farm</strong><small>Fields, farm profile, operations, and activity in one workspace</small></div>
+          <div><strong>Digital Farm</strong><small>Fields, livestock, farm profile, operations, and activity in one workspace</small></div>
         </header>
         <DigitalFarmSectionNavigation activeSection={activeSection} onNavigate={onNavigate} />
+        <div className="digital-farm-identifiers">
+          <span><small>FARMER ID</small><strong>{user?.user_id || 'Unavailable'}</strong></span>
+          <label><small>ACTIVE FARM · FARM ID</small>
+            {farms.length ? <select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.farm_id}</option>)}</select> : <button type="button" onClick={() => onNavigate('farm-operations')}>Create a GPS-verified farm first</button>}
+          </label>
+        </div>
+        <GovernmentIntegrationStatus />
+        {notice && <div className="farmer-workspace-notice" role="status">{notice}</div>}
         {activeSection === 'production' ? (
           <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={() => onNavigate('fields')} />
         ) : activeSection === 'farm-operations' ? (
           <FarmOperationsWorkspace user={user} onBack={() => onNavigate('fields')} />
+        ) : activeSection === 'livestock' ? (
+          <LivestockWorkspace
+            profile={profile}
+            records={records}
+            farmerId={user?.user_id}
+            farmId={selectedFarmId}
+            search=""
+            onRecordsChange={onRecordsChange}
+            onProfileSave={onProfileSave}
+            onNavigate={onNavigate}
+            onBack={() => onNavigate('fields')}
+          />
         ) : (
           <FarmActivityLog
             user={user}
@@ -942,7 +1054,7 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
       <header className="digital-farm-heading">
         <div>
           <h1>Shamba Langu</h1>
-          <p>Manage your fields, track activities, and monitor your farm records.</p>
+          <p>Manage crops, herds, and flocks together—from field records to animal health and production.</p>
         </div>
         <div className="digital-farm-local-status">
           <span className="digital-farm-local-badge" aria-live="polite"><span className="material-symbols-outlined">{farmRecordsSyncStatus === 'synced' ? 'cloud_done' : farmRecordsSyncStatus === 'syncing' ? 'sync' : 'devices'}</span>{farmRecordSyncLabels[farmRecordsSyncStatus] || farmRecordSyncLabels.pending}</span>
@@ -951,6 +1063,13 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
         </div>
       </header>
       <DigitalFarmSectionNavigation activeSection={activeSection} onNavigate={onNavigate} />
+      <div className="digital-farm-identifiers">
+        <span><small>FARMER ID</small><strong>{user?.user_id || 'Unavailable'}</strong></span>
+        <label><small>ACTIVE FARM · FARM ID</small>
+          {farms.length ? <select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.farm_id}</option>)}</select> : <button type="button" onClick={() => onNavigate('farm-operations')}>Create a GPS-verified farm first</button>}
+        </label>
+      </div>
+      <GovernmentIntegrationStatus />
 
       <section className="digital-farm-stats" aria-label="Farm summary">
         <article className="digital-farm-stat">
@@ -968,6 +1087,11 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
           <strong>{farmActivities.length}</strong>
           <small>ACTIVITY LOGS</small>
         </article>
+        <button type="button" className="digital-farm-stat digital-farm-stat-button" onClick={() => onNavigate('livestock')}>
+          <span className="material-symbols-outlined">pets</span>
+          <strong>{registeredAnimalCount.toLocaleString()}</strong>
+          <small>REGISTERED ANIMALS &amp; BIRDS</small>
+        </button>
         <button type="button" className="digital-farm-log-card" onClick={openActivityDialog}>
           <span className="digital-farm-log-icon"><span className="material-symbols-outlined">add</span></span>
           <strong>Log New Activity</strong>
@@ -989,7 +1113,7 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
         <section className="digital-farm-fields">
           <div className="digital-farm-fields-heading">
             <h2>My Fields</h2>
-            <button type="button" onClick={() => { setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' }); setDialog('field'); }}>Add field</button>
+            <button type="button" onClick={() => { setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' }); setFieldGpsStamp(null); setFieldPhoto(''); setFieldPhotoCapturedAt(''); setGpsMessage(''); setNotice(''); setDialog('field'); }}>Add field</button>
           </div>
           {fields.length ? fields.map((field) => {
             const fieldActivities = farmActivities.filter((activity) => activity.fieldId === field.id);
@@ -997,7 +1121,7 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
               <article className="digital-farm-field-card" key={field.id}>
                 <div className="digital-farm-field-main">
                   <span className="digital-farm-crop-icon"><span className="material-symbols-outlined">eco</span></span>
-                  <div><h3>{field.name} — {field.crop}</h3><p>{Number(field.area || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} acres · {acresToHectares(field.area).toLocaleString(undefined, { maximumFractionDigits: 2 })} ha{field.plantedOn ? ` · Planted ${formatFarmDate(field.plantedOn, { month: 'short', day: 'numeric' })}` : ''}{field.expectedHarvest ? ` · Harvest ${formatFarmDate(field.expectedHarvest, { month: 'short', day: 'numeric' })}` : ''}</p></div>
+                  <div><h3>{field.name} — {field.crop}</h3><p>{Number(field.area || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} acres · {acresToHectares(field.area).toLocaleString(undefined, { maximumFractionDigits: 2 })} ha{field.plantedOn ? ` · Planted ${formatFarmDate(field.plantedOn, { month: 'short', day: 'numeric' })}` : ''}{field.expectedHarvest ? ` · Harvest ${formatFarmDate(field.expectedHarvest, { month: 'short', day: 'numeric' })}` : ''}</p><small>Farmer ID {field.farmerId || user?.user_id} · Farm ID {field.farmId || 'Not linked'}</small></div>
                 </div>
                 <div className="digital-farm-field-meta">
                   <span>{field.season || 'Season not set'}</span>
@@ -1023,7 +1147,10 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
       <section className="digital-farm-livestock">
         <div className="digital-farm-journal-heading">
           <div><h2>Livestock Register</h2><p>Farmer-entered animal or herd records</p></div>
-          <button type="button" onClick={() => setDialog('livestock')}><span className="material-symbols-outlined">add</span>Add livestock</button>
+          <div className="digital-farm-livestock-actions">
+            <button type="button" onClick={() => onNavigate('livestock')}>Open livestock &amp; poultry <span className="material-symbols-outlined">arrow_forward</span></button>
+            <button type="button" onClick={() => setDialog('livestock')}><span className="material-symbols-outlined">add</span>Add livestock</button>
+          </div>
         </div>
         {livestockRecords.length ? <div className="digital-farm-livestock-grid">{livestockRecords.map((animal) => (
           <article className="digital-farm-livestock-card" key={animal.id}>
@@ -1070,15 +1197,20 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
         <section className="digital-farm-dialog" role="dialog" aria-modal="true" aria-labelledby="digital-farm-dialog-title">
           <div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">{dialog === 'field' ? 'FIELD RECORD' : dialog === 'livestock' ? 'LIVESTOCK REGISTER' : 'FIELD JOURNAL'}</span><h2 id="digital-farm-dialog-title">{dialog === 'field' ? 'Add a field' : dialog === 'livestock' ? 'Add livestock record' : 'Log farm activity'}</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div>
           {dialog === 'field' ? <form onSubmit={saveField}>
+            {selectedFarm ? <p className="digital-farm-dialog-note">Farmer ID {user?.user_id} · Farm ID {selectedFarm.farm_id}</p> : <p className="digital-farm-dialog-note">Create a farm before adding a field. <button type="button" onClick={() => { setDialog(''); onNavigate('farm-operations'); }}>Open Farm Operations</button></p>}
             <label>Field name<input required value={fieldDraft.name} onChange={(event) => setFieldDraft((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. North field" /></label>
             <label>Crop<input required value={fieldDraft.crop} onChange={(event) => setFieldDraft((current) => ({ ...current, crop: event.target.value }))} placeholder="e.g. Maize" /></label>
             <label>Area (acres)<input required type="number" min="0.01" step="any" value={fieldDraft.area} onChange={(event) => setFieldDraft((current) => ({ ...current, area: event.target.value }))} /></label>
+            <button type="button" className="digital-farm-gps-button" onClick={captureFieldLocation}><span className="material-symbols-outlined">{fieldGpsStamp ? 'location_on' : 'my_location'}</span>{fieldGpsStamp ? `GPS captured · ±${Math.round(fieldGpsStamp.accuracy)} m` : 'Grant location & capture field GPS'}</button>
+            {gpsMessage && <p className="digital-farm-gps-message" role="status">{gpsMessage}</p>}
+            <label>Field location photo<input required type="file" accept="image/*" capture="environment" onChange={(event) => { updateFieldPhoto(event.target.files?.[0]); event.target.value = ''; }} /></label>
+            {fieldPhoto && <img className="digital-farm-photo-preview" src={fieldPhoto} alt="Selected field location evidence" />}
             <label>Planting date<input type="date" value={fieldDraft.plantedOn} onChange={(event) => setFieldDraft((current) => ({ ...current, plantedOn: event.target.value }))} /></label>
             <label>Expected harvest<input type="date" value={fieldDraft.expectedHarvest} onChange={(event) => setFieldDraft((current) => ({ ...current, expectedHarvest: event.target.value }))} /></label>
             <label>Season<input value={fieldDraft.season} onChange={(event) => setFieldDraft((current) => ({ ...current, season: event.target.value }))} placeholder="e.g. 2026 short rains" /></label>
             <label>Seed variety<input value={fieldDraft.seedVariety} onChange={(event) => setFieldDraft((current) => ({ ...current, seedVariety: event.target.value }))} placeholder="Optional" /></label>
             <label>Fertilizer / inputs<input value={fieldDraft.fertilizer} onChange={(event) => setFieldDraft((current) => ({ ...current, fertilizer: event.target.value }))} placeholder="Optional" /></label>
-            <p className="digital-farm-dialog-note">Saved on this device. Draw or trace its boundary separately in GIS. Field details are farmer-provided, not land-ownership proof.</p>
+            <p className="digital-farm-dialog-note">A current device GPS stamp (accuracy within 50 m) and field photo are required. They are farmer-provided evidence, not proof of land ownership or independent verification.</p>
             <button className="farmer-workspace-submit" type="submit"><span className="material-symbols-outlined">add</span>Save field</button>
           </form> : dialog === 'livestock' ? <form onSubmit={saveLivestock}>
             <label>Species<input required value={livestockDraft.species} onChange={(event) => setLivestockDraft((current) => ({ ...current, species: event.target.value }))} placeholder="e.g. cattle, goats, chickens" /></label>
@@ -1091,15 +1223,16 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
             <p className="digital-farm-dialog-note">This is a farmer-entered register and does not verify animal identity, ear tags, or health.</p>
             <button className="farmer-workspace-submit" type="submit"><span className="material-symbols-outlined">pets</span>Save livestock</button>
           </form> : <form onSubmit={saveActivity}>
+            <p className="digital-farm-dialog-note">Farmer ID {user?.user_id} · Farm ID {selectedFarm?.farm_id || 'Create a farm first'}</p>
             <label>Activity<select value={activityDraft.category} onChange={(event) => setActivityDraft((current) => ({ ...current, category: event.target.value }))}>{farmActivityTypes.map(([name]) => <option key={name}>{name}</option>)}</select></label>
-            <label>Field<select value={activityDraft.fieldId} onChange={(event) => setActivityDraft((current) => ({ ...current, fieldId: event.target.value }))}><option value="">Farm-wide / not specified</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.name} — {field.crop}</option>)}</select></label>
+            <label>Field<select value={activityDraft.fieldId} onChange={(event) => setActivityDraft((current) => ({ ...current, fieldId: event.target.value }))}><option value="">Farm-wide / not specified</option>{farmFields.map((field) => <option key={field.id} value={field.id}>{field.name} — {field.crop}</option>)}</select></label>
             <label>Date and time<input required type="datetime-local" value={activityDraft.date} onChange={(event) => setActivityDraft((current) => ({ ...current, date: event.target.value }))} /></label>
             <label>Notes<textarea value={activityDraft.details} onChange={(event) => setActivityDraft((current) => ({ ...current, details: event.target.value }))} placeholder="What work was done or observed?" /></label>
-            <button type="button" className="digital-farm-gps-button" onClick={stampActivityLocation}><span className="material-symbols-outlined">{gpsStamp ? 'location_on' : 'my_location'}</span>{gpsStamp ? `GPS ready · ±${Math.round(gpsStamp.accuracy)} m` : 'Add current GPS stamp'}</button>
+            <button type="button" className="digital-farm-gps-button" onClick={stampActivityLocation}><span className="material-symbols-outlined">{gpsStamp ? 'location_on' : 'my_location'}</span>{gpsStamp ? `GPS captured · ±${Math.round(gpsStamp.accuracy)} m` : 'Grant location & capture activity GPS'}</button>
             {gpsMessage && <p className="digital-farm-gps-message" role="status">{gpsMessage}</p>}
-            <label>Photo evidence (optional)<input type="file" accept="image/*" capture="environment" onChange={(event) => { updateActivityPhoto(event.target.files?.[0]); event.target.value = ''; }} /></label>
+            <label>Activity photo evidence<input required type="file" accept="image/*" capture="environment" onChange={(event) => { updateActivityPhoto(event.target.files?.[0]); event.target.value = ''; }} /></label>
             {activityPhoto && <img className="digital-farm-photo-preview" src={activityPhoto} alt="Selected farm activity evidence" />}
-            <p className="digital-farm-dialog-note">GPS is optional. Photos are compressed and saved on this device; the app does not verify when or where a photo was taken. Keep sensitive people or documents out of photos.</p>
+            <p className="digital-farm-dialog-note">A current device GPS stamp (accuracy within 50 m) and photo are required. They are device-reported evidence and not proof that the activity happened. Keep sensitive people or documents out of photos.</p>
             <button className="farmer-workspace-submit" type="submit"><span className="material-symbols-outlined">save</span>Save activity</button>
           </form>}
         </section>

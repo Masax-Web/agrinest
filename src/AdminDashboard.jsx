@@ -11,6 +11,7 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
   const [users, setUsers] = useState([]);
   const [audit, setAudit] = useState([]);
   const [integrations, setIntegrations] = useState([]);
+  const [locationReviews, setLocationReviews] = useState([]);
   const [messages, setMessages] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
@@ -22,16 +23,18 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
   const refresh = useCallback(async () => {
     setError('');
     try {
-      const [userResult, auditResult, integrationResult, messageResult] = await Promise.all([
+      const [userResult, auditResult, integrationResult, messageResult, locationReviewResult] = await Promise.all([
         api.getAdminUsers(filter ? { q: search, status: filter } : search ? { q: search } : {}),
         api.getAdminAudit(100),
         api.getAdminIntegrations(),
         api.getAdminMessages(),
+        api.getFarmLocationReviews(),
       ]);
       setUsers(userResult.users || []);
       setAudit(auditResult.entries || []);
       setIntegrations(integrationResult.integrations || []);
       setMessages(messageResult.messages || []);
+      setLocationReviews(locationReviewResult.reviews || []);
     } catch (requestError) {
       setError(requestError.message || 'Unable to load administrator data.');
     }
@@ -81,6 +84,7 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
   const sections = [
     ['users', 'manage_accounts', 'Users'],
     ['moderation', 'forum', 'Moderation'],
+    ['farm-locations', 'location_on', 'Farm location reviews'],
     ['integrations', 'tune', 'Integrations'],
     ['audit', 'history', 'Audit log'],
     ['settings', 'settings', 'Settings'],
@@ -164,6 +168,30 @@ export default function AdminDashboard({ user, onLogout, onOpenSecurity, onImper
                 ))}</tbody>
               </table>
               {!messages.length && <p className="admin-console-empty">No community messages to review.</p>}
+            </div>
+          )}
+
+          {section === 'farm-locations' && (
+            <div className="admin-console-table-wrap">
+              <p>Farm points registered within 50 m are allowed but flagged for review. Only farmer and farm IDs are shown here; no profile details or messaging access are exposed.</p>
+              <table className="admin-console-table">
+                <thead><tr><th>New farm / farmer</th><th>Nearby farm / farmer</th><th>Distance</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>{locationReviews.map((review) => (
+                  <tr key={review.review_id}>
+                    <td><strong>{review.new_farm_id}</strong><small>Farmer ID {review.new_farmer_id}</small></td>
+                    <td><strong>{review.nearby_farm_id}</strong><small>Farmer ID {review.nearby_farmer_id}</small></td>
+                    <td>{Math.round(Number(review.distance_m))} m</td>
+                    <td><span className={`admin-status ${review.status}`}>{review.status}</span></td>
+                    <td className="admin-console-row-actions">
+                      {review.status === 'pending' && <>
+                        <button type="button" disabled={busy} onClick={() => runAction(() => api.resolveFarmLocationReview(review.review_id, 'reviewed'))}>Reviewed</button>
+                        <button type="button" className="admin-secondary-button" disabled={busy} onClick={() => runAction(() => api.resolveFarmLocationReview(review.review_id, 'dismissed'))}>Dismiss</button>
+                      </>}
+                    </td>
+                  </tr>
+                ))}</tbody>
+              </table>
+              {!locationReviews.length && <p className="admin-console-empty">No farm location reviews are pending.</p>}
             </div>
           )}
 

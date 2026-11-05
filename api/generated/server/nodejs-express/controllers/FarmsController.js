@@ -17,13 +17,43 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/location-alerts', async (req, res) => {
+  try {
+    return res.json({ alerts: await FarmService.listFarmerLocationAlerts(req.authUser.user_id) });
+  } catch (error) {
+    return handleOperationError(res, error, 'listFarmerLocationAlerts');
+  }
+});
+
+router.get('/location-reviews', async (req, res) => {
+  if (!req.authUser.is_admin) return res.status(403).json({ error: 'admin_access_required' });
+  try {
+    return res.json({ reviews: await FarmService.listLocationReviews() });
+  } catch (error) {
+    return handleOperationError(res, error, 'listLocationReviews');
+  }
+});
+
+router.patch('/location-reviews/:reviewId', async (req, res) => {
+  if (!req.authUser.is_admin) return res.status(403).json({ error: 'admin_access_required' });
+  try {
+    const review = await FarmService.resolveLocationReview(
+      req.params.reviewId,
+      req.authUser.user_id,
+      req.body.status,
+    );
+    return res.json({ review });
+  } catch (error) {
+    return handleOperationError(res, error, 'resolveLocationReview');
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const farm = await FarmService.createFarm({ ...req.body, user_id: req.authUser.user_id });
-    res.status(201).json(farm);
-  } catch (err) {
-    console.error('FarmsController.create', err);
-    res.status(500).json({ error: 'db_error' });
+    return res.status(201).json(farm);
+  } catch (error) {
+    return handleOperationError(res, error, 'createFarm');
   }
 });
 

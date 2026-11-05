@@ -535,6 +535,9 @@ function sanitizeFarmerProfile(profile) {
       irrigationSettings: records.irrigationSettings || [],
       moistureReadings: records.moistureReadings || [],
     };
+    sanitized.farmRecords.fields = sanitized.farmRecords.fields.map(sanitizeGeotaggedFarmRecord);
+    sanitized.farmRecords.activities = sanitized.farmRecords.activities.map(sanitizeGeotaggedFarmRecord);
+    sanitized.farmRecords.livestock = sanitized.farmRecords.livestock.map(sanitizeGeotaggedFarmRecord);
   }
   for (const field of ['avatar', 'coverPhoto']) {
     const image = sanitized[field];
@@ -546,6 +549,38 @@ function sanitizeFarmerProfile(profile) {
   }
   if (Buffer.byteLength(JSON.stringify(sanitized), 'utf8') > 8_000_000) fail('profile_too_large', 413);
   return sanitized;
+}
+
+function sanitizeGeotaggedFarmRecord(record) {
+  if (record.evidenceKind !== 'geotagged') return record;
+  const gps = record.gpsStamp;
+  if (!gps || typeof gps !== 'object' || Array.isArray(gps)) fail('geotagged_location_required', 400);
+  const latitude = Number(gps.latitude);
+  const longitude = Number(gps.longitude);
+  const accuracy = Number(gps.accuracy);
+  const gpsTime = Date.parse(gps.stampedAt);
+  const photoTime = Date.parse(record.photoAddedAt);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90
+    || !Number.isFinite(longitude) || longitude < -180 || longitude > 180
+    || !Number.isFinite(accuracy) || accuracy < 0 || accuracy > 50
+    || !Number.isFinite(gpsTime)
+    || !Number.isFinite(photoTime)
+    || Math.abs(gpsTime - photoTime) > 15 * 60 * 1000) {
+    fail('invalid_geotagged_location', 400);
+  }
+  if (typeof record.farmerId !== 'string' || typeof record.farmId !== 'string'
+    || typeof record.photo !== 'string'
+    || record.photo.length > 700_000
+    || !/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]*={0,2}$/i.test(record.photo)) {
+    fail('geotagged_photo_required', 400);
+  }
+  const encoded = record.photo.slice(record.photo.indexOf(',') + 1);
+  const image = Buffer.from(encoded, 'base64');
+  if (!image.length || image.length > 550_000) fail('geotagged_photo_too_large', 400);
+  return {
+    ...record,
+    photoSha256: crypto.createHash('sha256').update(image).digest('hex'),
+  };
 }
 
 async function getFarmerProfile(userId) {
@@ -564,6 +599,30 @@ async function getFarmerProfile(userId) {
 
 async function saveFarmerProfile(userId, profile) {
   const sanitized = sanitizeFarmerProfile(profile);
+  const geotaggedRecords = [
+    ...sanitized.farmRecords.fields,
+    ...sanitized.farmRecords.activities,
+    ...sanitized.farmRecords.livestock,
+  ].filter((record) => record.evidenceKind === 'geotagged');
+  if (geotaggedRecords.some((record) => record.farmerId !== userId)) fail('farm_record_farmer_id_mismatch', 403);
+  const linkedFarmIds = [...new Set(geotaggedRecords.map((record) => record.farmId))];
+  if (linkedFarmIds.length) {
+    const accessibleFarms = await knex('farms')
+      .leftJoin('farm_members', function joinMembers() {
+        this.on('farm_members.farm_id', '=', 'farms.farm_id')
+          .andOn('farm_members.user_id', '=', knex.raw('?', [userId]));
+      })
+      .whereIn('farms.farm_id', linkedFarmIds)
+      .andWhere(function matchFarmAccess() {
+        this.where('farms.user_id', userId)
+          .orWhere(function activeMembership() {
+            this.where('farm_members.user_id', userId).andWhere('farm_members.status', 'active');
+          });
+      })
+      .distinct('farms.farm_id');
+    const authorizedFarmIds = new Set(accessibleFarms.map((farm) => farm.farm_id));
+    if (linkedFarmIds.some((farmId) => !authorizedFarmIds.has(farmId))) fail('farm_record_farm_id_mismatch', 403);
+  }
   await knex.transaction(async (transaction) => {
     await transaction('farmer_profiles')
       .insert({ user_id: userId, profile: sanitized, updated_at: new Date() })

@@ -13,6 +13,7 @@ const communicationsController = require('../../../controllers/CommunicationsCon
 const cyberThreatController = require('../../../controllers/CyberThreatController');
 const communityController = require('../../../controllers/CommunityController');
 const studentsController = require('../../../controllers/StudentsController');
+const agriKnowledgeController = require('../../../controllers/AgriKnowledgeController');
 const crossRoleWorkflowsController = require('../../../controllers/CrossRoleWorkflowsController');
 const { authenticate, requireAdmin } = require('../../../middleware/auth');
 
@@ -61,6 +62,7 @@ app.use('/jicho', authenticate, jichoController);
 app.use('/soko', sokoController);
 app.use('/community', authenticate, communityController);
 app.use('/students', authenticate, studentsController);
+app.use('/knowledge', authenticate, agriKnowledgeController);
 app.use('/', authenticate, crossRoleWorkflowsController);
 
 app.use((err, req, res, next) => {

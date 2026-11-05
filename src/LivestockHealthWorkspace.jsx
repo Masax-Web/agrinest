@@ -69,6 +69,7 @@ export default function LivestockHealthWorkspace({
   onSearch,
   onBack,
   onShowRegister,
+  onSelectSection,
   onAddAnimal,
   onOpenHealthDialog,
   onMarkHealthComplete,
@@ -134,10 +135,11 @@ export default function LivestockHealthWorkspace({
         <nav aria-label="Livestock workspace">
           <button type="button" onClick={onShowRegister}><span className="material-symbols-outlined">list_alt</span>Register</button>
           <button type="button" className="is-active" aria-current="page"><span className="material-symbols-outlined">vaccines</span>Health &amp; Vaccines</button>
-          <button type="button" className="is-disabled" disabled title="Production records are available in the livestock workspace."><span className="material-symbols-outlined">bar_chart</span>Production</button>
-          <button type="button" className="is-disabled" disabled title="Breeding records are not available in this workspace yet."><span className="material-symbols-outlined">pets</span>Breeding</button>
-          <button type="button" className="is-disabled" disabled title="Feed records are not available in this workspace yet."><span className="material-symbols-outlined">inventory_2</span>Feed Log</button>
-          <button type="button" className="is-disabled" disabled title="Market records are available in the livestock workspace."><span className="material-symbols-outlined">storefront</span>Market</button>
+          <button type="button" onClick={() => onSelectSection('production')}><span className="material-symbols-outlined">bar_chart</span>Production</button>
+          <button type="button" onClick={() => onSelectSection('breeding')}><span className="material-symbols-outlined">pets</span>Breeding</button>
+          <button type="button" onClick={() => onSelectSection('feed')}><span className="material-symbols-outlined">inventory_2</span>Feed Log</button>
+          <button type="button" onClick={() => onSelectSection('sales')}><span className="material-symbols-outlined">storefront</span>Sales</button>
+          <button type="button" onClick={() => onSelectSection('facilities')}><span className="material-symbols-outlined">home_work</span>Housing</button>
         </nav>
         <div className="livestock-health-nav-bottom">
           <button type="button" className="livestock-health-add" onClick={onAddAnimal}><span className="material-symbols-outlined">add_circle</span>Add Livestock</button>

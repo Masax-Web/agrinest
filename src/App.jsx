@@ -2117,7 +2117,6 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
         { label: 'Harvest Prediction', icon: 'event_upcoming' },
         { label: 'Kadiria Maji', icon: 'water_drop' },
         { label: 'Jicho AI', icon: 'psychology' },
-        { label: 'Livestock', icon: 'pets' },
         { label: 'Spray Diary', icon: 'event_note' },
         { label: 'Hesabu Yangu', icon: 'calculate' },
         { label: 'Marketplace', icon: 'shopping_cart' },
@@ -2221,7 +2220,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
               {section.heading && <div className="nav-section-heading">{section.heading}</div>}
               {section.items.map((item) => {
                 const destination = farmerNavigationViews[item.label] || 'dashboard';
-                const isDigitalFarmSection = ['fields', 'production', 'farm-operations', 'activity'].includes(activeView);
+                const isDigitalFarmSection = ['fields', 'production', 'farm-operations', 'activity', 'livestock'].includes(activeView);
                 const isActive = activeView === destination || (item.label === 'Digital Farm' && isDigitalFarmSection);
                 return (
                 <a

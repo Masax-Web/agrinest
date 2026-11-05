@@ -216,17 +216,18 @@ describe('shared farm operations API', () => {
       activity_id: activityId,
       activity_type: 'Spraying (Pest Control)',
     });
+    const capturedAt = new Date().toISOString();
 
     const finalized = await authenticatedRequest('post', `/farms/${farmId}/activity-logs`)
       .send({
-        activity_date: '2026-11-05',
+        activity_date: capturedAt.slice(0, 10),
         crop: 'Maize',
         activity_type: 'Spraying (Pest Control)',
         field_name: 'North field',
         details: { product_name: 'Example product', dosage_rate: '2 L/ha', water_volume_liters: 200 },
-        location: { latitude: -7.77, longitude: 35.69, accuracy_m: 12, captured_at: '2026-11-05T10:00:00.000Z' },
-        weather: { temperature_c: 24, humidity_percent: 62, wind_kmh: 8, source: 'Open-Meteo', observed_at: '2026-11-05T10:00:00.000Z' },
-        evidence: { name: 'field.jpg', mime_type: 'image/jpeg', data_url: 'data:image/jpeg;base64,ZmFrZQ==' },
+        location: { latitude: -7.77, longitude: 35.69, accuracy_m: 12, captured_at: capturedAt },
+        weather: { temperature_c: 24, humidity_percent: 62, wind_kmh: 8, source: 'Open-Meteo', observed_at: capturedAt },
+        evidence: { name: 'field.jpg', mime_type: 'image/jpeg', data_url: 'data:image/jpeg;base64,ZmFrZQ==', captured_at: capturedAt },
       })
       .expect(201);
     expect(finalized.body.log).to.include({

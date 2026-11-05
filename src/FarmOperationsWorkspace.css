@@ -150,6 +150,36 @@
   color: #8a3428;
 }
 
+.farm-operations-message.is-warning {
+  border-color: #e8d294;
+  background: #fff8df;
+  color: #765211;
+}
+
+.farm-operations-location-row {
+  display: grid;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.farm-operations-location-row > button {
+  min-height: 2.45rem;
+  border: 1px solid #52865d;
+  border-radius: 0.55rem;
+  background: #edf5ed;
+  color: #315d3b;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.farm-operations-location-note {
+  grid-column: 1 / -1;
+  color: #70645d;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
 .farm-operations-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -268,6 +298,15 @@
   grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   gap: 0.65rem;
   align-items: end;
+}
+
+.farm-operations-create-card form > .farm-operations-location-row {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
+.farm-operations-create-card form > .farm-operations-location-note {
+  grid-column: 1 / -1;
 }
 
 .farm-operations-invite-card > div:nth-child(2) {
@@ -516,7 +555,8 @@
   .farm-budget-form,
   .farm-budget-entry-form,
   .farm-member-form,
-  .farm-operations-create-card form {
+  .farm-operations-create-card form,
+  .farm-operations-create-card form > .farm-operations-location-row {
     grid-template-columns: minmax(0, 1fr);
   }
 

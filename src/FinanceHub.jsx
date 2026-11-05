@@ -153,19 +153,19 @@ function SeasonBudgetDialog({ fields, onClose, onSave }) {
       if (event.target === event.currentTarget) onClose();
     }}>
       <section className="finance-dialog finance-budget-dialog" role="dialog" aria-modal="true" aria-labelledby="finance-budget-dialog-title">
-        <div className="finance-dialog-heading"><div><span className="finance-eyebrow">SEASON PLANNING</span><h2 id="finance-budget-dialog-title">Create a crop budget</h2></div><button type="button" className="finance-icon-button" aria-label="Close dialog" onClick={onClose}><span className="material-symbols-outlined">close</span></button></div>
+        <div className="finance-dialog-heading"><div><span className="finance-eyebrow">FARM PLANNING</span><h2 id="finance-budget-dialog-title">Create an enterprise budget</h2></div><button type="button" className="finance-icon-button" aria-label="Close dialog" onClick={onClose}><span className="material-symbols-outlined">close</span></button></div>
         <p className="finance-budget-disclaimer">Enter your own assumptions. Cost and revenue estimates are not local price advice or a guaranteed yield or profit.</p>
         {error && <p className="finance-budget-error" role="alert">{error}</p>}
         <form onSubmit={submit}>
           <label>Budget name<input required maxLength={100} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="e.g. 2026 sunflower season" /></label>
-          <label>Crop<input required maxLength={80} value={draft.crop} onChange={(event) => setDraft((current) => ({ ...current, crop: event.target.value }))} /></label>
+          <label>Crop or livestock enterprise<input required maxLength={80} value={draft.crop} onChange={(event) => setDraft((current) => ({ ...current, crop: event.target.value }))} placeholder="e.g. Maize, dairy cattle, or layers" /></label>
           {fields.length > 0 && <label>Linked field (optional)<select value={draft.fieldId} onChange={(event) => {
             const field = fields.find((item) => item.id === event.target.value);
             setDraft((current) => ({ ...current, fieldId: event.target.value, crop: current.crop || field?.crop || '', areaAcres: current.areaAcres || String(field?.area || '') }));
           }}><option value="">No field selected</option>{fields.map((field) => <option value={field.id} key={field.id}>{field.name}{field.crop ? ` · ${field.crop}` : ''}</option>)}</select></label>}
           <label>Area (acres)<input type="number" min="0" step="any" value={draft.areaAcres} onChange={(event) => setDraft((current) => ({ ...current, areaAcres: event.target.value }))} /></label>
-          <label>Planned yield (kg)<input type="number" min="0" step="any" value={draft.expectedYieldKg} onChange={(event) => setDraft((current) => ({ ...current, expectedYieldKg: event.target.value }))} /></label>
-          <label>Target sale price (TZS/kg)<input type="number" min="0" step="any" value={draft.targetPricePerKg} onChange={(event) => setDraft((current) => ({ ...current, targetPricePerKg: event.target.value }))} /></label>
+          <label>Planned output (kg, liters, eggs…)<input type="number" min="0" step="any" value={draft.expectedYieldKg} onChange={(event) => setDraft((current) => ({ ...current, expectedYieldKg: event.target.value }))} /></label>
+          <label>Target sale price per unit (TZS)<input type="number" min="0" step="any" value={draft.targetPricePerKg} onChange={(event) => setDraft((current) => ({ ...current, targetPricePerKg: event.target.value }))} /></label>
           <label>Season start<input type="date" value={draft.startDate} onChange={(event) => setDraft((current) => ({ ...current, startDate: event.target.value }))} /></label>
           <label>Season end<input type="date" value={draft.endDate} onChange={(event) => setDraft((current) => ({ ...current, endDate: event.target.value }))} /></label>
           <div className="finance-budget-costs">
