@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import AgrishopNetwork from './AgrishopNetwork';
 import EquipmentRentalWorkspace from './EquipmentRentalWorkspace';
 import ExportReadinessWorkspace from './ExportReadinessWorkspace';
+import FarmActivityLog from './FarmActivityLog';
+import FarmOperationsWorkspace from './FarmOperationsWorkspace';
 import HabariIntelligence from './HabariIntelligence';
 import TransportLogisticsWorkspace from './TransportLogisticsWorkspace';
 import {
@@ -504,6 +506,19 @@ export default function FarmerWorkspace({ page, user, search = '', onSearch, pro
       onNavigate={onNavigate}
     />;
   }
+  if (['fields', 'production', 'farm-operations', 'activity'].includes(page)) {
+    return <DigitalFarmPage
+      page={page}
+      user={user}
+      profile={profile}
+      records={records}
+      farmRecordsSyncStatus={farmRecordsSyncStatus}
+      onRetryFarmRecordsSync={onRetryFarmRecordsSync}
+      onRecordsChange={onRecordsChange}
+      onProfileSave={onProfileSave}
+      onNavigate={onNavigate}
+    />;
+  }
 
   const recordsForPage = page === 'analytics' || page === 'farm-erp'
     ? records.activities
@@ -673,7 +688,33 @@ function formatFarmDate(value, options = { month: 'short', day: 'numeric', year:
   return Number.isNaN(date.getTime()) ? 'Date not recorded' : date.toLocaleDateString(undefined, options);
 }
 
-function DigitalFarmPage({ profile, records, farmRecordsSyncStatus, onRetryFarmRecordsSync, onRecordsChange, onProfileSave, onNavigate }) {
+const digitalFarmSections = [
+  { id: 'fields', label: 'Fields', icon: 'agriculture' },
+  { id: 'production', label: 'Farm profile', icon: 'eco' },
+  { id: 'farm-operations', label: 'Farm operations', icon: 'groups_2' },
+  { id: 'activity', label: 'Activity log', icon: 'fact_check' },
+];
+
+function DigitalFarmSectionNavigation({ activeSection, onNavigate }) {
+  return (
+    <nav className="digital-farm-section-nav" aria-label="Digital Farm sections">
+      {digitalFarmSections.map((section) => (
+        <button
+          key={section.id}
+          type="button"
+          className={activeSection === section.id ? 'active' : ''}
+          aria-current={activeSection === section.id ? 'page' : undefined}
+          onClick={() => onNavigate(section.id)}
+        >
+          <span className="material-symbols-outlined">{section.icon}</span>
+          {section.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, onRetryFarmRecordsSync, onRecordsChange, onProfileSave, onNavigate }) {
   const [dialog, setDialog] = useState('');
   const [selectedFieldId, setSelectedFieldId] = useState('');
   const [fieldDraft, setFieldDraft] = useState({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' });
@@ -704,6 +745,7 @@ function DigitalFarmPage({ profile, records, farmRecordsSyncStatus, onRetryFarmR
     offline: 'Offline · saved here, waiting to sync',
     local: 'Saved here · account sync unavailable',
   };
+  const activeSection = digitalFarmSections.some((section) => section.id === page) ? page : 'fields';
 
   const exportFarmBackup = () => {
     try {
@@ -850,17 +892,47 @@ function DigitalFarmPage({ profile, records, farmRecordsSyncStatus, onRetryFarmR
   };
 
   const selectedField = fields.find((field) => field.id === selectedFieldId);
-  if (selectedField) {
+  if (selectedField && activeSection === 'fields') {
     const fieldActivities = farmActivities.filter((activity) => activity.fieldId === selectedField.id
       || String(activity.fieldName || '').trim().toLowerCase() === String(selectedField.name || '').trim().toLowerCase());
-    return <FieldDataProfile
-      field={selectedField}
-      profile={profile}
-      activities={fieldActivities}
-      onBack={() => setSelectedFieldId('')}
-      onNavigate={onNavigate}
-      onUpdateField={(updatedField) => onRecordsChange('fields', fields.map((field) => field.id === updatedField.id ? updatedField : field))}
-    />;
+    return (
+      <div className="digital-farm-section-shell">
+        <DigitalFarmSectionNavigation activeSection={activeSection} onNavigate={onNavigate} />
+        <FieldDataProfile
+          field={selectedField}
+          profile={profile}
+          activities={fieldActivities}
+          onBack={() => setSelectedFieldId('')}
+          onNavigate={onNavigate}
+          onUpdateField={(updatedField) => onRecordsChange('fields', fields.map((field) => field.id === updatedField.id ? updatedField : field))}
+        />
+      </div>
+    );
+  }
+
+  if (activeSection !== 'fields') {
+    return (
+      <div className="digital-farm-section-shell">
+        <header className="digital-farm-section-header">
+          <span className="material-symbols-outlined">agriculture</span>
+          <div><strong>Digital Farm</strong><small>Fields, farm profile, operations, and activity in one workspace</small></div>
+        </header>
+        <DigitalFarmSectionNavigation activeSection={activeSection} onNavigate={onNavigate} />
+        {activeSection === 'production' ? (
+          <ProductionProfileWorkspace profile={profile} onProfileSave={onProfileSave} onBack={() => onNavigate('fields')} />
+        ) : activeSection === 'farm-operations' ? (
+          <FarmOperationsWorkspace user={user} onBack={() => onNavigate('fields')} />
+        ) : (
+          <FarmActivityLog
+            user={user}
+            profile={profile}
+            fields={fields}
+            onBack={() => onNavigate('fields')}
+            onNavigate={onNavigate}
+          />
+        )}
+      </div>
+    );
   }
 
   return (
@@ -878,6 +950,7 @@ function DigitalFarmPage({ profile, records, farmRecordsSyncStatus, onRetryFarmR
           <button type="button" onClick={exportFarmBackup}><span className="material-symbols-outlined">download</span>Download backup</button>
         </div>
       </header>
+      <DigitalFarmSectionNavigation activeSection={activeSection} onNavigate={onNavigate} />
 
       <section className="digital-farm-stats" aria-label="Farm summary">
         <article className="digital-farm-stat">

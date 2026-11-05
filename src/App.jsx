@@ -6,7 +6,6 @@ import MarketplacePage from './MarketplacePage';
 import RamaniMapPage from './RamaniMapPage';
 import FarmerWorkspace from './FarmerWorkspace';
 import FinanceHub from './FinanceHub';
-import FarmOperationsWorkspace from './FarmOperationsWorkspace';
 import CrowdfundingWorkspace from './CrowdfundingWorkspace';
 import CarbonCreditsWorkspace from './CarbonCreditsWorkspace';
 import SustainabilityWorkspace from './SustainabilityWorkspace';
@@ -26,7 +25,6 @@ import JichoPestKnowledge from './JichoPestKnowledge';
 import JichoSoilKnowledge from './JichoSoilKnowledge';
 import ProcurementWorkspace from './ProcurementWorkspace';
 import VerifiedActivityArchive from './VerifiedActivityArchive';
-import FarmActivityLog from './FarmActivityLog';
 import FoundationImpactPortal from './FoundationImpactPortal';
 import ExpertBookingWorkspace from './ExpertBookingWorkspace';
 import TransporterFleetWorkspace from './TransporterFleetWorkspace';
@@ -2115,10 +2113,7 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
     {
       items: [
         { label: 'Dashboard', icon: 'dashboard', active: true },
-        { label: 'Farm Profile', icon: 'eco' },
         { label: 'Digital Farm', icon: 'agriculture' },
-        { label: 'Farm Operations', icon: 'groups_2' },
-        { label: 'Activity Log', icon: 'fact_check' },
         { label: 'Harvest Prediction', icon: 'event_upcoming' },
         { label: 'Kadiria Maji', icon: 'water_drop' },
         { label: 'Jicho AI', icon: 'psychology' },
@@ -2226,7 +2221,8 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
               {section.heading && <div className="nav-section-heading">{section.heading}</div>}
               {section.items.map((item) => {
                 const destination = farmerNavigationViews[item.label] || 'dashboard';
-                const isActive = activeView === destination;
+                const isDigitalFarmSection = ['fields', 'production', 'farm-operations', 'activity'].includes(activeView);
+                const isActive = activeView === destination || (item.label === 'Digital Farm' && isDigitalFarmSection);
                 return (
                 <a
                   key={item.label}
@@ -2701,16 +2697,6 @@ function SmallholderDashboard({ user, onLogout, onOpenSecurity }) {
           />
         ) : activeView === 'loan-spending' ? (
           <LoanSpendingPage userId={user?.user_id} onBack={() => setActiveView('dashboard')} />
-        ) : activeView === 'farm-operations' ? (
-          <FarmOperationsWorkspace user={user} onBack={() => setActiveView('dashboard')} />
-        ) : activeView === 'activity' ? (
-          <FarmActivityLog
-            user={user}
-            profile={farmerProfile}
-            fields={farmerRecords.fields}
-            onBack={() => setActiveView('dashboard')}
-            onNavigate={setActiveView}
-          />
         ) : activeView === 'income' ? (
           <FinanceHub
             profile={farmerProfile}

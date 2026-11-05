@@ -5232,6 +5232,77 @@ body.admin-impersonation-active #root {
   gap: 1.65rem;
   color: var(--digital-farm-ink);
 }
+.digital-farm-section-shell {
+  display: grid;
+  width: min(100%, 92rem);
+  gap: 1rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.2vw, 2rem);
+}
+.digital-farm-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #2f7042;
+}
+.digital-farm-section-header > .material-symbols-outlined {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: #edf4ed;
+  font-size: 1.35rem;
+}
+.digital-farm-section-header > div {
+  display: grid;
+  gap: 0.2rem;
+}
+.digital-farm-section-header strong {
+  color: #26170c;
+  font-family: 'Syne', 'DM Sans', sans-serif;
+  font-size: 1rem;
+}
+.digital-farm-section-header small {
+  color: #746b66;
+  font-size: 0.7rem;
+}
+.digital-farm-section-nav {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.25rem;
+  border: 1px solid #e8e4dc;
+  border-radius: 0.75rem;
+  background: #faf9f5;
+  scrollbar-width: thin;
+}
+.digital-farm-section-nav button {
+  display: inline-flex;
+  min-height: 2.55rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: #675d53;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.digital-farm-section-nav button .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+.digital-farm-section-nav button.active {
+  background: #2f7042;
+  color: #fff;
+  box-shadow: 0 0.15rem 0.4rem rgb(40 73 47 / 15%);
+}
 .digital-farm-heading {
   display: flex;
   align-items: flex-end;
