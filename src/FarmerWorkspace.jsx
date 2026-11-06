@@ -723,9 +723,6 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
   const [activityPhotoCapturedAt, setActivityPhotoCapturedAt] = useState('');
   const [gpsMessage, setGpsMessage] = useState('');
   const [notice, setNotice] = useState('');
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [activityFilter, setActivityFilter] = useState('all');
-  const [fieldFilter, setFieldFilter] = useState('all');
   const selectedFarm = farms.find((farm) => farm.farm_id === selectedFarmId);
   const fields = records.fields;
   const farmFields = fields.filter((field) => field.farmId === selectedFarmId);
@@ -755,11 +752,21 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
   const unassignedRecordCount = unassignedFields.length + unassignedAnimals.length + unassignedActivities.length;
   const activeAnimalRecords = farmLivestockRecords.filter((animal) => animal.module === 'livestock' && animal.status !== 'sold' && animal.status !== 'deceased');
   const registeredAnimalCount = activeAnimalRecords.reduce((total, animal) => total + Math.max(0, Number(animal.count) || 0), 0);
+  const animalGroupsBySpecies = activeAnimalRecords.reduce((groups, animal) => {
+    const species = String(animal.species || 'Other').trim();
+    const key = species.toLocaleLowerCase();
+    const existing = groups.get(key) || { species, heads: 0, groups: 0, needsAttention: false };
+    existing.heads += Math.max(0, Number(animal.count) || 0);
+    existing.groups += 1;
+    existing.needsAttention ||= ['under treatment', 'needs attention'].includes(String(animal.health || '').toLowerCase());
+    groups.set(key, existing);
+    return groups;
+  }, new Map());
+  const animalSpeciesGroups = [...animalGroupsBySpecies.values()].sort((left, right) => right.heads - left.heads);
   const acres = farmFields.reduce((total, field) => total + (Number(field.area) || 0), 0);
   const activeCrops = new Set(farmFields.map((field) => String(field.crop || '').trim().toLowerCase()).filter(Boolean)).size;
   const filteredActivities = farmActivities
-    .filter((item) => activityFilter === 'all' || (item.category || item.title) === activityFilter)
-    .filter((item) => fieldFilter === 'all' || item.fieldId === fieldFilter)
+    .slice()
     .sort((left, right) => new Date(right.date || right.createdAt || 0) - new Date(left.date || left.createdAt || 0));
   const farmRecordSyncLabels = {
     loading: 'Checking sync status…',
@@ -797,6 +804,25 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
     setRecordView(view);
     setSelectedFieldId('');
     onNavigate('records');
+  };
+
+  const openAddRecord = (recordType) => {
+    if (recordType === 'farm') {
+      setDialog('');
+      onNavigate('farm-operations');
+    } else if (recordType === 'field') {
+      setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' });
+      setFieldGpsStamp(null);
+      setFieldPhoto('');
+      setFieldPhotoCapturedAt('');
+      setGpsMessage('');
+      setDialog('field');
+    } else if (recordType === 'livestock') {
+      setDialog('');
+      openRecordView('livestock');
+    } else {
+      openActivityDialog();
+    }
   };
 
   const linkRecordToSelectedFarm = (recordType, recordId) => {
@@ -1094,7 +1120,6 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
             {farms.length ? <select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.farm_id}</option>)}</select> : <button type="button" onClick={() => onNavigate('farm-operations')}>Create a GPS-verified farm first</button>}
           </label>
         </div>
-        <GovernmentIntegrationStatus />
         {notice && <div className="farmer-workspace-notice" role="status">{notice}</div>}
         {contentSection === 'farm-operations' ? (
           <FarmOperationsWorkspace user={user} activeFarmId={selectedFarmId} onActiveFarmChange={setSelectedFarmId} onBack={() => onNavigate('fields')} />
@@ -1133,186 +1158,192 @@ function DigitalFarmPage({ page, user, profile, records, farmRecordsSyncStatus, 
 
       <header className="digital-farm-heading">
         <div>
+          <span className="digital-farm-eyebrow">YOUR FARM PORTFOLIO</span>
           <h1>Shamba Langu</h1>
-          <p>Manage crops, herds, and flocks together—from field records to animal health and production.</p>
+          <p>Your farms, fields, livestock, and day-to-day records in one place.</p>
         </div>
         <div className="digital-farm-local-status">
           <span className="digital-farm-local-badge" aria-live="polite"><span className="material-symbols-outlined">{farmRecordsSyncStatus === 'synced' ? 'cloud_done' : farmRecordsSyncStatus === 'syncing' ? 'sync' : 'devices'}</span>{farmRecordSyncLabels[farmRecordsSyncStatus] || farmRecordSyncLabels.pending}</span>
           {farmRecordsSyncStatus !== 'synced' && farmRecordsSyncStatus !== 'syncing' && <button type="button" onClick={onRetryFarmRecordsSync}><span className="material-symbols-outlined">sync</span>Retry sync</button>}
           <button type="button" onClick={exportFarmBackup}><span className="material-symbols-outlined">download</span>Download backup</button>
+          <button type="button" className="digital-farm-primary-action" disabled={!selectedFarm} onClick={() => setDialog('add-record')}><span className="material-symbols-outlined">add</span>Add a record</button>
         </div>
       </header>
       <DigitalFarmSectionNavigation activeSection="fields" onNavigate={navigateFarmSection} />
-      <div className="digital-farm-identifiers">
-        <span><small>FARMER ID</small><strong>{user?.user_id || 'Unavailable'}</strong></span>
-        <label><small>ACTIVE FARM · FARM ID</small>
-          {farms.length ? <select value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.farm_id}</option>)}</select> : <button type="button" onClick={() => onNavigate('farm-operations')}>Create my first farm</button>}
-        </label>
-      </div>
-      <GovernmentIntegrationStatus />
+      <section className={`digital-farm-identity-card${selectedFarm ? '' : ' is-empty'}`} aria-label="Active farm">
+        <div className="digital-farm-identity-copy">
+          <span className="digital-farm-eyebrow">{selectedFarm ? 'ACTIVE FARM' : 'GET STARTED'}</span>
+          <h2>{selectedFarm?.name || 'Create your first farm'}</h2>
+          <p>{selectedFarm
+            ? `${selectedFarm.soil_type ? `${selectedFarm.soil_type} · ` : ''}${Number(selectedFarm.total_acres) > 0 ? `${Number(selectedFarm.total_acres).toLocaleString()} farm acres` : `${acres.toLocaleString(undefined, { maximumFractionDigits: 1 })} recorded field acres`}`
+            : 'Your Farmer ID stays with you. Each farm gets a separate Farm ID and its own records.'}</p>
+          {selectedFarm && (
+            <div className="digital-farm-identity-status">
+              <span className="digital-farm-id-chip"><small>FARMER ID</small><strong>{user?.user_id || 'Unavailable'}</strong></span>
+              <span className="digital-farm-id-chip"><small>FARM ID</small><strong>{selectedFarm.farm_id}</strong></span>
+              <span className={`digital-farm-location-chip${selectedFarm.location_latitude != null && selectedFarm.location_longitude != null ? ' is-ready' : ''}`}>
+                <span className="material-symbols-outlined">{selectedFarm.location_latitude != null && selectedFarm.location_longitude != null ? 'location_on' : 'location_searching'}</span>
+                {selectedFarm.location_latitude != null && selectedFarm.location_longitude != null
+                  ? `GPS captured${selectedFarm.location_accuracy_m ? ` · ±${Math.round(selectedFarm.location_accuracy_m)} m` : ''}`
+                  : 'Location not captured'}
+              </span>
+              {selectedFarm.has_location_evidence && <span className="digital-farm-location-chip is-ready"><span className="material-symbols-outlined">photo_camera</span>Farm photo attached</span>}
+              {selectedFarm.location_review_status === 'pending' && <span className="digital-farm-location-chip is-pending"><span className="material-symbols-outlined">pending</span>Location review pending</span>}
+            </div>
+          )}
+          {!selectedFarm && <span className="digital-farm-id-chip"><small>FARMER ID</small><strong>{user?.user_id || 'Unavailable'}</strong></span>}
+        </div>
+        <div className="digital-farm-identity-actions">
+          {selectedFarm ? (
+            <>
+              <label className="digital-farm-switcher"><span>Switch farm</span><select aria-label="Switch active farm" value={selectedFarmId} onChange={(event) => setSelectedFarmId(event.target.value)}>{farms.map((farm) => <option key={farm.farm_id} value={farm.farm_id}>{farm.name} · {farm.farm_id}</option>)}</select></label>
+              <button type="button" className="digital-farm-secondary-action" onClick={() => onNavigate('farm-operations')}>Farm settings</button>
+            </>
+          ) : <button type="button" className="digital-farm-primary-action" onClick={() => onNavigate('farm-operations')}><span className="material-symbols-outlined">add_home</span>Create my farm</button>}
+        </div>
+      </section>
 
-      {!selectedFarm && (
-        <section className="digital-farm-next-step" aria-label="Next step">
-          <span className="material-symbols-outlined">add_home</span>
-          <div><strong>Start by creating your first farm</strong><p>A farm has its own Farm ID and GPS location. Your Farmer ID stays the same across all your farms.</p></div>
-          <button type="button" onClick={() => onNavigate('farm-operations')}>Create my farm</button>
-        </section>
-      )}
       {selectedFarm && unassignedRecordCount > 0 && (
-        <section className="digital-farm-next-step is-warning" aria-label="Records need review">
+        <button type="button" className="digital-farm-attention-card" onClick={() => onNavigate('records')}>
           <span className="material-symbols-outlined">rule</span>
-          <div><strong>{unassignedRecordCount} saved {unassignedRecordCount === 1 ? 'record needs' : 'records need'} a farm</strong><p>Review older fields, animals, or activities and link only the records that belong to {selectedFarm.name}.</p></div>
-          <button type="button" onClick={() => onNavigate('records')}>Review records</button>
-        </section>
-      )}
-      {selectedFarm && unassignedRecordCount === 0
-        && (selectedFarm.location_latitude == null || selectedFarm.location_longitude == null) && (
-        <section className="digital-farm-next-step" aria-label="Next step">
-          <span className="material-symbols-outlined">location_searching</span>
-          <div><strong>Capture this farm’s location</strong><p>GPS location helps center the farm map. It is device-reported evidence, not proof of ownership.</p></div>
-          <button type="button" onClick={() => onNavigate('farm-operations')}>Capture location</button>
-        </section>
+          <span><strong>{unassignedRecordCount} saved {unassignedRecordCount === 1 ? 'record needs' : 'records need'} a farm</strong><small>Review older records and link them only if they belong to {selectedFarm.name}.</small></span>
+          <span className="material-symbols-outlined">arrow_forward</span>
+        </button>
       )}
 
-      <section className="digital-farm-stats" aria-label="Farm summary">
-        <article className="digital-farm-stat">
-          <span className="material-symbols-outlined">landscape</span>
-          <strong>{acres.toLocaleString(undefined, { maximumFractionDigits: 1 })}</strong>
-          <small>ACRES RECORDED · {acresToHectares(acres).toLocaleString(undefined, { maximumFractionDigits: 1 })} ha</small>
-        </article>
-        <article className="digital-farm-stat">
-          <span className="material-symbols-outlined">grass</span>
-          <strong>{activeCrops}</strong>
-          <small>ACTIVE CROPS</small>
-        </article>
-        <article className="digital-farm-stat">
-          <span className="material-symbols-outlined">history</span>
-          <strong>{farmActivities.length}</strong>
-          <small>ACTIVITY LOGS</small>
-        </article>
-        <button type="button" className="digital-farm-stat digital-farm-stat-button" onClick={() => openRecordView('livestock')}>
-          <span className="material-symbols-outlined">pets</span>
-          <strong>{registeredAnimalCount.toLocaleString()}</strong>
-          <small>REGISTERED ANIMALS &amp; BIRDS</small>
+      <section className="digital-farm-dashboard-stats" aria-label="Active farm summary">
+        <button type="button" className="digital-farm-summary-card" onClick={() => openRecordView('fields')} disabled={!selectedFarm}>
+          <span className="digital-farm-summary-icon"><span className="material-symbols-outlined">agriculture</span></span>
+          <span className="digital-farm-summary-value">{selectedFarm ? farmFields.length : '—'}</span>
+          <span className="digital-farm-summary-label">Fields</span>
+          <span className="digital-farm-summary-detail">{acres.toLocaleString(undefined, { maximumFractionDigits: 1 })} acres recorded</span>
         </button>
-        <button type="button" className="digital-farm-log-card" disabled={!selectedFarm} onClick={openActivityDialog}>
-          <span className="digital-farm-log-icon"><span className="material-symbols-outlined">add</span></span>
-          <strong>Log New Activity</strong>
+        <button type="button" className="digital-farm-summary-card" onClick={() => openRecordView('fields')} disabled={!selectedFarm}>
+          <span className="digital-farm-summary-icon"><span className="material-symbols-outlined">eco</span></span>
+          <span className="digital-farm-summary-value">{selectedFarm ? activeCrops : '—'}</span>
+          <span className="digital-farm-summary-label">Crop types</span>
+          <span className="digital-farm-summary-detail">Across this farm’s fields</span>
+        </button>
+        <button type="button" className="digital-farm-summary-card" onClick={() => openRecordView('livestock')} disabled={!selectedFarm}>
+          <span className="digital-farm-summary-icon"><span className="material-symbols-outlined">pets</span></span>
+          <span className="digital-farm-summary-value">{selectedFarm ? registeredAnimalCount.toLocaleString() : '—'}</span>
+          <span className="digital-farm-summary-label">Animal heads</span>
+          <span className="digital-farm-summary-detail">{animalSpeciesGroups.length} species groups · not individual verified count</span>
+        </button>
+        <button type="button" className="digital-farm-summary-card" onClick={() => onNavigate('activity')} disabled={!selectedFarm}>
+          <span className="digital-farm-summary-icon"><span className="material-symbols-outlined">event_note</span></span>
+          <span className="digital-farm-summary-value">{selectedFarm ? farmActivities.length : '—'}</span>
+          <span className="digital-farm-summary-label">Journal entries</span>
+          <span className="digital-farm-summary-detail">Recent work and observations</span>
         </button>
       </section>
 
-      <section className="digital-farm-overview">
-        <article className="digital-farm-map-card">
-          <div className="digital-farm-card-heading">
-            <h2><span className="material-symbols-outlined">map</span>Farm map</h2>
-            <button type="button" onClick={() => onNavigate('ramani')}><span className="material-symbols-outlined">draw</span>Open GIS tools</button>
+      <section className="digital-farm-dashboard-grid" aria-label="Farm records overview">
+        <article className="digital-farm-preview-card">
+          <div className="digital-farm-preview-heading">
+            <div><span className="digital-farm-eyebrow">CROPS</span><h2>Fields & crops</h2></div>
+            <button type="button" onClick={() => openRecordView('fields')} disabled={!selectedFarm}>View all <span className="material-symbols-outlined">arrow_forward</span></button>
+          </div>
+          {farmFields.length ? (
+            <div className="digital-farm-preview-list">
+              {farmFields.slice(0, 3).map((field) => {
+                const hasEvidence = Boolean(field.gpsStamp && field.photo);
+                return (
+                  <button type="button" className="digital-farm-preview-row" key={field.id} onClick={() => setSelectedFieldId(field.id)}>
+                    <span className="digital-farm-preview-icon"><span className="material-symbols-outlined">eco</span></span>
+                    <span className="digital-farm-preview-copy"><strong>{field.name}</strong><small>{field.crop} · {Number(field.area || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} acres</small><small>{hasEvidence ? 'GPS + photo attached · device evidence' : 'Location/photo evidence incomplete'}</small></span>
+                    <span className="material-symbols-outlined digital-farm-preview-arrow">chevron_right</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="digital-farm-preview-empty"><span className="material-symbols-outlined">grass</span><strong>No fields recorded</strong><small>{selectedFarm ? 'Add a field to start tracking crops and seasons.' : 'Create a farm before adding fields.'}</small><button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('field')}>Add a field</button></div>
+          )}
+          {farmFields.length > 3 && <button type="button" className="digital-farm-preview-more" onClick={() => openRecordView('fields')}>See all {farmFields.length} fields</button>}
+        </article>
+
+        <article className="digital-farm-preview-card">
+          <div className="digital-farm-preview-heading">
+            <div><span className="digital-farm-eyebrow">ANIMALS</span><h2>Livestock & poultry</h2></div>
+            <button type="button" onClick={() => openRecordView('livestock')} disabled={!selectedFarm}>View all <span className="material-symbols-outlined">arrow_forward</span></button>
+          </div>
+          {animalSpeciesGroups.length ? (
+            <div className="digital-farm-preview-list">
+              {animalSpeciesGroups.slice(0, 3).map((group) => (
+                <button type="button" className="digital-farm-preview-row" key={group.species} onClick={() => openRecordView('livestock')}>
+                  <span className="digital-farm-preview-icon"><span className="material-symbols-outlined">pets</span></span>
+                  <span className="digital-farm-preview-copy"><strong>{group.heads.toLocaleString()} head · {group.species}</strong><small>{group.groups} {group.groups === 1 ? 'group' : 'groups'} recorded</small><small>{group.needsAttention ? 'Health follow-up recorded' : 'Farmer-entered animal records'}</small></span>
+                  <span className="material-symbols-outlined digital-farm-preview-arrow">chevron_right</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="digital-farm-preview-empty"><span className="material-symbols-outlined">pets</span><strong>No animal groups recorded</strong><small>{selectedFarm ? 'Add cattle, goats, poultry, or other livestock.' : 'Create a farm before adding animals.'}</small><button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('livestock')}>Add livestock</button></div>
+          )}
+          <small className="digital-farm-preview-disclaimer">Head counts and health are farmer-reported, not independently verified.</small>
+        </article>
+
+        <article className="digital-farm-location-card">
+          <div className="digital-farm-preview-heading">
+            <div><span className="digital-farm-eyebrow">LOCATION</span><h2>Farm location</h2></div>
+            <button type="button" onClick={() => onNavigate('ramani')} disabled={!selectedFarm}>Open map <span className="material-symbols-outlined">arrow_forward</span></button>
           </div>
           {selectedFarm && selectedFarm.location_latitude != null && selectedFarm.location_longitude != null ? (
             <>
               <div className="digital-farm-map">
                 <RamaniMapPage profile={{ ...profile, latitude: selectedFarm.location_latitude, longitude: selectedFarm.location_longitude }} search="" onSearch={() => {}} compact />
               </div>
-              <p className="digital-farm-map-note">Map centered on this farm's captured GPS. Drawn boundaries are managed in Ramani GIS and are not proof of ownership.</p>
+              <p className="digital-farm-location-note">Centered on the farm’s device-captured GPS. A location pin is not a land boundary or proof of ownership.</p>
             </>
           ) : (
-            <div className="digital-farm-map-empty">
+            <div className="digital-farm-location-empty">
               <span className="material-symbols-outlined">location_searching</span>
-              <strong>{selectedFarm ? 'Farm location not captured' : 'Select or create a farm to see its map'}</strong>
-              <p>{selectedFarm ? 'Capture this farm’s GPS location in Team & operations before using a map centered on the farm.' : 'Farm maps and records stay separate for each Farm ID.'}</p>
-              <button type="button" onClick={() => onNavigate(selectedFarm ? 'farm-operations' : 'farm-operations')}>{selectedFarm ? 'Capture farm location' : 'Create my farm'}</button>
+              <strong>{selectedFarm ? 'Farm location not captured' : 'No active farm selected'}</strong>
+              <small>{selectedFarm ? 'Capture GPS and a farm photo to add location context.' : 'Select or create a farm to see its location.'}</small>
+              <button type="button" disabled={!selectedFarm} onClick={() => onNavigate('farm-operations')}>{selectedFarm ? 'Capture farm location' : 'Create my farm'}</button>
             </div>
           )}
         </article>
-
-        <section className="digital-farm-fields">
-          <div className="digital-farm-fields-heading">
-            <h2>Fields in {selectedFarm?.name || 'this farm'}</h2>
-            <button type="button" disabled={!selectedFarm} onClick={() => { setFieldDraft({ name: '', crop: '', area: '', plantedOn: '', expectedHarvest: '', season: '', seedVariety: '', fertilizer: '' }); setFieldGpsStamp(null); setFieldPhoto(''); setFieldPhotoCapturedAt(''); setGpsMessage(''); setNotice(''); setDialog('field'); }}>Add field</button>
-          </div>
-          {farmFields.length ? farmFields.map((field) => {
-            const fieldActivities = farmActivities.filter((activity) => activity.fieldId === field.id);
-            return (
-              <article className="digital-farm-field-card" key={field.id}>
-                <div className="digital-farm-field-main">
-                  <span className="digital-farm-crop-icon"><span className="material-symbols-outlined">eco</span></span>
-                  <div><h3>{field.name} — {field.crop}</h3><p>{Number(field.area || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} acres · {acresToHectares(field.area).toLocaleString(undefined, { maximumFractionDigits: 2 })} ha{field.plantedOn ? ` · Planted ${formatFarmDate(field.plantedOn, { month: 'short', day: 'numeric' })}` : ''}{field.expectedHarvest ? ` · Harvest ${formatFarmDate(field.expectedHarvest, { month: 'short', day: 'numeric' })}` : ''}</p><small>Farmer ID {field.farmerId || user?.user_id} · Farm ID {field.farmId || 'Missing'}</small><small className="digital-farm-evidence-status">{field.gpsStamp && field.photo ? 'GPS + photo attached · device-reported evidence' : 'Location/photo evidence incomplete'}</small></div>
-                </div>
-                <div className="digital-farm-field-meta">
-                  <span>{field.season || 'Season not set'}</span>
-                  <span>{fieldActivities.length} logged {fieldActivities.length === 1 ? 'activity' : 'activities'}</span>
-                </div>
-                <div className="digital-farm-field-actions">
-                  <button type="button" className="digital-farm-field-profile-link" onClick={() => setSelectedFieldId(field.id)}>View field profile <span className="material-symbols-outlined">arrow_forward</span></button>
-                  <button type="button" className="digital-farm-field-journal" onClick={() => { setFieldFilter(field.id); setFilterOpen(true); document.querySelector('.digital-farm-journal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>View field journal</button>
-                </div>
-              </article>
-            );
-          }) : (
-            <div className="digital-farm-empty-field">
-              <span className="material-symbols-outlined">agriculture</span>
-              <h3>No field records yet</h3>
-              <p>{selectedFarm ? 'Add a field to this farm and attach its GPS and location photo.' : 'Create a farm first so every field can be assigned a clear Farm ID.'}</p>
-              <button type="button" disabled={!selectedFarm} onClick={() => setDialog('field')}>{selectedFarm ? 'Add your first field' : 'Create a farm first'}</button>
-            </div>
-          )}
-        </section>
       </section>
 
-      <section className="digital-farm-livestock">
+      <section className="digital-farm-journal digital-farm-recent-card">
         <div className="digital-farm-journal-heading">
-          <div><h2>Livestock Register</h2><p>Farmer-entered animal or herd records</p></div>
-          <div className="digital-farm-livestock-actions">
-            <button type="button" onClick={() => openRecordView('livestock')}>Open livestock &amp; poultry <span className="material-symbols-outlined">arrow_forward</span></button>
-            <button type="button" disabled={!selectedFarm} onClick={() => openRecordView('livestock')}><span className="material-symbols-outlined">add</span>Add livestock</button>
-          </div>
+          <div><span className="digital-farm-eyebrow">LATEST UPDATES</span><h2>Recent farm journal</h2><p>{selectedFarm ? `Recent records for ${selectedFarm.name}` : 'Select or create a farm to view its journal.'}</p></div>
+          <button type="button" onClick={() => onNavigate('activity')} disabled={!selectedFarm}>View journal <span className="material-symbols-outlined">arrow_forward</span></button>
         </div>
-        {activeAnimalRecords.length ? <div className="digital-farm-livestock-grid">{activeAnimalRecords.map((animal) => (
-          <article className="digital-farm-livestock-card" key={animal.id}>
-            <span className="material-symbols-outlined">pets</span>
-            <div><strong>{animal.count || 1} head · {animal.species || 'Animal'} group</strong>
-              <p>{[animal.breed, animal.age ? `Age: ${animal.age}` : '', animal.earTag ? `Tag: ${animal.earTag}` : ''].filter(Boolean).join(' · ') || 'No breed or tag details recorded'}</p>
-              <small>Health: {animal.health || 'Not recorded'}{animal.lastWeight ? ` · Last weight: ${animal.lastWeight} kg` : ''} · Farm ID {animal.farmId}</small>
-              <small className="digital-farm-evidence-status">{animal.gpsStamp && animal.photo ? 'GPS + photo attached · device-reported evidence' : 'Location/photo evidence incomplete'}</small>
-            </div>
-          </article>
-        ))}        </div> : <p className="digital-farm-livestock-empty">No livestock groups are linked to this farm yet. Add an animal group in Farm records.</p>}
-        <small className="digital-farm-record-disclaimer">Records are farmer-provided. AGRI-NEST has not verified individual animals, tags, or health.</small>
-      </section>
-
-      <section className="digital-farm-journal">
-        <div className="digital-farm-journal-heading">
-          <div><h2>Recent farm activity</h2><p>Entries linked to {selectedFarm?.name || 'the active farm'}</p></div>
-          <button type="button" onClick={() => onNavigate('activity')}>Open journal <span className="material-symbols-outlined">arrow_forward</span></button>
-          <button type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)}><span className="material-symbols-outlined">filter_list</span>Filter</button>
-        </div>
-        {filterOpen && <div className="digital-farm-filters">
-          <label>Activity<select value={activityFilter} onChange={(event) => setActivityFilter(event.target.value)}><option value="all">All activities</option>{farmActivityTypes.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
-          <label>Field<select value={fieldFilter} onChange={(event) => setFieldFilter(event.target.value)}><option value="all">All fields</option>{farmFields.map((field) => <option key={field.id} value={field.id}>{field.name}</option>)}</select></label>
-        </div>}
         {filteredActivities.length ? (
-          <div className="digital-farm-journal-table-wrap">
-            <table className="digital-farm-journal-table">
-              <thead><tr><th>Date</th><th>Field</th><th>Activity</th><th className="digital-farm-notes-column">Notes / photo</th><th>Location</th></tr></thead>
-              <tbody>{filteredActivities.map((activity) => {
-                const category = activity.category || activity.title || 'Activity';
-                const icon = farmActivityTypes.find(([name]) => name === category)?.[1] || 'edit_note';
-                return <tr key={activity.id}>
-                  <td>{formatFarmDate(activity.date || activity.createdAt, { month: 'short', day: 'numeric', year: 'numeric' })}<small>{activity.date && !Number.isNaN(new Date(activity.date).getTime()) ? new Date(activity.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</small></td>
-                  <td>{activity.fieldName || farmFields.find((field) => field.id === activity.fieldId)?.name || 'Farm-wide'}</td>
-                  <td><span className="digital-farm-activity-pill"><span className="material-symbols-outlined">{icon}</span>{category}</span></td>
-                  <td className="digital-farm-notes-column">{activity.details || activity.notes || '—'}{activity.photo && <img className="digital-farm-journal-photo" src={activity.photo} alt={`Photo for ${category} activity`} loading="lazy" />}</td>
-                  <td><span className={activity.gpsStamp ? 'digital-farm-gps-stamp' : 'digital-farm-manual-stamp'}><span className="material-symbols-outlined">{activity.gpsStamp ? 'location_on' : 'location_off'}</span>{activity.gpsStamp ? `GPS ±${Math.round(activity.gpsStamp.accuracy)} m` : 'No GPS stamp'}</span></td>
-                </tr>;
-              })}</tbody>
-            </table>
+          <div className="digital-farm-recent-list">
+            {filteredActivities.slice(0, 3).map((activity) => {
+              const category = activity.category || activity.title || 'Farm activity';
+              const icon = farmActivityTypes.find(([name]) => name === category)?.[1] || 'edit_note';
+              const fieldName = activity.fieldName || farmFields.find((field) => field.id === activity.fieldId)?.name || 'Farm-wide';
+              const hasEvidence = Boolean(activity.gpsStamp && activity.photo);
+              return (
+                <article className="digital-farm-recent-row" key={activity.id}>
+                  <span className="digital-farm-preview-icon"><span className="material-symbols-outlined">{icon}</span></span>
+                  <div className="digital-farm-preview-copy"><strong>{category}</strong><small>{fieldName} · {formatFarmDate(activity.date || activity.createdAt, { month: 'short', day: 'numeric' })}{activity.details || activity.notes ? ` · ${activity.details || activity.notes}` : ''}</small></div>
+                  <span className={`digital-farm-evidence-chip${hasEvidence ? ' is-ready' : ''}`}><span className="material-symbols-outlined">{hasEvidence ? 'verified_user' : 'info'}</span>{hasEvidence ? 'GPS + photo' : 'Evidence incomplete'}</span>
+                </article>
+              );
+            })}
           </div>
-        ) : <div className="digital-farm-journal-empty"><span className="material-symbols-outlined">edit_calendar</span><strong>{farmActivities.length ? 'No activities match these filters' : 'Your farm journal is ready'}</strong><p>{farmActivities.length ? 'Try another activity or field filter.' : 'Log planting, irrigation, spraying, pests, flooding, or harvest as work happens.'}</p>{!farmActivities.length && <button type="button" disabled={!selectedFarm} onClick={openActivityDialog}>{selectedFarm ? 'Log your first activity' : 'Create a farm first'}</button>}</div>}
+        ) : (
+          <div className="digital-farm-preview-empty journal-empty"><span className="material-symbols-outlined">event_note</span><strong>{selectedFarm ? 'Your journal is ready' : 'No farm selected'}</strong><small>{selectedFarm ? 'Log the first activity when work happens.' : 'Create a farm to begin a journal.'}</small><button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('activity')}>Log an activity</button></div>
+        )}
       </section>
 
       {dialog && <div className="digital-farm-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(''); }}>
         <section className="digital-farm-dialog" role="dialog" aria-modal="true" aria-labelledby="digital-farm-dialog-title">
-          <div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">{dialog === 'field' ? 'FIELD RECORD' : 'FIELD JOURNAL'}</span><h2 id="digital-farm-dialog-title">{dialog === 'field' ? 'Add a field' : 'Log farm activity'}</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div>
-          {dialog === 'field' ? <form onSubmit={saveField}>
+          <div className="digital-farm-dialog-heading"><div><span className="farmer-workspace-eyebrow">{dialog === 'add-record' ? 'QUICK ACTIONS' : dialog === 'field' ? 'FIELD RECORD' : 'FIELD JOURNAL'}</span><h2 id="digital-farm-dialog-title">{dialog === 'add-record' ? 'What would you like to add?' : dialog === 'field' ? 'Add a field' : 'Log farm activity'}</h2></div><button type="button" aria-label="Close dialog" onClick={() => setDialog('')}><span className="material-symbols-outlined">close</span></button></div>
+          {dialog === 'add-record' ? (
+            <div className="digital-farm-action-grid">
+              <button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('field')}><span className="material-symbols-outlined">agriculture</span><strong>Field or crop</strong><small>Record a field, area, and crop.</small></button>
+              <button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('livestock')}><span className="material-symbols-outlined">pets</span><strong>Livestock</strong><small>Register animals and capture evidence.</small></button>
+              <button type="button" disabled={!selectedFarm} onClick={() => openAddRecord('activity')}><span className="material-symbols-outlined">event_note</span><strong>Farm activity</strong><small>Log work with GPS and a photo.</small></button>
+              {!selectedFarm && <button type="button" onClick={() => openAddRecord('farm')}><span className="material-symbols-outlined">add_home</span><strong>New farm</strong><small>Create a farm before adding records.</small></button>}
+            </div>
+          ) : dialog === 'field' ? <form onSubmit={saveField}>
             {selectedFarm ? <p className="digital-farm-dialog-note">Farmer ID {user?.user_id} · Farm ID {selectedFarm.farm_id}</p> : <p className="digital-farm-dialog-note">Create a farm before adding a field. <button type="button" onClick={() => { setDialog(''); onNavigate('farm-operations'); }}>Open Farm Operations</button></p>}
             <label>Field name<input required value={fieldDraft.name} onChange={(event) => setFieldDraft((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. North field" /></label>
             <label>Crop<input required value={fieldDraft.crop} onChange={(event) => setFieldDraft((current) => ({ ...current, crop: event.target.value }))} placeholder="e.g. Maize" /></label>
